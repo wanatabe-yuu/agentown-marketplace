@@ -14,19 +14,31 @@
         "Roastery",
         "Content studio"
       ],
+      "stats": {
+        "departments": 6,
+        "agents": 8,
+        "rooms": 7,
+        "objects": 56
+      },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/coffee-store.yaml",
-      "sha256": "1031e395e3a521a63d40054b3a4b533f36da1907c33638d8de1f38f96373bc6c",
-      "size": 60127,
+      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store.yaml",
+      "sha256": "2e2bb54a743aa695b655d6b9971a7d40316bd62c94a2e94bc48dff4d4feac77e",
+      "size": 67906,
       "official": true,
-      "verified": true
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/screenshots/2-room.jpg"
+      ]
     },
     {
       "id": "factory",
       "name": "Factory",
-      "description": "A plant manager over production, quality, maintenance and logistics lines.",
+      "description": "A two-floor plant. Production floor with a conveyor line, robot arms and CNC cells, a quality lab, maintenance shop and warehouse with a dock downstairs; plant office, control room and break room upstairs. Bolt the robot mascot runs the plant's news channel.",
       "term": "factory",
       "departments": [
         "Plant management",
@@ -35,19 +47,31 @@
         "Maintenance",
         "Logistics"
       ],
+      "stats": {
+        "departments": 5,
+        "agents": 12,
+        "rooms": 7,
+        "objects": 50
+      },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/factory.yaml",
-      "sha256": "08db9aed4da3598f2075a727d228f2cdddd919c264b0394af14285a0a5a8d3cd",
-      "size": 3741,
+      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory.yaml",
+      "sha256": "0e0908d7167b92881612bed4cc7da62f1a1dad35a4c1ebbe20a1dee39ba201a2",
+      "size": 70267,
       "official": true,
-      "verified": true
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/screenshots/2-room.jpg"
+      ]
     },
     {
       "id": "hospital",
       "name": "Hospital",
-      "description": "Administration over admissions, scheduling, pharmacy supply and records; no clinical decisions.",
+      "description": "A hospital's administrative side on two floors. Lobby and admissions, pharmacy store, scheduling and medical records downstairs; director's office and staff lounge upstairs. Pip the robot mascot keeps patients and visitors informed. No clinical decisions.",
       "term": "hospital",
       "departments": [
         "Administration",
@@ -56,19 +80,31 @@
         "Pharmacy supply",
         "Medical records"
       ],
+      "stats": {
+        "departments": 5,
+        "agents": 11,
+        "rooms": 6,
+        "objects": 45
+      },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/hospital.yaml",
-      "sha256": "133fc5f7153a19f1166073f1dd5376d754c46a3a8b0bea6e1a6e8f17f3fd5908",
-      "size": 3403,
+      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital.yaml",
+      "sha256": "dcb5e3343547cbd3a47a1fff36ef681002bc5710460c3e3dc0d35a2af85f2b02",
+      "size": 64108,
       "official": true,
-      "verified": true
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/screenshots/2-room.jpg"
+      ]
     },
     {
       "id": "lab",
       "name": "Science lab",
-      "description": "A principal investigator with research groups, a data team and lab operations.",
+      "description": "A research lab on two floors. Wet lab with fume hood, centrifuge and a pipetting robot, an instrument room, data room and cold room downstairs; PI office, seminar room and lounge upstairs. Pipette the robot mascot shares the lab's news.",
       "term": "lab",
       "departments": [
         "PI office",
@@ -76,14 +112,26 @@
         "Data & analysis",
         "Lab operations"
       ],
+      "stats": {
+        "departments": 4,
+        "agents": 10,
+        "rooms": 7,
+        "objects": 49
+      },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/lab.yaml",
-      "sha256": "4333697f5ecb26ee16cdb79d5c5fde7691494e17b45844bbdefdd15805c16bd3",
-      "size": 3172,
+      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab.yaml",
+      "sha256": "61f677c533b4c3574da5fc1356e75970e0341721b5f44184e2ae00ee3c6e0d75",
+      "size": 68831,
       "official": true,
-      "verified": true
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/screenshots/2-room.jpg"
+      ]
     },
     {
       "id": "video-studio",
@@ -97,14 +145,26 @@
         "Post-production",
         "Publishing"
       ],
+      "stats": {
+        "departments": 5,
+        "agents": 9,
+        "rooms": 7,
+        "objects": 55
+      },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/video-studio.yaml",
-      "sha256": "d407b299ba6ecf7f2dfb9161f7d0e24738762a9cbec479ca2d8bf3f9f82d6d9d",
-      "size": 51685,
+      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio.yaml",
+      "sha256": "51f2d099e5623f89ec3e9e82fe8d851ae0d6fdafb54ce91fde6f7c760703e4a4",
+      "size": 77990,
       "official": true,
-      "verified": true
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/screenshots/2-room.jpg"
+      ]
     }
   ]
 }
