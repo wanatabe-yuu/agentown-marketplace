@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "worlds": [
+    {
+      "id": "coffee-store",
+      "name": "Coffee store",
+      "description": "A two-floor café. Counter, bar, kitchen and patio downstairs; office, roastery and a content studio upstairs. Mocha the cat runs social media.",
+      "term": "café",
+      "departments": [
+        "Front of house",
+        "Coffee bar",
+        "Kitchen",
+        "Management",
+        "Roastery",
+        "Content studio"
+      ],
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/coffee-store.yaml",
+      "sha256": "1031e395e3a521a63d40054b3a4b533f36da1907c33638d8de1f38f96373bc6c",
+      "size": 60127,
+      "official": true,
+      "verified": true
+    },
+    {
+      "id": "factory",
+      "name": "Factory",
+      "description": "A plant manager over production, quality, maintenance and logistics lines.",
+      "term": "factory",
+      "departments": [
+        "Plant management",
+        "Production",
+        "Quality",
+        "Maintenance",
+        "Logistics"
+      ],
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/factory.yaml",
+      "sha256": "08db9aed4da3598f2075a727d228f2cdddd919c264b0394af14285a0a5a8d3cd",
+      "size": 3741,
+      "official": true,
+      "verified": true
+    },
+    {
+      "id": "hospital",
+      "name": "Hospital",
+      "description": "Administration over admissions, scheduling, pharmacy supply and records; no clinical decisions.",
+      "term": "hospital",
+      "departments": [
+        "Administration",
+        "Admissions",
+        "Scheduling",
+        "Pharmacy supply",
+        "Medical records"
+      ],
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/hospital.yaml",
+      "sha256": "133fc5f7153a19f1166073f1dd5376d754c46a3a8b0bea6e1a6e8f17f3fd5908",
+      "size": 3403,
+      "official": true,
+      "verified": true
+    },
+    {
+      "id": "lab",
+      "name": "Science lab",
+      "description": "A principal investigator with research groups, a data team and lab operations.",
+      "term": "lab",
+      "departments": [
+        "PI office",
+        "Research",
+        "Data & analysis",
+        "Lab operations"
+      ],
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/lab.yaml",
+      "sha256": "4333697f5ecb26ee16cdb79d5c5fde7691494e17b45844bbdefdd15805c16bd3",
+      "size": 3172,
+      "official": true,
+      "verified": true
+    },
+    {
+      "id": "video-studio",
+      "name": "Video studio",
+      "description": "A two-floor video production house. Sound stage, lobby, edit suite and sound booth downstairs; producer's office, writers' room and publishing desk upstairs. Pixel the studio dog runs the channel.",
+      "term": "studio",
+      "departments": [
+        "Management",
+        "Pre-production",
+        "Production",
+        "Post-production",
+        "Publishing"
+      ],
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/6dfa81dcbc31c48896b2bcf3569b0233cf6fe74f/worlds/video-studio.yaml",
+      "sha256": "d407b299ba6ecf7f2dfb9161f7d0e24738762a9cbec479ca2d8bf3f9f82d6d9d",
+      "size": 51685,
+      "official": true,
+      "verified": true
+    }
+  ]
+}
