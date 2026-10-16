@@ -1,0 +1,16 @@
+{
+  "name": "agentown-marketplace",
+  "private": true,
+  "license": "MIT",
+  "description": "Worlds for Agentown: official ones, and the index of community worlds published on GitHub.",
+  "type": "module",
+  "engines": {
+    "node": "24.x"
+  },
+  "scripts": {
+    "index": "node scripts/build-index.mjs"
+  },
+  "dependencies": {
+    "yaml": "2.9.1"
+  }
+}
