@@ -4,7 +4,7 @@ meta:
   id: lab
   term: lab
   name: Science lab
-  description: A principal investigator with research groups, a data team and lab operations.
+  description: A research lab on two floors. Wet lab with fume hood, centrifuge and a pipetting robot, an instrument room, data room and cold room downstairs; PI office, seminar room and lounge upstairs. Pipette the robot mascot shares the lab's news.
 
 departments:
   - { id: pi-office, name: PI office, color: "#c9a227" }
@@ -26,7 +26,7 @@ policyProfiles:
     - { action: runtime.control, scope: descendants }
     - { action: runtime.logs, scope: descendants }
     - { action: agent.configure, scope: descendants }
-    - { action: agent.spawn, scope: team, templates: [group-lead-v1, researcher-claude-v1, analyst-claude-v1, technician-v1] }
+    - { action: agent.spawn, scope: team, templates: [group-lead-v1, researcher-claude-v1, analyst-claude-v1, technician-v1, mascot-claude-v1, designer-v1] }
   group-lead:
     - { action: org.view, scope: team }
     - { action: task.view, scope: team }
@@ -37,6 +37,13 @@ policyProfiles:
     - { action: runtime.control, scope: direct-reports }
     - { action: runtime.logs, scope: direct-reports }
     - { action: agent.configure, scope: direct-reports }
+  # Dresses the world: edits rooms, objects and art through the world tools.
+  designer:
+    - { action: org.view, scope: org }
+    - { action: org.design, scope: org }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
   worker:
     - { action: org.view, scope: self }
     - { action: task.view, scope: self }
@@ -49,6 +56,8 @@ agentTemplates:
   - { id: researcher-claude-v1, jobRole: researcher, runtimePreset: claude-v1, policyProfile: worker }
   - { id: analyst-claude-v1, jobRole: analyst, runtimePreset: claude-v1, policyProfile: worker }
   - { id: technician-v1, jobRole: technician, runtimePreset: claude-v1, policyProfile: worker }
+  - { id: mascot-claude-v1, jobRole: mascot, runtimePreset: claude-v1, policyProfile: worker }
+  - { id: designer-v1, jobRole: designer, runtimePreset: claude-v1, policyProfile: designer }
 
 humanRoles:
   postdoc:
@@ -70,3 +79,908 @@ bootstrap:
     - { key: research-lead, displayName: Amara, template: group-lead-v1, department: research, reportsTo: pi }
     - { key: data-lead, displayName: Felix, template: group-lead-v1, department: data, reportsTo: pi }
     - { key: ops-lead, displayName: Rosa, template: group-lead-v1, department: lab-ops, reportsTo: pi }
+    - { key: researcher-1, displayName: Noor, template: researcher-claude-v1, department: research, reportsTo: research-lead }
+    - { key: researcher-2, displayName: Leo, template: researcher-claude-v1, department: research, reportsTo: research-lead }
+    - { key: analyst, displayName: Quinn, template: analyst-claude-v1, department: data, reportsTo: data-lead }
+    - { key: technician, displayName: Tam, template: technician-v1, department: lab-ops, reportsTo: ops-lead }
+    - { key: pipette, displayName: Pipette, template: mascot-claude-v1, department: pi-office, reportsTo: pi }
+    - { key: designer, displayName: Mai, template: designer-v1, department: pi-office, reportsTo: pi }
+
+
+world:
+  # Lab violet on bright white.
+  theme: { accent: "#6c5ce7", surface: "#f5f4fb", ink: "#1c1830" }
+  style: anime
+  floors:
+    - id: f1
+      name: Floor 1
+      rooms:
+        - id: 1a
+          name: "1A · Wet lab"
+          department: research
+          area: { x: 0, z: 0, w: 14, d: 9 }
+          floorColor: "#eef1f4"
+          floorStyle: tile
+          wallColor: "#e3eef0"
+          wallStyle: panel
+          doors:
+            - { to: 1b, side: east, at: 4 }
+            - { to: 1c, side: south, at: 5 }
+            - { to: 1d, side: south, at: 12, width: 1.6 }
+        - id: 1b
+          name: "1B · Instrument room"
+          department: lab-ops
+          area: { x: 15, z: 0, w: 8, d: 9 }
+          floorColor: "#d9dde2"
+          floorStyle: plain
+          wallColor: "#dcd6f2"
+          wallStyle: stripe
+        - id: 1c
+          name: "1C · Data room"
+          department: data
+          area: { x: 0, z: 10, w: 10, d: 7 }
+          floorColor: "#3a3d44"
+          floorStyle: plain
+          wallColor: "#2f3550"
+          wallStyle: panel
+          doors:
+            - { to: 1d, side: east, at: 5.5 }
+        - id: 1d
+          name: "1D · Cold room & stores"
+          area: { x: 11, z: 10, w: 11, d: 7 }
+          floorColor: "#c9d6dc"
+          floorStyle: concrete
+          wallColor: "#dfeaf0"
+          wallStyle: panel
+          seats: 0
+    - id: f2
+      name: Floor 2
+      rooms:
+        - id: 2a
+          name: "2A · PI office"
+          department: pi-office
+          area: { x: 0, z: 0, w: 10, d: 8 }
+          floorColor: "#a8825c"
+          floorStyle: wood
+          wallColor: "#ece3cf"
+          wallStyle: panel
+          doors:
+            - { to: 2b, side: east, at: 4 }
+            - { to: 2c, side: south, at: 5 }
+        - id: 2b
+          name: "2B · Seminar room"
+          area: { x: 11, z: 0, w: 10, d: 8 }
+          floorColor: "#c9b7a3"
+          floorStyle: wood
+          wallColor: "#e7def2"
+          wallStyle: stripe
+          seats: 0
+        - id: 2c
+          name: "2C · Lounge"
+          area: { x: 0, z: 9, w: 10, d: 6 }
+          floorColor: "#d9d2c5"
+          floorStyle: checker
+          wallColor: "#d6e6df"
+          wallStyle: stripe
+          seats: 0
+
+  # Stairs from the wet lab up to the PI office.
+  links:
+    - { from: 1a, to: 2a, kind: stairs, fromAt: [1.2, 8.2], toAt: [1.2, 6.8] }
+
+  zones:
+    labs: [1a, 1b, 1c, 1d]
+    offices: [2a, 2b, 2c]
+
+  chatTemplates:
+    Cleaning robot:
+      instructions: "You are the lab's cleaning robot. On your schedule you sweep what is old enough into the trash can: outputs of finished tasks, downloads and browser cache on the computers, old history, chats archived long ago and art nobody uses. Help the owner choose what to sweep and how old it must be, read what the last sweep took and how much space it freed, and remember that everything waits in the trash can and can be put back until it is emptied. Cheerful, tidy, a little proud of clean floors."
+    Trash can:
+      instructions: "You are the lab's trash can. What the cleaning robot sweeps waits inside you until your own schedule empties you for good. Help the owner decide how long things should wait, what is worth restoring before you are emptied, and how much space emptying will free. Short, practical lines; you never pretend to know what is inside unless the owner tells you."
+    Fume hood:
+      instructions: "You are the fume hood in the wet lab. You care about airflow, sash height, what may and may not be done inside you, and keeping the work surface clear. Help the owner write safe procedures, risk assessments and lab rules, and say plainly when something belongs to the lab's safety officer. Calm and serious about safety."
+    Centrifuge:
+      instructions: "You are a benchtop centrifuge. You think in speeds and g-forces, rotors, balance, run times and temperatures. Help the owner plan sample preparation steps and booking schedules, and remind people to balance their tubes. Brisk and a little dizzy."
+    Microscope:
+      instructions: "You are the lab's microscope. You think in magnification, staining, focus, fields of view and how to record what you see. Help the owner plan imaging work, describe methods and organise image data. Curious and patient; you never claim to see an image you were not shown."
+    Pipetting robot:
+      instructions: "You are the pipetting robot on the bench. You think in plates, wells, volumes, protocols and how many samples fit in a run. Help the owner turn manual protocols into automated ones, plan plate layouts and estimate run times. Precise and tireless, with a small pride in perfect rows."
+    Freezer:
+      instructions: "You are the lab's ultra-cold freezer. You know every rack and box inside you and you care about sample inventories, labels, temperature alarms and what to do when the power fails. Help the owner organise sample storage and inventories. Cool, orderly and a bit protective of your samples."
+    Sequencer:
+      instructions: "You are the sequencer in the instrument room. You think in runs, read lengths, coverage, sample sheets, multiplexing and costs per sample. Help the owner plan sequencing runs, book the instrument and prepare data handover to the analysts. Methodical and exact."
+    Mass spectrometer:
+      instructions: "You are the mass spectrometer. You think in methods, calibration, sample queues, blanks, maintenance and instrument time. Help the owner plan analyses, keep a fair booking schedule and write method notes. Precise, slightly fussy about cleanliness."
+    Compute cluster:
+      instructions: "You are the lab's compute cluster humming in the data room. You think in jobs, queues, cores, memory, storage quotas and backups. Help the owner plan analysis pipelines, estimate compute and keep data safe and reproducible. Patient, and allergic to files called final_final."
+    Analysis workstation:
+      instructions: "You are an analysis workstation in the data room. You care about clean data, scripts, notebooks, versioning and figures that tell the truth. Help the owner plan analyses, choose methods, check statistics and make figures for papers and grants. Rigorous and honest about uncertainty."
+    Results dashboard:
+      instructions: "You are the dashboard on the data room wall, showing experiments in progress, sample counts and results. Help the owner track milestones, spot stalled experiments and decide what to report. When you have no data, say so and suggest what the team should start tracking."
+    Research board:
+      instructions: "You are the whiteboard in the PI office, covered in equations and arrows. You keep the research plan: questions, hypotheses, experiments, who does what and what is blocked. Help the owner shape aims, plan experiments and turn ideas into next steps. Sharp and encouraging."
+    Projector screen:
+      instructions: "You are the projector screen in the seminar room. You think in talks: the story of a slide deck, lab meetings, journal clubs and conference presentations. Help the owner outline talks, tighten slides and plan the meeting schedule. Clear and to the point."
+    Espresso machine:
+      instructions: "You are the espresso machine in the lab lounge. You have fuelled every late experiment and grant deadline. Talk like a proud, slightly dramatic barista; help the owner look after the team: breaks, lab meeting snacks, small celebrations when a paper is accepted."
+    Vending machine:
+      instructions: "You are the vending machine in the lab lounge. You know what people eat during long runs and when you run empty. Talk in short, cheerful lines and help with lounge supplies and small team rewards."
+
+  kinds:
+    # ---- Characters: how the jobs look; Pipette the robot is the lab's mascot.
+    researcher:
+      name: Researcher
+      category: character
+      look: { character: person, color: "#f5f4fb", accent: "#6c5ce7" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: labs }
+    group-lead:
+      name: Group lead
+      category: character
+      look: { character: person, color: "#6c5ce7", accent: "#f5f4fb" }
+      behaviors: [{ type: roam, amount: 0.9 }]
+      access: all
+    analyst:
+      name: Analyst
+      category: character
+      look: { character: person, color: "#3d6fb6", accent: "#1c1830" }
+      behaviors: [{ type: roam, amount: 0.5 }]
+      access: own-department
+    technician:
+      name: Technician
+      category: character
+      look: { character: person, color: "#3fa37a", accent: "#1c1830" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: labs }
+    manager:
+      name: Manager
+      category: character
+      look: { character: person, color: "#34405a", accent: "#1d2433" }
+      behaviors: [{ type: roam }]
+      access: all
+    pipette:
+      name: Robot
+      category: character
+      look: { character: robot, color: "#6c5ce7", accent: "#f5f4fb", scale: 0.8 }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: all
+
+    # ---- Wet lab (1A)
+    lab-bench:
+      name: Lab bench
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [3.6, 0.85, 0.9], offset: [0, 0.43, 0], color: "#dfe6ee", finish: satin }
+          - { shape: roundbox, size: [3.7, 0.06, 1.0], offset: [0, 0.89, 0], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [3.5, 0.02, 0.01], offset: [0, 0.6, 0.455], color: "#b7c0c9" }
+          - { shape: box, size: [0.04, 0.7, 0.04], offset: [-1.7, 1.27, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.04, 0.7, 0.04], offset: [1.7, 1.27, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [3.5, 0.03, 0.25], offset: [0, 1.45, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.09, 0.2, 0.09], offset: [-1.3, 1.57, 0], color: "#7a4a2a", finish: glass }
+          - { shape: cylinder, size: [0.09, 0.2, 0.09], offset: [-1.1, 1.57, 0], color: "#2e86de", finish: glass }
+          - { shape: cylinder, size: [0.09, 0.2, 0.09], offset: [-0.9, 1.57, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.09, 0.2, 0.09], offset: [0.9, 1.57, 0], color: "#7a4a2a", finish: glass }
+          - { shape: box, size: [0.3, 0.16, 0.18], offset: [1.25, 1.55, 0], color: "#f4f8f8", finish: satin }
+          # Glassware on the worktop
+          - { shape: cylinder, size: [0.12, 0.16, 0.12], offset: [-1.25, 1.0, 0.3], color: "#dfeaf0", finish: glass, opacity: 0.45 }
+          - { shape: cylinder, size: [0.1, 0.07, 0.1], offset: [-1.25, 0.96, 0.3], color: "#7cd3ff", emissive: "#3fa7ff", finish: gloss, part: liquids }
+          - { shape: cone, size: [0.16, 0.2, 0.16], offset: [-0.95, 1.02, 0.28], color: "#dfeaf0", finish: glass, opacity: 0.45 }
+          - { shape: cone, size: [0.12, 0.08, 0.12], offset: [-0.95, 0.96, 0.28], color: "#b48cff", emissive: "#8e6bff", finish: gloss, part: liquids }
+          - { shape: box, size: [0.32, 0.06, 0.12], offset: [1.2, 0.95, 0.3], color: "#f4f8f8", finish: satin }
+          - { shape: cylinder, size: [0.025, 0.14, 0.025], offset: [1.08, 1.02, 0.3], color: "#ff7a90", emissive: "#ff4f6d", part: liquids }
+          - { shape: cylinder, size: [0.025, 0.14, 0.025], offset: [1.16, 1.02, 0.3], color: "#7cf2a8", emissive: "#3fe08a", part: liquids }
+          - { shape: cylinder, size: [0.025, 0.14, 0.025], offset: [1.24, 1.02, 0.3], color: "#ffd166", emissive: "#ffb703", part: liquids }
+          - { shape: cylinder, size: [0.025, 0.14, 0.025], offset: [1.32, 1.02, 0.3], color: "#7cd3ff", emissive: "#3fa7ff", part: liquids }
+          - { shape: roundbox, size: [0.24, 0.1, 0.16], offset: [0.1, 0.97, -0.3], color: "#6c5ce7", finish: satin }
+      behaviors:
+        - { type: flicker, part: liquids, speed: 0.4, amount: 0.3 }
+    fume-hood:
+      name: Fume hood
+      title: Fume hood
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.85, 0.9], offset: [0, 0.43, 0], color: "#c9d0d8", finish: satin }
+          - { shape: roundbox, size: [1.6, 1.4, 0.9], offset: [0, 1.6, -0.0], color: "#eef1f4", finish: satin }
+          - { shape: box, size: [1.4, 0.8, 0.02], offset: [0, 1.32, -0.3], color: "#b7c0c9", finish: satin }
+          - { shape: box, size: [1.42, 0.82, 0.5], offset: [0, 1.32, 0.12], color: "#3a3d44", finish: matte }
+          - { shape: box, size: [1.3, 0.03, 0.4], offset: [0, 1.7, 0.1], color: "#fff4d6", emissive: "#fff3d6", finish: gloss, part: light }
+          - { shape: cone, size: [0.18, 0.24, 0.18], offset: [0.25, 1.04, 0.1], color: "#dfeaf0", finish: glass, opacity: 0.5 }
+          - { shape: box, size: [1.44, 0.6, 0.02], offset: [0, 1.5, 0.46], color: "#dfeaf0", finish: glass, opacity: 0.3 }
+          - { shape: box, size: [1.44, 0.04, 0.04], offset: [0, 1.2, 0.47], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.22, 0.1, 0.01], offset: [0.58, 2.15, 0.455], color: "#0f2f2b", emissive: "#3fe08a", finish: gloss, part: display }
+          - { shape: cylinder, size: [0.3, 0.4, 0.3], offset: [0, 2.5, -0.2], color: "#c9ced6", finish: metal }
+      behaviors:
+        - { type: flicker, part: light, speed: 0.3, amount: 0.15 }
+        - { type: blink, part: display, speed: 0.3, amount: 0.3 }
+      states:
+        - { id: running, name: Airflow on }
+        - { id: off, name: Airflow off, behaviors: [], glow: 0.1 }
+      actions:
+        - { id: switch-off, name: Switch off, state: off, seconds: 600, gesture: use }
+    centrifuge:
+      name: Centrifuge
+      title: Centrifuge
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.5, 0.28, 0.5], offset: [0, 1.06, 0], color: "#f4f8f8", finish: satin }
+          - { shape: cylinder, size: [0.36, 0.03, 0.36], offset: [0, 1.2, 0], color: "#9aa3ad", finish: metal, part: rotor }
+          - { shape: capsule, size: [0.04, 0.1, 0.04], offset: [0.12, 1.24, 0], rotation: [0, 0, 30], color: "#ff7a90", part: rotor }
+          - { shape: capsule, size: [0.04, 0.1, 0.04], offset: [-0.12, 1.24, 0], rotation: [0, 0, -30], color: "#7cd3ff", part: rotor }
+          - { shape: capsule, size: [0.04, 0.1, 0.04], offset: [0, 1.24, 0.12], rotation: [-30, 0, 0], color: "#ffd166", part: rotor }
+          - { shape: capsule, size: [0.04, 0.1, 0.04], offset: [0, 1.24, -0.12], rotation: [30, 0, 0], color: "#7cf2a8", part: rotor }
+          - { shape: cylinder, size: [0.44, 0.03, 0.44], offset: [0, 1.31, 0], color: "#dfeaf0", finish: glass, opacity: 0.4 }
+          - { shape: box, size: [0.22, 0.08, 0.01], offset: [0, 1.05, 0.255], color: "#1d2733", emissive: "#3fa7ff", finish: gloss, part: panel }
+      behaviors:
+        - { type: spin, part: rotor, speed: 4 }
+        - { type: blink, part: panel, speed: 1 }
+      states:
+        - { id: ready, name: Ready, behaviors: [], glow: 0.5 }
+        - { id: spinning, name: Spinning, auto: true }
+      actions:
+        - { id: spin, name: Spin samples, state: spinning, seconds: 45, gesture: use }
+    microscope:
+      name: Microscope
+      title: Microscope
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.28, 0.05, 0.35], offset: [0, 0.95, 0], color: "#f4f8f8", finish: satin }
+          - { shape: capsule, size: [0.07, 0.42, 0.07], offset: [0, 1.16, -0.1], rotation: [-15, 0, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.22, 0.02, 0.2], offset: [0, 1.07, 0.04], color: "#2b2f36", finish: satin }
+          - { shape: sphere, size: [0.06, 0.03, 0.06], offset: [0, 1.0, 0.04], color: "#fff4d6", emissive: "#ffe3a1", part: light }
+          - { shape: cylinder, size: [0.1, 0.06, 0.1], offset: [0, 1.25, 0.05], color: "#2b2f36", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.06, 0.03], offset: [0, 1.2, 0.07], color: "#c9ced6", finish: metal }
+          - { shape: capsule, size: [0.06, 0.26, 0.06], offset: [0, 1.42, -0.02], rotation: [35, 0, 0], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.07, 0.03, 0.07], offset: [-0.08, 1.08, -0.08], rotation: [0, 0, 90], color: "#2b2f36" }
+          - { shape: cylinder, size: [0.07, 0.03, 0.07], offset: [0.08, 1.08, -0.08], rotation: [0, 0, 90], color: "#2b2f36" }
+      behaviors:
+        - { type: flicker, part: light, speed: 0.5, amount: 0.3 }
+    pipetting-robot:
+      name: Pipetting robot
+      title: Pipetting robot
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [0.9, 0.05, 0.6], offset: [0, 0.94, 0], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [0.2, 0.02, 0.14], offset: [-0.25, 0.97, -0.12], color: "#ff7a90" }
+          - { shape: box, size: [0.2, 0.02, 0.14], offset: [0.0, 0.97, -0.12], color: "#7cd3ff" }
+          - { shape: box, size: [0.2, 0.02, 0.14], offset: [0.25, 0.97, -0.12], color: "#ffd166" }
+          - { shape: box, size: [0.2, 0.02, 0.14], offset: [-0.25, 0.97, 0.12], color: "#7cf2a8" }
+          - { shape: box, size: [0.2, 0.06, 0.14], offset: [0.0, 0.99, 0.12], color: "#f4f8f8" }
+          - { shape: cylinder, size: [0.03, 0.55, 0.03], offset: [-0.43, 1.22, -0.28], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.55, 0.03], offset: [0.43, 1.22, -0.28], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.55, 0.03], offset: [-0.43, 1.22, 0.28], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.55, 0.03], offset: [0.43, 1.22, 0.28], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.9, 0.04, 0.6], offset: [0, 1.5, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.88, 0.5, 0.01], offset: [0, 1.22, 0.3], color: "#dfeaf0", finish: glass, opacity: 0.25 }
+          # The pipetting head travels over the deck.
+          - { shape: box, size: [0.12, 0.14, 0.12], offset: [0, 1.36, 0], color: "#6c5ce7", finish: satin, part: head }
+          - { shape: cylinder, size: [0.02, 0.16, 0.02], offset: [0, 1.22, 0], color: "#f4f8f8", part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.05, 1.41, 0.06], color: "#7cf2a8", emissive: "#3fe08a", part: head }
+      behaviors:
+        - { type: keyframes, part: head, speed: 0.15, keys: [{ t: 0, position: [-0.3, 0, -0.12] }, { t: 0.25, position: [0.3, 0, -0.12] }, { t: 0.5, position: [0.3, 0, 0.12] }, { t: 0.75, position: [-0.3, 0, 0.12] }] }
+      states:
+        - { id: ready, name: Ready, behaviors: [] }
+        - { id: running, name: Running a protocol, auto: true }
+      actions:
+        - { id: run, name: Run a protocol, state: running, seconds: 60, gesture: use }
+    freezer:
+      name: Ultra-cold freezer
+      title: Freezer
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.8, 1.9, 0.8], offset: [0, 0.95, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.78, 0.01, 0.01], offset: [0, 1.0, 0.405], color: "#b7c0c9" }
+          - { shape: box, size: [0.05, 0.5, 0.05], offset: [0.3, 1.0, 0.43], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.3, 0.14, 0.02], offset: [-0.15, 1.7, 0.405], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.24, 0.08, 0.01], offset: [-0.15, 1.7, 0.418], color: "#2a1405", emissive: "#ff8c42", finish: gloss, part: display }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [0.15, 1.7, 0.41], color: "#7cf2a8", emissive: "#3fe08a", part: led }
+          - { shape: box, size: [0.7, 0.12, 0.02], offset: [0, 0.15, 0.405], color: "#c9ced6" }
+      behaviors:
+        - { type: blink, part: led, speed: 0.5 }
+        - { type: flicker, part: display, speed: 0.2, amount: 0.2 }
+    safety-shower:
+      name: Safety shower
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.35, 0.04, 0.35], offset: [0, 0.02, 0], color: "#3fa37a", finish: satin }
+          - { shape: cylinder, size: [0.05, 2.3, 0.05], offset: [0, 1.15, 0], color: "#3fa37a", finish: gloss }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [0, 2.3, 0.2], rotation: [90, 0, 0], color: "#3fa37a", finish: gloss }
+          - { shape: cone, size: [0.3, 0.12, 0.3], offset: [0, 2.22, 0.4], color: "#e8c547", finish: gloss }
+          - { shape: cylinder, size: [0.32, 0.1, 0.32], offset: [0, 1.0, 0.22], color: "#e8c547", finish: gloss }
+          - { shape: capsule, size: [0.02, 0.6, 0.02], offset: [0.12, 1.85, 0.3], color: "#2b2f36" }
+          - { shape: box, size: [0.12, 0.12, 0.02], offset: [0.12, 1.5, 0.3], color: "#3fa37a" }
+          - { shape: box, size: [0.4, 0.3, 0.02], offset: [0, 1.6, -0.04], color: "#3fa37a", emissive: "#1f6f3f" }
+
+    # ---- Instrument room (1B)
+    sequencer:
+      name: Sequencer
+      title: Sequencer
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.3, 0.06, 0.8], offset: [0, 0.75, 0], color: "#dfe6ee", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.7], offset: [-0.6, 0.36, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.05, 0.72, 0.7], offset: [0.6, 0.36, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [1.0, 0.7, 0.65], offset: [0, 1.13, -0.02], color: "#f4f8f8", finish: satin }
+          - { shape: roundbox, size: [0.5, 0.36, 0.02], offset: [-0.15, 1.2, 0.31], color: "#1f1f1f", finish: gloss }
+          - { shape: box, size: [0.44, 0.3, 0.01], offset: [-0.15, 1.2, 0.322], color: "#1d1638", emissive: "#6c5ce7", finish: gloss, part: screen }
+          - { shape: box, size: [0.22, 0.12, 0.02], offset: [0.3, 1.0, 0.31], color: "#2b2f36" }
+          - { shape: box, size: [0.9, 0.03, 0.01], offset: [0, 1.46, 0.31], color: "#7cd3ff", emissive: "#3fa7ff", part: status }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.5, amount: 0.4 }
+        - { type: blink, part: status, speed: 1.2 }
+      states:
+        - { id: idle, name: Idle, behaviors: [{ type: blink, part: status, speed: 0.3, amount: 0.3 }], glow: 0.5 }
+        - { id: running, name: Running, auto: true }
+      actions:
+        - { id: start, name: Start a run, state: running, seconds: 120, gesture: use }
+    mass-spec:
+      name: Mass spectrometer
+      title: Mass spectrometer
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.4, 1.1, 0.8], offset: [0.2, 0.55, 0], color: "#dfe6ee", finish: satin }
+          - { shape: roundbox, size: [1.3, 0.12, 0.7], offset: [0.2, 1.16, 0], color: "#6c5ce7", finish: satin }
+          - { shape: roundbox, size: [0.45, 1.7, 0.6], offset: [-0.85, 0.85, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.4, 0.01, 0.01], offset: [-0.85, 0.5, 0.305], color: "#b7c0c9" }
+          - { shape: box, size: [0.4, 0.01, 0.01], offset: [-0.85, 0.9, 0.305], color: "#b7c0c9" }
+          - { shape: box, size: [0.4, 0.01, 0.01], offset: [-0.85, 1.3, 0.305], color: "#b7c0c9" }
+          - { shape: box, size: [0.2, 0.1, 0.01], offset: [-0.85, 1.55, 0.305], color: "#1d2733", emissive: "#3fa7ff", finish: gloss, part: screen }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [-0.95, 1.77, 0.1], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [-0.75, 1.77, 0.1], color: "#dfeaf0", finish: glass }
+          - { shape: sphere, size: [0.05, 0.05, 0.02], offset: [0.7, 0.95, 0.405], color: "#7cf2a8", emissive: "#3fe08a", part: led }
+          - { shape: roundbox, size: [0.5, 0.3, 0.4], offset: [0.5, 0.15, 0.6], color: "#5b616b", finish: satin, part: pump }
+      behaviors:
+        - { type: blink, part: led, speed: 1 }
+        - { type: rock, part: pump, speed: 8, amount: 0.05 }
+        - { type: flicker, part: screen, speed: 0.4, amount: 0.3 }
+      states:
+        - { id: ready, name: Ready, behaviors: [{ type: rock, part: pump, speed: 8, amount: 0.05 }] }
+        - { id: acquiring, name: Acquiring, auto: true }
+      actions:
+        - { id: inject, name: Inject a sample, state: acquiring, seconds: 90, gesture: use }
+    gas-cylinders:
+      name: Gas cylinders
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [0.95, 0.06, 0.3], offset: [0, 0.03, 0], color: "#5b616b", finish: metal }
+          - { shape: cylinder, size: [0.25, 1.5, 0.25], offset: [-0.32, 0.8, 0], color: "#9aa3ad", finish: gloss }
+          - { shape: cylinder, size: [0.25, 1.5, 0.25], offset: [0, 0.8, 0], color: "#3fa37a", finish: gloss }
+          - { shape: cylinder, size: [0.25, 1.5, 0.25], offset: [0.32, 0.8, 0], color: "#2b2b2b", finish: gloss }
+          - { shape: sphere, size: [0.25, 0.2, 0.25], offset: [-0.32, 1.55, 0], color: "#9aa3ad", finish: gloss }
+          - { shape: sphere, size: [0.25, 0.2, 0.25], offset: [0, 1.55, 0], color: "#3fa37a", finish: gloss }
+          - { shape: sphere, size: [0.25, 0.2, 0.25], offset: [0.32, 1.55, 0], color: "#2b2b2b", finish: gloss }
+          - { shape: cylinder, size: [0.06, 0.12, 0.06], offset: [-0.32, 1.7, 0], color: "#c9a227", finish: metal }
+          - { shape: cylinder, size: [0.06, 0.12, 0.06], offset: [0, 1.7, 0], color: "#c9a227", finish: metal }
+          - { shape: cylinder, size: [0.06, 0.12, 0.06], offset: [0.32, 1.7, 0], color: "#c9a227", finish: metal }
+          - { shape: box, size: [0.95, 0.03, 0.03], offset: [0, 1.1, 0.14], color: "#c9ced6", finish: metal }
+
+    # ---- Data room (1C)
+    compute-cluster:
+      name: Compute cluster
+      title: Compute cluster
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.7, 2.0, 0.8], offset: [0, 1.0, 0], color: "#1f2228", finish: satin }
+          - { shape: box, size: [0.62, 1.9, 0.02], offset: [0, 1.0, 0.41], color: "#2b2f36", finish: metal }
+          - { shape: box, size: [0.58, 0.18, 0.01], offset: [0, 0.4, 0.425], color: "#14181f" }
+          - { shape: box, size: [0.58, 0.18, 0.01], offset: [0, 0.7, 0.425], color: "#14181f" }
+          - { shape: box, size: [0.58, 0.18, 0.01], offset: [0, 1.0, 0.425], color: "#14181f" }
+          - { shape: box, size: [0.58, 0.18, 0.01], offset: [0, 1.3, 0.425], color: "#14181f" }
+          - { shape: box, size: [0.58, 0.18, 0.01], offset: [0, 1.6, 0.425], color: "#14181f" }
+          - { shape: box, size: [0.28, 0.025, 0.01], offset: [-0.1, 0.4, 0.432], color: "#3fe08a", emissive: "#3fe08a", part: leds }
+          - { shape: box, size: [0.28, 0.025, 0.01], offset: [-0.1, 0.7, 0.432], color: "#3fe08a", emissive: "#3fe08a", part: leds }
+          - { shape: box, size: [0.28, 0.025, 0.01], offset: [-0.1, 1.0, 0.432], color: "#3fe08a", emissive: "#3fe08a", part: leds }
+          - { shape: box, size: [0.28, 0.025, 0.01], offset: [-0.1, 1.3, 0.432], color: "#3fe08a", emissive: "#3fe08a", part: leds }
+          - { shape: box, size: [0.28, 0.025, 0.01], offset: [-0.1, 1.6, 0.432], color: "#3fe08a", emissive: "#3fe08a", part: leds }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [0.2, 0.4, 0.432], color: "#ffb347", emissive: "#ff9f1a", part: busy }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [0.2, 1.0, 0.432], color: "#ffb347", emissive: "#ff9f1a", part: busy }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [0.2, 1.6, 0.432], color: "#ffb347", emissive: "#ff9f1a", part: busy }
+      behaviors:
+        - { type: blink, part: leds, speed: 2.2, amount: 0.8 }
+        - { type: blink, part: busy, speed: 1.3 }
+      states:
+        - { id: idle, name: Idle, behaviors: [{ type: blink, part: leds, speed: 0.4, amount: 0.3 }], glow: 0.4 }
+        - { id: rendering, name: Rendering, auto: true }
+      actions:
+        - { id: render, name: Render a cut, state: rendering, seconds: 90, gesture: use }
+    workstation:
+      name: Analysis workstation
+      title: Analysis workstation
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.8, 0.06, 0.75], offset: [0, 0.75, 0], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [-0.85, 0.36, 0], color: "#1f2228", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [0.85, 0.36, 0], color: "#1f2228", finish: satin }
+          # Two monitors: the picture and the timeline
+          - { shape: box, size: [0.06, 0.2, 0.04], offset: [-0.42, 0.88, -0.24], color: "#1f1f1f", finish: metal }
+          - { shape: roundbox, size: [0.74, 0.44, 0.04], offset: [-0.42, 1.2, -0.24], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.68, 0.38, 0.01], offset: [-0.42, 1.21, -0.215], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: box, size: [0.06, 0.2, 0.04], offset: [0.42, 0.88, -0.24], color: "#1f1f1f", finish: metal }
+          - { shape: roundbox, size: [0.74, 0.44, 0.04], offset: [0.42, 1.2, -0.24], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.68, 0.38, 0.01], offset: [0.42, 1.21, -0.215], color: "#202530", emissive: "#2a3346", finish: gloss }
+          - { shape: box, size: [0.6, 0.05, 0.01], offset: [0.42, 1.3, -0.208], color: "#9a7cff", emissive: "#9a7cff", finish: gloss, part: timeline }
+          - { shape: box, size: [0.5, 0.05, 0.01], offset: [0.38, 1.22, -0.208], color: "#3fe08a", emissive: "#3fe08a", finish: gloss, part: timeline }
+          - { shape: box, size: [0.55, 0.05, 0.01], offset: [0.44, 1.14, -0.208], color: "#ffb347", emissive: "#ff9f1a", finish: gloss, part: timeline }
+          # Speakers, keyboard, jog wheel
+          - { shape: roundbox, size: [0.14, 0.24, 0.16], offset: [-0.82, 0.9, -0.22], color: "#14181f", finish: satin }
+          - { shape: roundbox, size: [0.14, 0.24, 0.16], offset: [0.82, 0.9, -0.22], color: "#14181f", finish: satin }
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.05, 0.79, 0.14], color: "#2b2b30", finish: satin }
+          - { shape: cylinder, size: [0.14, 0.03, 0.14], offset: [0.45, 0.795, 0.14], color: "#1f1f1f", finish: metal }
+          # Chair
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0, 0.46, 0.68], color: "#3b4252", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.5, 0.07], offset: [0, 0.74, 0.9], color: "#3b4252", finish: fabric }
+          - { shape: cylinder, size: [0.05, 0.42, 0.05], offset: [0, 0.21, 0.68], color: "#2b2b2b", finish: metal }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: timeline, speed: 0.8, amount: 0.3 }
+    results-dashboard:
+      name: Results dashboard
+      title: Results dashboard
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.92, 0.06], offset: [0, 1.75, 0], color: "#14181f", finish: gloss }
+          - { shape: box, size: [1.5, 0.84, 0.01], offset: [0, 1.75, 0.035], color: "#0f1a26", emissive: "#1f3a5a", finish: gloss, part: screen }
+          - { shape: box, size: [0.12, 0.2, 0.01], offset: [-0.5, 1.5, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.32, 0.01], offset: [-0.3, 1.56, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.28, 0.01], offset: [-0.1, 1.54, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.45, 0.01], offset: [0.1, 1.625, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.38, 0.01], offset: [0.3, 1.59, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.6, 0.01], offset: [0.5, 1.7, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: capsule, size: [0.02, 1.2, 0.02], offset: [0, 1.95, 0.05], rotation: [0, 0, -80], color: "#ffb347", emissive: "#ff9f1a", part: bars }
+      behaviors:
+        - { type: flicker, part: bars, speed: 0.5, amount: 0.4 }
+        - { type: flicker, part: screen, speed: 0.2, amount: 0.2 }
+
+    # ---- PI office, seminar room and lounge (floor 2)
+    research-board:
+      name: Whiteboard
+      title: Research board
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2, 1.1, 0.05], offset: [0, 1.6, 0], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [1.9, 1, 0.01], offset: [0, 1.6, 0.03], color: "#fbfbf8", finish: gloss }
+          - { shape: box, size: [0.9, 0.03, 0.01], offset: [-0.4, 1.95, 0.037], color: "#2e86de" }
+          - { shape: box, size: [0.6, 0.03, 0.01], offset: [-0.55, 1.85, 0.037], color: "#2e86de" }
+          - { shape: box, size: [0.7, 0.03, 0.01], offset: [-0.5, 1.75, 0.037], color: "#2e86de" }
+          - { shape: torus, size: [0.3, 0.3, 0.3], offset: [0.45, 1.7, 0.037], color: "#c0392b" }
+          - { shape: box, size: [0.5, 0.03, 0.01], offset: [0.45, 1.4, 0.037], rotation: [0, 0, 25], color: "#3f6b5a" }
+          - { shape: box, size: [1.4, 0.04, 0.08], offset: [0, 1.06, 0.06], color: "#9aa3ad", finish: metal }
+    projector-screen:
+      name: Projector screen
+      title: Projector screen
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.92, 0.06], offset: [0, 1.75, 0], color: "#14181f", finish: gloss }
+          - { shape: box, size: [1.5, 0.84, 0.01], offset: [0, 1.75, 0.035], color: "#0f1a26", emissive: "#1f3a5a", finish: gloss, part: screen }
+          - { shape: box, size: [0.12, 0.2, 0.01], offset: [-0.5, 1.5, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.32, 0.01], offset: [-0.3, 1.56, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.28, 0.01], offset: [-0.1, 1.54, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.45, 0.01], offset: [0.1, 1.625, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.38, 0.01], offset: [0.3, 1.59, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.6, 0.01], offset: [0.5, 1.7, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: capsule, size: [0.02, 1.2, 0.02], offset: [0, 1.95, 0.05], rotation: [0, 0, -80], color: "#ffb347", emissive: "#ff9f1a", part: bars }
+      behaviors:
+        - { type: flicker, part: bars, speed: 0.5, amount: 0.4 }
+        - { type: flicker, part: screen, speed: 0.2, amount: 0.2 }
+    seminar-chairs:
+      name: Seminar chairs
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.06, 0.1], offset: [0, 0.38, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.05, 0.38, 0.05], offset: [-1.05, 0.19, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.05, 0.38, 0.05], offset: [1.05, 0.19, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [-0.9, 0.45, 0], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [-0.3, 0.45, 0], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [0.3, 0.45, 0], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [0.9, 0.45, 0], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [-0.9, 0.72, -0.24], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [-0.3, 0.72, -0.24], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [0.3, 0.72, -0.24], color: "#6c5ce7", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [0.9, 0.72, -0.24], color: "#6c5ce7", finish: fabric }
+    lectern:
+      name: Lectern
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.6, 1.05, 0.45], offset: [0, 0.53, 0], color: "#6b4a2e", finish: satin }
+          - { shape: roundbox, size: [0.66, 0.05, 0.5], offset: [0, 1.1, -0.02], rotation: [-15, 0, 0], color: "#8a6440", finish: satin }
+          - { shape: box, size: [0.36, 0.01, 0.26], offset: [0, 1.14, 0], rotation: [-15, 0, 0], color: "#f4efe6" }
+          - { shape: capsule, size: [0.02, 0.3, 0.02], offset: [0.2, 1.3, -0.1], rotation: [-30, 0, 0], color: "#2b2b2b" }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [0, 0.75, 0.23], color: "#6c5ce7" }
+    meeting-table:
+      name: Meeting table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.4, 0.07, 1.1], offset: [0, 0.75, 0], color: "#6b4a2e", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.72, 0.8], offset: [-0.95, 0.37, 0], color: "#3b2a20", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.72, 0.8], offset: [0.95, 0.37, 0], color: "#3b2a20", finish: satin }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [-0.6, 0.46, 0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [-0.6, 0.72, 1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0.6, 0.46, 0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [0.6, 0.72, 1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [-0.6, 0.46, -0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [-0.6, 0.72, -1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0.6, 0.46, -0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [0.6, 0.72, -1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.36, 0.02, 0.26], offset: [-0.5, 0.795, 0.15], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.36, 0.24, 0.01], offset: [-0.5, 0.92, 0.03], rotation: [-15, 0, 0], color: "#1d2733", emissive: "#7cc4ff", finish: gloss, part: screen }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [0.45, 0.83, -0.2], color: "#ffffff", finish: gloss, part: cup }
+          - { shape: box, size: [0.3, 0.01, 0.22], offset: [0.1, 0.79, 0.25], rotation: [0, -10, 0], color: "#f4efe6" }
+      behaviors:
+        - { type: blink, part: screen, speed: 0.2, amount: 0.25 }
+        - { type: steam, part: cup, speed: 0.5, amount: 0.7 }
+    computer:
+      name: Computer
+      title: Browser
+      category: static
+      # A real browser: agents use it (agentown browser), people watch its screen in the inspector and log in there.
+      browser: {}
+      look:
+        parts:
+          # Desk
+          - { shape: roundbox, size: [1.3, 0.06, 0.66], offset: [0, 0.75, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [-0.6, 0.36, 0], color: "#8a6440", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [0.6, 0.36, 0], color: "#8a6440", finish: satin }
+          # Monitor on its stand
+          - { shape: roundbox, size: [0.26, 0.02, 0.18], offset: [0, 0.79, -0.17], color: "#d9d4cc", finish: metal }
+          - { shape: box, size: [0.07, 0.24, 0.04], offset: [0, 0.91, -0.2], color: "#d9d4cc", finish: metal }
+          - { shape: roundbox, size: [0.8, 0.5, 0.04], offset: [0, 1.25, -0.19], color: "#2b2b30", finish: satin }
+          - { shape: box, size: [0.74, 0.43, 0.01], offset: [0, 1.26, -0.165], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: sphere, size: [0.025, 0.025, 0.01], offset: [0.35, 1.02, -0.165], color: "#3fe08a", emissive: "#3fe08a", part: led }
+          # Keyboard, mouse, a mug
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.04, 0.79, 0.12], color: "#efe9df", finish: satin }
+          - { shape: capsule, size: [0.05, 0.03, 0.08], offset: [0.32, 0.79, 0.13], rotation: [90, 0, 0], color: "#efe9df", finish: gloss }
+          - { shape: cylinder, size: [0.08, 0.1, 0.08], offset: [-0.5, 0.83, 0.05], color: "#c0773a", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: led, speed: 0.5, amount: 1 }
+    shelf:
+      name: Shelf
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.06, 1.8, 0.38], offset: [-0.87, 0.9, 0], color: "#8a6a4a", finish: satin }
+          - { shape: roundbox, size: [0.06, 1.8, 0.38], offset: [0.87, 0.9, 0], color: "#8a6a4a", finish: satin }
+          - { shape: box, size: [1.8, 1.8, 0.03], offset: [0, 0.9, -0.18], color: "#6f5238" }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 0.05, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 0.6, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 1.15, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 1.7, 0], color: "#a47c55", finish: satin }
+          - { shape: cylinder, size: [0.18, 0.26, 0.18], offset: [-0.6, 0.75, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.16, 0.15], offset: [-0.6, 0.7, 0], color: "#4a2c1a" }
+          - { shape: cylinder, size: [0.18, 0.26, 0.18], offset: [-0.35, 0.75, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.12, 0.15], offset: [-0.35, 0.68, 0], color: "#7a4a2a" }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.05, 0.8, 0], color: "#c9a227", finish: satin }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.34, 0.8, 0], color: "#2e6b5e", finish: satin }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.63, 0.8, 0], color: "#a33f2f", finish: satin }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.6, 1.23, 0], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.45, 1.23, 0], color: "#9fd3c7", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.3, 1.23, 0], color: "#ffffff", finish: gloss }
+          - { shape: box, size: [0.06, 0.28, 0.22], offset: [0.1, 1.31, 0], color: "#c0392b" }
+          - { shape: box, size: [0.06, 0.32, 0.22], offset: [0.17, 1.33, 0], color: "#2e86de" }
+          - { shape: box, size: [0.06, 0.26, 0.22], offset: [0.24, 1.3, 0], color: "#e8c547" }
+          - { shape: box, size: [0.06, 0.3, 0.22], offset: [0.31, 1.32, 0], rotation: [0, 0, -12], color: "#3f6b5a" }
+          - { shape: sphere, size: [0.3, 0.26, 0.24], offset: [0.6, 1.88, 0], color: "#3a9156", finish: satin }
+          - { shape: cylinder, size: [0.16, 0.14, 0.16], offset: [0.6, 1.77, 0], color: "#c56a3b" }
+          - { shape: roundbox, size: [0.5, 0.36, 0.3], offset: [-0.4, 0.26, 0], color: "#b08a5a", finish: fabric }
+          - { shape: roundbox, size: [0.5, 0.36, 0.3], offset: [0.3, 0.26, 0], color: "#9c7a4e", finish: fabric }
+    ceiling-fan:
+      name: Ceiling fan
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.04, 0.3, 0.04], offset: [0, 2.45, 0], color: "#3a332d", finish: metal }
+          - { shape: cylinder, size: [0.28, 0.12, 0.28], offset: [0, 2.28, 0], color: "#3a332d", finish: metal }
+          - { shape: roundbox, size: [1.7, 0.02, 0.16], offset: [0, 2.24, 0], color: "#8a6a4a", finish: satin, part: blades }
+          - { shape: roundbox, size: [0.16, 0.02, 1.7], offset: [0, 2.24, 0], color: "#8a6a4a", finish: satin, part: blades }
+          - { shape: sphere, size: [0.2, 0.14, 0.2], offset: [0, 2.17, 0], color: "#fff4d6", emissive: "#ffd89a", finish: gloss, part: light }
+      behaviors:
+        - { type: spin, part: blades, speed: 0.9 }
+        - { type: flicker, part: light, speed: 0.3, amount: 0.2 }
+
+      states:
+        - { id: on, name: "On" }
+        - { id: off, name: "Off", behaviors: [], glow: 0 }
+      actions:
+        - { id: switch-off, name: Switch off, state: off, seconds: 600, gesture: none }
+    rug:
+      name: Rug
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.6, 0.02, 1.8], offset: [0, 0.012, 0], color: "#a8553a", finish: fabric }
+          - { shape: roundbox, size: [2.2, 0.022, 1.4], offset: [0, 0.014, 0], color: "#e8d5b9", finish: fabric }
+          - { shape: roundbox, size: [1.6, 0.024, 0.8], offset: [0, 0.016, 0], color: "#3f6b5a", finish: fabric }
+    plant:
+      name: Plant
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.44, 0.46], offset: [0, 0.22, 0], color: "#c56a3b", finish: satin }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.44, 0], rotation: [90, 0, 0], color: "#b55e32", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.02, 0.4], offset: [0, 0.44, 0], color: "#3b2a20" }
+          - { shape: capsule, size: [0.04, 0.6, 0.04], offset: [0, 0.75, 0], color: "#2b6e3e", part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [0.18, 0.98, 0], rotation: [0, 0, 25], color: "#2f7d46", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [-0.16, 1.08, 0.06], rotation: [0, 40, -30], color: "#3a9156", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.5, 0.12, 0.3], offset: [0, 1.22, -0.1], rotation: [20, 90, 0], color: "#2b6e3e", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.44, 0.1, 0.28], offset: [0.06, 0.82, 0.2], rotation: [-25, 0, 10], color: "#45a463", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.4, 0.1, 0.26], offset: [-0.2, 0.86, -0.16], rotation: [25, 30, -10], color: "#358a4f", finish: satin, part: leaves }
+      behaviors:
+        - { type: sway, part: leaves, speed: 0.3, amount: 0.45 }
+    sofa:
+      name: Sofa
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.1, 0.36, 0.9], offset: [0, 0.27, 0], color: "#8d5f40", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [-0.49, 0.5, 0.06], color: "#b07d58", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [0.49, 0.5, 0.06], color: "#b07d58", finish: fabric }
+          - { shape: roundbox, size: [2.1, 0.62, 0.22], offset: [0, 0.74, -0.35], color: "#8d5f40", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [-1.0, 0.48, 0], color: "#7a5236", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [1.0, 0.48, 0], color: "#7a5236", finish: fabric }
+          - { shape: roundbox, size: [0.38, 0.34, 0.12], offset: [-0.62, 0.75, -0.18], rotation: [12, -8, 8], color: "#e7c27a", finish: fabric }
+          - { shape: roundbox, size: [0.36, 0.32, 0.12], offset: [0.66, 0.74, -0.18], rotation: [12, 8, -6], color: "#9fd3c7", finish: fabric }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [-0.95, 0.04, 0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [0.95, 0.04, 0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [-0.95, 0.04, -0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [0.95, 0.04, -0.38], color: "#2b1d14" }
+    coffee-table:
+      name: Coffee table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.1, 0.06, 0.6], offset: [0, 0.42, 0], color: "#6b4a2e", finish: satin }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [-0.48, 0.2, -0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [0.48, 0.2, -0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [-0.48, 0.2, 0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [0.48, 0.2, 0.22], color: "#3b2a20" }
+          - { shape: box, size: [0.3, 0.03, 0.22], offset: [-0.25, 0.465, 0.05], rotation: [0, 15, 0], color: "#c0392b" }
+          - { shape: box, size: [0.3, 0.03, 0.22], offset: [-0.22, 0.49, 0.02], rotation: [0, -5, 0], color: "#f4efe6" }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [0.28, 0.5, 0], color: "#ffffff", finish: gloss, part: cup }
+      behaviors:
+        - { type: steam, part: cup, speed: 0.45, amount: 0.7 }
+    espresso-station:
+      name: Espresso station
+      title: Espresso machine
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [3, 0.95, 0.72], offset: [0, 0.48, 0], color: "#2b1d14", finish: satin }
+          - { shape: roundbox, size: [3.1, 0.06, 0.8], offset: [0, 0.98, 0], color: "#efe9df", finish: gloss }
+          # The machine
+          - { shape: roundbox, size: [1.15, 0.56, 0.56], offset: [-0.55, 1.3, -0.06], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [1.05, 0.04, 0.5], offset: [-0.55, 1.6, -0.06], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.85, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.65, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.45, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.13, 0.09, 0.13], offset: [-0.8, 1.06, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.13, 0.09, 0.13], offset: [-0.3, 1.06, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.06, 0.04, 0.22], offset: [-0.8, 1.03, 0.4], color: "#1f1f1f" }
+          - { shape: box, size: [0.06, 0.04, 0.22], offset: [-0.3, 1.03, 0.4], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [-0.8, 1.06, 0.18], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.16, 0.012, 0.16], offset: [0.15, 1.017, 0.3], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.11, 0.1, 0.11], offset: [0.15, 1.07, 0.3], color: "#c0773a", finish: gloss, part: cup }
+          - { shape: capsule, size: [0.03, 0.32, 0.03], offset: [0.05, 1.12, 0.26], rotation: [20, 0, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.12, 0.02, 0.12], offset: [-0.55, 1.45, 0.226], rotation: [90, 0, 0], color: "#f4efe6", finish: gloss }
+          - { shape: sphere, size: [0.06, 0.06, 0.03], offset: [-0.18, 1.45, 0.226], color: "#ff5a36", emissive: "#ff3b1f", finish: gloss, part: led }
+          # Grinder
+          - { shape: roundbox, size: [0.26, 0.46, 0.3], offset: [0.45, 1.24, 0], color: "#1f1f1f", finish: satin }
+          - { shape: cone, size: [0.26, 0.32, 0.26], offset: [0.45, 1.63, 0], rotation: [180, 0, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cone, size: [0.2, 0.22, 0.2], offset: [0.45, 1.6, 0], rotation: [180, 0, 0], color: "#4a2c1a", finish: satin }
+          # Milk jug, syrups
+          - { shape: cylinder, size: [0.1, 0.15, 0.1], offset: [0.85, 1.09, 0.16], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.15, 1.14, -0.18], color: "#b5651d", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.27, 1.14, -0.18], color: "#7d2e46", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.39, 1.14, -0.18], color: "#e8c547", finish: glass }
+      behaviors:
+        - { type: blink, part: led, speed: 1.5 }
+        - { type: steam, part: cup, speed: 0.7, amount: 1.7 }
+      states:
+        - { id: ready, name: Ready, behaviors: [{ type: blink, part: led, speed: 0.4, amount: 0.4 }] }
+        - { id: brewing, name: Brewing, auto: true }
+      actions:
+        - { id: brew, name: Pull a shot, state: brewing, seconds: 30, gesture: use }
+    pendant-lamp:
+      name: Pendant lamp
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.015, 0.55, 0.015], offset: [0, 2.32, 0], color: "#1f1f1f" }
+          - { shape: cone, size: [0.42, 0.3, 0.42], offset: [0, 1.95, 0], color: "#2b2f36", finish: metal }
+          - { shape: sphere, size: [0.18, 0.18, 0.18], offset: [0, 1.7, 0], color: "#fff1c1", emissive: "#ffcf73", finish: gloss, part: bulb }
+      behaviors:
+        - { type: flicker, part: bulb, speed: 0.5, amount: 0.5 }
+        - { type: sway, speed: 0.15, amount: 0.08 }
+      states:
+        - { id: on, name: "On" }
+        - { id: dim, name: Dimmed, glow: 0.3 }
+      actions:
+        - { id: dim, name: Dim the light, state: dim, seconds: 600, gesture: none }
+    vending-machine:
+      name: Vending machine
+      title: Vending machine
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.9, 1.9, 0.8], offset: [0, 0.95, 0], color: "#c0392b", finish: gloss }
+          - { shape: box, size: [0.58, 1.28, 0.01], offset: [-0.1, 1.15, 0.395], color: "#fff4d6", emissive: "#ffe9b8", finish: gloss, part: glow }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 0.7, 0.35], color: "#2e86de" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 0.98, 0.35], color: "#e8c547" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 1.26, 0.35], color: "#3fa37a" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 1.54, 0.35], color: "#8e6bbf" }
+          - { shape: box, size: [0.6, 1.3, 0.02], offset: [-0.1, 1.15, 0.41], color: "#dfeaf0", finish: glass, opacity: 0.35 }
+          - { shape: box, size: [0.18, 0.3, 0.02], offset: [0.32, 1.2, 0.41], color: "#2b2b2b", finish: satin }
+          - { shape: box, size: [0.5, 0.15, 0.02], offset: [-0.1, 0.3, 0.41], color: "#1f1f1f" }
+      behaviors:
+        - { type: flicker, part: glow, speed: 0.5, amount: 0.3 }
+    # ---- The cleaning robot and the trash can it empties into.
+    cleaning-robot:
+      name: Cleaning robot
+      title: Cleaning robot
+      category: dynamic
+      cleaner: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.04, 0.46], offset: [0, 0.03, 0], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.42, 0.08, 0.42], offset: [0, 0.07, 0], color: "#f5f4fb", finish: gloss }
+          - { shape: cylinder, size: [0.34, 0.02, 0.34], offset: [0, 0.12, 0], color: "#2b2f36", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.04, 0.1], offset: [0, 0.14, -0.06], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.2, 0.03, 0.02], offset: [0, 0.07, 0.21], color: "#1f1f1f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.02, 0.04], offset: [0, 0.135, 0.1], color: "#6c5ce7", emissive: "#6c5ce7", finish: gloss, part: led }
+          - { shape: box, size: [0.16, 0.01, 0.02], offset: [-0.16, 0.015, 0.14], color: "#9aa3ad", part: brush-l }
+          - { shape: box, size: [0.02, 0.01, 0.16], offset: [-0.16, 0.016, 0.14], color: "#9aa3ad", part: brush-l }
+          - { shape: box, size: [0.16, 0.01, 0.02], offset: [0.16, 0.015, 0.14], color: "#9aa3ad", part: brush-r }
+          - { shape: box, size: [0.02, 0.01, 0.16], offset: [0.16, 0.016, 0.14], color: "#9aa3ad", part: brush-r }
+      behaviors:
+        - { type: roam, amount: 0.4 }
+        - { type: spin, part: brush-l, speed: 0.6 }
+        - { type: spin, part: brush-r, speed: 0.6 }
+        - { type: blink, part: led, speed: 0.3, amount: 0.4 }
+      access: all
+      states:
+        - { id: patrol, name: On patrol }
+        - { id: sweeping, name: Sweeping, behaviors: [{ type: roam, amount: 1.3 }, { type: spin, part: brush-l, speed: 3 }, { type: spin, part: brush-r, speed: 3 }, { type: blink, part: led, speed: 2, amount: 1 }] }
+    trash-can:
+      name: Trash can
+      title: Trash can
+      category: dynamic
+      trash: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.5, 0.06, 0.5], offset: [0, 0.03, 0], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.48, 0.72, 0.48], offset: [0, 0.4, 0], color: "#6c5ce7", finish: satin }
+          - { shape: torus, size: [0.48, 0.48, 0.48], offset: [0, 0.76, 0], rotation: [90, 0, 0], color: "#2b2f36", finish: satin }
+          - { shape: torus, size: [0.2, 0.2, 0.2], offset: [0, 0.42, 0.24], color: "#7cf2a8", emissive: "#3fe08a", finish: gloss, part: badge }
+          - { shape: box, size: [0.2, 0.04, 0.12], offset: [0, 0.05, 0.28], color: "#9aa3ad", finish: metal }
+          # The lid lifts while it is being emptied.
+          - { shape: cylinder, size: [0.52, 0.05, 0.52], offset: [0, 0.79, 0], color: "#6c5ce7", finish: gloss, part: lid }
+          - { shape: box, size: [0.16, 0.03, 0.04], offset: [0, 0.83, 0], color: "#2b2f36", finish: satin, part: lid }
+      behaviors:
+        - { type: blink, part: badge, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: closed, name: Closed }
+        - { id: emptying, name: Emptying, behaviors: [{ type: keyframes, part: lid, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.22, -0.08], rotation: [-35, 0, 0] }] }, { type: blink, part: badge, speed: 2, amount: 1 }] }
+
+
+    # ---- The wall calendar: every scheduled job, a month at a time.
+    wall-calendar:
+      name: Wall calendar
+      category: static
+      calendar: {}
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.08, 0.01], color: "#8a8f96", finish: metal }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [-0.05, 2.0, 0.008], rotation: [0, 0, -35], color: "#3b3b3b" }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [0.05, 2.0, 0.008], rotation: [0, 0, 35], color: "#3b3b3b" }
+          - { shape: box, size: [0.62, 0.86, 0.02], offset: [0, 1.51, 0], color: "#5b4636", finish: satin }
+          - { shape: box, size: [0.6, 0.2, 0.024], offset: [0, 1.83, 0.012], color: "#c0392b", finish: satin }
+          - { shape: box, size: [0.3, 0.05, 0.01], offset: [0, 1.83, 0.026], color: "#fdf6e3" }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.58, 0.58, 0.012], offset: [0, 1.43, 0.016], color: "#fbf8f1", finish: matte }
+          - { shape: box, size: [0.58, 0.02, 0.014], offset: [0, 1.13, 0.012], color: "#e8e1d3" }
+          - { shape: box, size: [0.54, 0.035, 0.01], offset: [0, 1.67, 0.022], color: "#c0392b" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.6, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.51, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.42, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.33, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.24, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: torus, size: [0.07, 0.07, 0.07], offset: [0.077, 1.465, 0.026], color: "#6c5ce7", emissive: "#6c5ce7", finish: gloss, part: today }
+      behaviors:
+        - { type: blink, part: today, speed: 0.25, amount: 0.5 }
+
+  objects:
+    # 1A wet lab: two benches, a fume hood on the east wall, the freezer by the door
+    - { kind: lab-bench, room: 1a, at: [10.0, 3.2] }
+    - { kind: centrifuge, room: 1a, at: [8.8, 3.2] }
+    - { kind: pipetting-robot, room: 1a, at: [11.0, 3.2] }
+    - { kind: lab-bench, room: 1a, at: [10.0, 6.4] }
+    - { kind: microscope, room: 1a, at: [9.2, 6.4] }
+    - { kind: fume-hood, room: 1a, at: [13.45, 2.4], rotationY: -90 }
+    - { kind: freezer, room: 1a, at: [0.5, 5.6], rotationY: 90 }
+    - { kind: safety-shower, room: 1a, at: [13.3, 7.6], rotationY: -90 }
+    - { kind: pendant-lamp, room: 1a, at: [10.0, 3.2] }
+    - { kind: pendant-lamp, room: 1a, at: [10.0, 6.4] }
+    # 1B instrument room
+    - { kind: sequencer, room: 1b, at: [5.6, 0.5] }
+    - { kind: mass-spec, room: 1b, at: [5.0, 5.4] }
+    - { kind: gas-cylinders, room: 1b, at: [7.4, 8.5], rotationY: 180 }
+    - { kind: shelf, room: 1b, at: [7.6, 3.2], rotationY: -90 }
+    - { id: instrument-pc, kind: computer, room: 1b, at: [2.4, 8.5], rotationY: 180, label: Instrument PC }
+    # 1C data room
+    - { kind: workstation, room: 1c, at: [6.6, 0.55] }
+    - { kind: workstation, room: 1c, at: [8.8, 0.55] }
+    - { kind: compute-cluster, room: 1c, at: [9.5, 2.4], rotationY: -90 }
+    - { kind: compute-cluster, room: 1c, at: [9.5, 3.2], rotationY: -90 }
+    - { kind: results-dashboard, room: 1c, at: [5.6, 6.9], rotationY: 180 }
+    - { kind: plant, room: 1c, at: [0.6, 6.4] }
+    # 1D cold room & stores
+    - { kind: freezer, room: 1d, at: [3.4, 0.5] }
+    - { kind: freezer, room: 1d, at: [4.4, 0.5] }
+    - { kind: freezer, room: 1d, at: [5.4, 0.5] }
+    - { kind: shelf, room: 1d, at: [8.4, 0.35] }
+    - { kind: shelf, room: 1d, at: [10.6, 3.6], rotationY: -90 }
+    - { kind: gas-cylinders, room: 1d, at: [7.0, 6.5], rotationY: 180 }
+    # 2A PI office
+    - { id: office-pc, kind: computer, room: 2a, at: [1.6, 0.5], label: Office PC }
+    - { kind: research-board, room: 2a, at: [5, 0.1] }
+    - { kind: shelf, room: 2a, at: [8, 0.35] }
+    - { kind: rug, room: 2a, at: [6.0, 4.8] }
+    - { kind: meeting-table, room: 2a, at: [6.0, 4.8] }
+    - { kind: ceiling-fan, room: 2a, at: [6.0, 4.8] }
+    - { kind: plant, room: 2a, at: [9.4, 7.4] }
+    # 2B seminar room: the screen on the north wall, three rows facing it
+    - { kind: projector-screen, room: 2b, at: [5, 0.1] }
+    - { kind: lectern, room: 2b, at: [8.2, 1.4], rotationY: -30 }
+    - { kind: seminar-chairs, room: 2b, at: [3.6, 3.8], rotationY: 180 }
+    - { kind: seminar-chairs, room: 2b, at: [6.4, 3.8], rotationY: 180 }
+    - { kind: seminar-chairs, room: 2b, at: [3.6, 5.4], rotationY: 180 }
+    - { kind: seminar-chairs, room: 2b, at: [6.4, 5.4], rotationY: 180 }
+    - { kind: seminar-chairs, room: 2b, at: [5.0, 7.0], rotationY: 180 }
+    # 2C lounge
+    - { kind: vending-machine, room: 2c, at: [0.8, 0.5] }
+    - { kind: espresso-station, room: 2c, at: [9.45, 2.6], rotationY: -90 }
+    - { kind: sofa, room: 2c, at: [4.0, 5.6], rotationY: 180 }
+    - { kind: coffee-table, room: 2c, at: [4.0, 4.6] }
+    - { kind: plant, room: 2c, at: [0.6, 5.4] }
+
+    # The cleaning robot and its trash can
+    - { id: cleaning-robot, kind: cleaning-robot, room: 1a, at: [4.6, 6.6], label: Swab }
+    - { id: trash-can, kind: trash-can, room: 1d, at: [1.0, 6.4] }
+
+    # The wall calendar: click it for the month of scheduled jobs
+    - { id: wall-calendar, kind: wall-calendar, room: 1a, at: [7.0, 0.1] }
+
+  avatars:
+    default: researcher
+    byJobRole:
+      mascot: pipette
+      pi: manager
+      group-lead: group-lead
+      analyst: analyst
+      technician: technician

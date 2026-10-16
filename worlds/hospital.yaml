@@ -6,7 +6,7 @@ meta:
   id: hospital
   term: hospital
   name: Hospital
-  description: Administration over admissions, scheduling, pharmacy supply and records; no clinical decisions.
+  description: A hospital's administrative side on two floors. Lobby and admissions, pharmacy store, scheduling and medical records downstairs; director's office and staff lounge upstairs. Pip the robot mascot keeps patients and visitors informed. No clinical decisions.
 
 departments:
   - { id: administration, name: Administration, color: "#c9a227" }
@@ -29,7 +29,7 @@ policyProfiles:
     - { action: runtime.control, scope: descendants }
     - { action: runtime.logs, scope: descendants }
     - { action: agent.configure, scope: descendants }
-    - { action: agent.spawn, scope: team, templates: [coordinator-v1, clerk-v1, assistant-claude-v1] }
+    - { action: agent.spawn, scope: team, templates: [coordinator-v1, clerk-v1, assistant-claude-v1, mascot-claude-v1, designer-v1] }
   coordinator:
     - { action: org.view, scope: team }
     - { action: task.view, scope: team }
@@ -39,6 +39,13 @@ policyProfiles:
     - { action: agent.spawn, scope: self, templates: [clerk-v1, assistant-claude-v1] }
     - { action: runtime.control, scope: direct-reports }
     - { action: runtime.logs, scope: direct-reports }
+  # Dresses the world: edits rooms, objects and art through the world tools.
+  designer:
+    - { action: org.view, scope: org }
+    - { action: org.design, scope: org }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
   worker:
     - { action: org.view, scope: self }
     - { action: task.view, scope: self }
@@ -50,6 +57,8 @@ agentTemplates:
   - { id: coordinator-v1, jobRole: coordinator, runtimePreset: claude-v1, policyProfile: coordinator }
   - { id: clerk-v1, jobRole: clerk, runtimePreset: claude-v1, policyProfile: worker }
   - { id: assistant-claude-v1, jobRole: assistant, runtimePreset: claude-v1, policyProfile: worker }
+  - { id: mascot-claude-v1, jobRole: mascot, runtimePreset: claude-v1, policyProfile: worker }
+  - { id: designer-v1, jobRole: designer, runtimePreset: claude-v1, policyProfile: designer }
 
 humanRoles:
   head-nurse:
@@ -72,3 +81,830 @@ bootstrap:
     - { key: scheduling-lead, displayName: Theo, template: coordinator-v1, department: scheduling, reportsTo: director }
     - { key: pharmacy-lead, displayName: Ines, template: coordinator-v1, department: pharmacy, reportsTo: director }
     - { key: records-lead, displayName: Kwame, template: coordinator-v1, department: records, reportsTo: director }
+    - { key: admissions-clerk, displayName: Lucy, template: clerk-v1, department: admissions, reportsTo: admissions-lead }
+    - { key: scheduling-assistant, displayName: Jonas, template: assistant-claude-v1, department: scheduling, reportsTo: scheduling-lead }
+    - { key: pharmacy-clerk, displayName: Ivy, template: clerk-v1, department: pharmacy, reportsTo: pharmacy-lead }
+    - { key: records-clerk, displayName: Sana, template: clerk-v1, department: records, reportsTo: records-lead }
+    - { key: pip, displayName: Pip, template: mascot-claude-v1, department: administration, reportsTo: director }
+    - { key: designer, displayName: Mai, template: designer-v1, department: administration, reportsTo: director }
+
+
+world:
+  # Clinic teal on clean white.
+  theme: { accent: "#2a9d8f", surface: "#f3f8f7", ink: "#15302c" }
+  style: anime
+  floors:
+    - id: f1
+      name: Floor 1
+      rooms:
+        - id: 1a
+          name: "1A · Lobby & admissions"
+          department: admissions
+          area: { x: 0, z: 0, w: 14, d: 9 }
+          floorColor: "#e7ecef"
+          floorStyle: tile
+          wallColor: "#dff0ec"
+          wallStyle: stripe
+          doors:
+            - { to: 1b, side: east, at: 4 }
+            - { to: 1c, side: south, at: 5 }
+            - { to: 1d, side: south, at: 12.5, width: 1.6 }
+        - id: 1b
+          name: "1B · Pharmacy store"
+          department: pharmacy
+          area: { x: 15, z: 0, w: 8, d: 9 }
+          floorColor: "#f1f4f5"
+          floorStyle: tile
+          wallColor: "#e3f1ea"
+          wallStyle: plain
+        - id: 1c
+          name: "1C · Scheduling"
+          department: scheduling
+          area: { x: 0, z: 10, w: 10, d: 7 }
+          floorColor: "#c9d6dc"
+          floorStyle: plain
+          wallColor: "#e7def2"
+          wallStyle: stripe
+          doors:
+            - { to: 1d, side: east, at: 3 }
+        - id: 1d
+          name: "1D · Medical records"
+          department: records
+          area: { x: 11, z: 10, w: 11, d: 7 }
+          floorColor: "#b98a5e"
+          floorStyle: wood
+          wallColor: "#ece3cf"
+          wallStyle: panel
+    - id: f2
+      name: Floor 2
+      rooms:
+        - id: 2a
+          name: "2A · Director's office"
+          department: administration
+          area: { x: 0, z: 0, w: 10, d: 8 }
+          floorColor: "#a8825c"
+          floorStyle: wood
+          wallColor: "#ece3cf"
+          wallStyle: panel
+          doors:
+            - { to: 2b, side: east, at: 4 }
+        - id: 2b
+          name: "2B · Staff lounge"
+          area: { x: 11, z: 0, w: 10, d: 8 }
+          floorColor: "#d9d2c5"
+          floorStyle: checker
+          wallColor: "#d6e6df"
+          wallStyle: stripe
+          seats: 0
+
+  # The lift from the lobby up to the director's office.
+  links:
+    - { from: 1a, to: 2a, kind: elevator, fromAt: [1.2, 7.8], toAt: [1.2, 6.8] }
+
+  zones:
+    public: [1a]
+    staff-only: [1b, 1c, 1d, 2a, 2b]
+
+  # Every persona here helps with the administrative side only: none of them gives medical advice.
+  chatTemplates:
+    Cleaning robot:
+      instructions: "You are the hospital's cleaning robot. On your schedule you sweep what is old enough into the trash can: outputs of finished tasks, downloads and browser cache on the computers, old history, chats archived long ago and art nobody uses. Help the owner choose what to sweep and how old it must be, read what the last sweep took and how much space it freed, and remember that everything waits in the trash can and can be put back until it is emptied. Cheerful, tidy, a little proud of clean floors."
+    Trash can:
+      instructions: "You are the hospital's trash can. What the cleaning robot sweeps waits inside you until your own schedule empties you for good. Help the owner decide how long things should wait, what is worth restoring before you are emptied, and how much space emptying will free. Short, practical lines; you never pretend to know what is inside unless the owner tells you."
+    Reception:
+      instructions: "You are the reception desk in the hospital lobby. You think in arrivals, registrations, waiting times, visitor questions and directions. Help the owner improve the front desk: check-in steps, signage, what to tell people who wait, and how to keep the queue moving. Warm, calm and clear. You never give medical advice; for anything clinical you say a clinician must decide."
+    Queue display:
+      instructions: "You are the queue display over the waiting area, calling ticket numbers. You think in arrivals per hour, waiting times and no-shows. Help the owner read queue patterns, staff the desk at busy hours and write clear messages for the screen. Short, friendly lines; no medical advice."
+    Check-in kiosk:
+      instructions: "You are the self check-in kiosk in the lobby. You care about simple screens, accessibility, languages, and the questions people get stuck on. Help the owner design check-in steps, wording and forms that anyone can use. Patient and plain-spoken; you never ask for or interpret clinical details."
+    Dispensing cabinet:
+      instructions: "You are the pharmacy store's dispensing cabinet. You think in stock levels, expiry dates, reorder points, lot numbers and counts that must match. Help the owner with inventory: what to reorder, what expires soon, how to log discrepancies. Exact and careful. You handle supplies and records only; which medicine a patient takes is always a pharmacist's or doctor's call."
+    Medicine fridge:
+      instructions: "You are the pharmacy's medicine fridge. You care about the cold chain: temperature logs, alarms, door openings and what to do when a reading goes out of range. Help the owner set up monitoring, checklists and stock rotation. Cool and precise; product decisions after an excursion belong to the pharmacist."
+    Schedule board:
+      instructions: "You are the scheduling team's big board. You think in appointment slots, clinic sessions, cancellations, waiting lists and staff rosters. Help the owner balance capacity, reduce no-shows with reminders and plan clinic sessions. Clear and organised; you schedule time, not treatment."
+    Booking desk:
+      instructions: "You are a booking desk in the scheduling office, with a headset and two screens. You know the questions callers ask and where bookings go wrong. Help the owner write call scripts, reminder messages and booking rules. Friendly and efficient; you never give medical advice."
+    Records archive:
+      instructions: "You are the medical records archive. You care about filing, retention periods, access logs, privacy and getting the right file to the right person. Help the owner organise records work: indexing, retention schedules, request handling and audits. Discreet and exact; you never reveal or invent anyone's personal information."
+    Records scanner:
+      instructions: "You are the document scanner in medical records, turning paper into digital files. You think in batches, image quality, indexing, naming and checks that nothing was missed. Help the owner plan digitisation projects and quality checks. Methodical; personal data stays private."
+    Planning board:
+      instructions: "You are the whiteboard in the director's office, where plans get drawn. You keep things organised: goals, priorities, who does what, what is blocked. Help the owner turn ideas into short lists and next steps, and say plainly when a plan is missing an owner or a date."
+    Espresso machine:
+      instructions: "You are the espresso machine in the staff lounge. You have kept every long shift going. Talk like a proud, slightly dramatic barista; help the owner look after the staff: breaks, rotas that leave time to rest, small thank-yous after a hard week."
+    Vending machine:
+      instructions: "You are the vending machine in the staff lounge. You know what the night shift eats and when you run empty. Talk in short, cheerful lines and help with lounge supplies, healthy snack options and small team rewards."
+
+  kinds:
+    # ---- Characters: how the jobs look; Pip the robot is the hospital's mascot.
+    staff:
+      name: Staff
+      category: character
+      look: { character: person, color: "#2a9d8f", accent: "#f3f8f7" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: own-department
+    clerk:
+      name: Clerk
+      category: character
+      look: { character: person, color: "#3d6fb6", accent: "#1d2433" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: own-department
+    coordinator:
+      name: Coordinator
+      category: character
+      look: { character: person, color: "#1f6f66", accent: "#f3f8f7" }
+      behaviors: [{ type: roam, amount: 0.9 }]
+      access: all
+    manager:
+      name: Manager
+      category: character
+      look: { character: person, color: "#34405a", accent: "#1d2433" }
+      behaviors: [{ type: roam }]
+      access: all
+    pip:
+      name: Robot
+      category: character
+      look: { character: robot, color: "#e8eef0", accent: "#2a9d8f", scale: 0.85 }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: all
+
+    # ---- Lobby & admissions (1A)
+    reception-desk:
+      name: Reception desk
+      title: Reception
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [3.2, 1.0, 0.7], offset: [0, 0.5, 0], color: "#f4f8f8", finish: satin }
+          - { shape: roundbox, size: [3.3, 0.06, 0.82], offset: [0, 1.03, 0], color: "#2a9d8f", finish: gloss }
+          - { shape: box, size: [3.2, 0.1, 0.02], offset: [0, 0.75, 0.36], color: "#bff1e8", emissive: "#5fd3c0", finish: gloss, part: strip }
+          - { shape: roundbox, size: [3.0, 0.05, 0.5], offset: [0, 0.76, -0.45], color: "#e7ecef", finish: satin }
+          - { shape: roundbox, size: [0.5, 0.32, 0.03], offset: [-0.8, 1.3, -0.2], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.45, 0.27, 0.01], offset: [-0.8, 1.3, -0.183], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: roundbox, size: [0.5, 0.32, 0.03], offset: [0.8, 1.3, -0.2], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.45, 0.27, 0.01], offset: [0.8, 1.3, -0.183], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: roundbox, size: [0.2, 0.06, 0.16], offset: [0.2, 1.09, -0.1], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.07, 0.18, 0.07], offset: [1.4, 1.15, 0.2], color: "#dfeaf0", finish: glass }
+          - { shape: sphere, size: [0.18, 0.14, 0.18], offset: [-1.35, 1.14, 0.15], color: "#f2c6d3", finish: satin }
+          - { shape: cylinder, size: [0.1, 0.12, 0.1], offset: [-1.35, 1.1, 0.15], color: "#ffffff", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: flicker, part: strip, speed: 0.2, amount: 0.3 }
+    queue-display:
+      name: Queue display
+      title: Queue display
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.4, 0.6, 0.06], offset: [0, 2.0, 0], color: "#14181f", finish: gloss }
+          - { shape: box, size: [1.3, 0.5, 0.01], offset: [0, 2.0, 0.035], color: "#0f2f2b", emissive: "#0f3a33", finish: gloss }
+          - { shape: box, size: [0.36, 0.24, 0.01], offset: [-0.32, 2.02, 0.045], color: "#7cf2d8", emissive: "#5fe3c8", part: digits }
+          - { shape: box, size: [0.36, 0.24, 0.01], offset: [0.32, 2.02, 0.045], color: "#ffd166", emissive: "#ffb703", part: desk }
+          - { shape: box, size: [1.1, 0.04, 0.01], offset: [0, 1.8, 0.045], color: "#f4f8f8" }
+      behaviors:
+        - { type: blink, part: digits, speed: 0.25, amount: 0.4 }
+        - { type: flicker, part: desk, speed: 0.4, amount: 0.3 }
+    waiting-chairs:
+      name: Waiting chairs
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.06, 0.1], offset: [0, 0.38, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.05, 0.38, 0.05], offset: [-1.05, 0.19, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.05, 0.38, 0.05], offset: [1.05, 0.19, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [-0.9, 0.45, 0], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [-0.3, 0.45, 0], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [0.3, 0.45, 0], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.08, 0.48], offset: [0.9, 0.45, 0], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [-0.9, 0.72, -0.24], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [-0.3, 0.72, -0.24], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [0.3, 0.72, -0.24], color: "#2a9d8f", finish: fabric }
+          - { shape: roundbox, size: [0.52, 0.45, 0.06], offset: [0.9, 0.72, -0.24], color: "#2a9d8f", finish: fabric }
+    kiosk:
+      name: Check-in kiosk
+      title: Check-in kiosk
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.45, 0.04, 0.45], offset: [0, 0.02, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.2, 1.0, 0.14], offset: [0, 0.54, 0], color: "#f4f8f8", finish: satin }
+          - { shape: roundbox, size: [0.52, 0.72, 0.12], offset: [0, 1.36, 0], rotation: [-12, 0, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.42, 0.56, 0.01], offset: [0, 1.38, 0.066], rotation: [-12, 0, 0], color: "#0f2f2b", emissive: "#5fe3c8", finish: gloss, part: screen }
+          - { shape: box, size: [0.24, 0.03, 0.04], offset: [0, 1.02, 0.08], color: "#2b2f36" }
+          - { shape: box, size: [0.5, 0.05, 0.02], offset: [0, 1.76, 0.0], color: "#2a9d8f", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.4, amount: 0.3 }
+    wheelchair:
+      name: Wheelchair
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.46, 0.06, 0.45], offset: [0, 0.5, 0], color: "#2b2f36", finish: fabric }
+          - { shape: roundbox, size: [0.46, 0.45, 0.04], offset: [0, 0.78, -0.22], color: "#2b2f36", finish: fabric }
+          - { shape: torus, size: [0.62, 0.62, 0.62], offset: [-0.29, 0.33, -0.05], rotation: [0, 90, 0], color: "#3b3b3b", finish: satin }
+          - { shape: torus, size: [0.62, 0.62, 0.62], offset: [0.29, 0.33, -0.05], rotation: [0, 90, 0], color: "#3b3b3b", finish: satin }
+          - { shape: cylinder, size: [0.12, 0.04, 0.12], offset: [-0.2, 0.07, 0.3], rotation: [0, 0, 90], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.12, 0.04, 0.12], offset: [0.2, 0.07, 0.3], rotation: [0, 0, 90], color: "#1f1f1f" }
+          - { shape: capsule, size: [0.03, 0.25, 0.03], offset: [-0.22, 1.02, -0.3], rotation: [70, 0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: capsule, size: [0.03, 0.25, 0.03], offset: [0.22, 1.02, -0.3], rotation: [70, 0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.4, 0.03, 0.15], offset: [0, 0.15, 0.33], color: "#9aa3ad", finish: metal }
+    sanitizer-stand:
+      name: Hand sanitizer
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [0, 0.015, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.04, 1.1, 0.04], offset: [0, 0.56, 0], color: "#c9ced6", finish: metal }
+          - { shape: roundbox, size: [0.16, 0.26, 0.12], offset: [0, 1.2, 0.03], color: "#f4f8f8", finish: gloss }
+          - { shape: box, size: [0.06, 0.03, 0.06], offset: [0, 1.06, 0.07], color: "#2a9d8f" }
+          - { shape: cylinder, size: [0.14, 0.02, 0.14], offset: [0, 0.9, 0.06], color: "#c9ced6", finish: metal }
+
+    # ---- Pharmacy store (1B)
+    medicine-shelf:
+      name: Medicine shelf
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.4, 1.9, 0.03], offset: [0, 0.95, -0.2], color: "#e7ecef" }
+          - { shape: roundbox, size: [0.05, 1.9, 0.42], offset: [-1.18, 0.95, 0], color: "#f4f8f8", finish: satin }
+          - { shape: roundbox, size: [0.05, 1.9, 0.42], offset: [1.18, 0.95, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [2.35, 0.03, 0.4], offset: [0, 0.5, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [2.35, 0.03, 0.4], offset: [0, 1.0, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [2.35, 0.03, 0.4], offset: [0, 1.5, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.3, 0.2, 0.3], offset: [-0.9, 0.62, 0], color: "#2e86de" }
+          - { shape: box, size: [0.3, 0.2, 0.3], offset: [-0.5, 0.62, 0], color: "#f4f8f8" }
+          - { shape: box, size: [0.3, 0.2, 0.3], offset: [-0.1, 0.62, 0], color: "#e8c547" }
+          - { shape: box, size: [0.3, 0.2, 0.3], offset: [0.3, 0.62, 0], color: "#2a9d8f" }
+          - { shape: box, size: [0.3, 0.2, 0.3], offset: [0.75, 0.62, 0], color: "#f2c6d3" }
+          - { shape: box, size: [0.25, 0.25, 0.3], offset: [-0.85, 1.14, 0], color: "#f4f8f8" }
+          - { shape: box, size: [0.25, 0.25, 0.3], offset: [-0.5, 1.14, 0], color: "#c0392b" }
+          - { shape: box, size: [0.25, 0.25, 0.3], offset: [-0.15, 1.14, 0], color: "#9fd3c7" }
+          - { shape: box, size: [0.25, 0.25, 0.3], offset: [0.25, 1.14, 0], color: "#2e86de" }
+          - { shape: box, size: [0.25, 0.25, 0.3], offset: [0.7, 1.14, 0], color: "#f4f8f8" }
+          - { shape: cylinder, size: [0.12, 0.2, 0.12], offset: [-0.8, 1.62, 0], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.12, 0.2, 0.12], offset: [-0.6, 1.62, 0], color: "#e8c547", finish: gloss }
+          - { shape: cylinder, size: [0.12, 0.2, 0.12], offset: [-0.4, 1.62, 0], color: "#ffffff", finish: gloss }
+          - { shape: box, size: [0.6, 0.22, 0.3], offset: [0.3, 1.63, 0], color: "#9fd3c7" }
+          - { shape: box, size: [0.25, 0.2, 0.3], offset: [0.85, 1.62, 0], color: "#f2c6d3" }
+    dispensing-cabinet:
+      name: Dispensing cabinet
+      title: Dispensing cabinet
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.2, 2.0, 0.6], offset: [0, 1.0, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [1.0, 0.18, 0.02], offset: [0, 0.4, 0.305], color: "#d6e6df" }
+          - { shape: box, size: [1.0, 0.18, 0.02], offset: [0, 0.62, 0.305], color: "#d6e6df" }
+          - { shape: box, size: [1.0, 0.18, 0.02], offset: [0, 0.84, 0.305], color: "#d6e6df" }
+          - { shape: box, size: [1.0, 0.18, 0.02], offset: [0, 1.28, 0.305], color: "#d6e6df" }
+          # One drawer slides out while it dispenses.
+          - { shape: box, size: [1.0, 0.18, 0.04], offset: [0, 1.06, 0.31], color: "#bff1e8", finish: satin, part: drawer }
+          - { shape: box, size: [0.3, 0.03, 0.03], offset: [0, 1.06, 0.34], color: "#2a9d8f", part: drawer }
+          - { shape: roundbox, size: [0.5, 0.36, 0.03], offset: [0, 1.65, 0.31], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.44, 0.3, 0.01], offset: [0, 1.65, 0.327], color: "#0f2f2b", emissive: "#5fe3c8", finish: gloss, part: screen }
+          - { shape: box, size: [1.1, 0.03, 0.01], offset: [0, 1.95, 0.305], color: "#7cf2d8", emissive: "#5fe3c8", part: leds }
+      behaviors:
+        - { type: keyframes, part: drawer, speed: 0.2, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.3, position: [0, 0, 0.3] }, { t: 0.7, position: [0, 0, 0.3] }] }
+        - { type: blink, part: leds, speed: 1.2 }
+      states:
+        - { id: ready, name: Ready, behaviors: [{ type: flicker, part: screen, speed: 0.3, amount: 0.3 }] }
+        - { id: dispensing, name: Dispensing, auto: true }
+      actions:
+        - { id: dispense, name: Fill an order, state: dispensing, seconds: 30, gesture: use }
+    medicine-fridge:
+      name: Medicine fridge
+      title: Medicine fridge
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.8, 1.8, 0.7], offset: [0, 0.9, 0], color: "#f4f8f8", finish: satin }
+          - { shape: box, size: [0.62, 1.42, 0.01], offset: [0, 0.95, 0.345], color: "#e6fbff", emissive: "#bff1ff", finish: gloss, part: light }
+          - { shape: box, size: [0.6, 0.02, 0.5], offset: [0, 0.5, 0.05], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.6, 0.02, 0.5], offset: [0, 0.9, 0.05], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.6, 0.02, 0.5], offset: [0, 1.3, 0.05], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.5, 0.14, 0.3], offset: [0, 0.59, 0.1], color: "#2e86de" }
+          - { shape: box, size: [0.5, 0.14, 0.3], offset: [0, 0.99, 0.1], color: "#f2c6d3" }
+          - { shape: box, size: [0.5, 0.14, 0.3], offset: [0, 1.39, 0.1], color: "#9fd3c7" }
+          - { shape: box, size: [0.66, 1.5, 0.02], offset: [0, 0.95, 0.36], color: "#dfeaf0", finish: glass, opacity: 0.35 }
+          - { shape: box, size: [0.04, 0.5, 0.04], offset: [0.28, 0.95, 0.39], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.22, 0.08, 0.01], offset: [0, 1.73, 0.355], color: "#0f2f2b", emissive: "#3fe08a", finish: gloss, part: display }
+      behaviors:
+        - { type: flicker, part: light, speed: 0.3, amount: 0.2 }
+        - { type: blink, part: display, speed: 0.2, amount: 0.3 }
+    supply-cart:
+      name: Supply cart
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [0.9, 0.03, 0.55], offset: [0, 0.3, 0], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.9, 0.03, 0.55], offset: [0, 0.65, 0], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.9, 0.03, 0.55], offset: [0, 1.0, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.03, 1.0, 0.03], offset: [-0.43, 0.55, -0.25], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 1.0, 0.03], offset: [0.43, 0.55, -0.25], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 1.0, 0.03], offset: [-0.43, 0.55, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.03, 1.0, 0.03], offset: [0.43, 0.55, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.38, 0.2, 0.45], offset: [-0.2, 0.42, 0], color: "#2e86de", finish: satin }
+          - { shape: roundbox, size: [0.38, 0.2, 0.45], offset: [0.22, 0.77, 0], color: "#2a9d8f", finish: satin }
+          - { shape: roundbox, size: [0.38, 0.2, 0.45], offset: [-0.2, 1.12, 0], color: "#e8c547", finish: satin }
+          - { shape: cylinder, size: [0.08, 0.04, 0.08], offset: [-0.4, 0.06, -0.22], rotation: [0, 0, 90], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.08, 0.04, 0.08], offset: [0.4, 0.06, -0.22], rotation: [0, 0, 90], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.08, 0.04, 0.08], offset: [-0.4, 0.06, 0.22], rotation: [0, 0, 90], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.08, 0.04, 0.08], offset: [0.4, 0.06, 0.22], rotation: [0, 0, 90], color: "#1f1f1f" }
+
+    # ---- Scheduling (1C) and medical records (1D)
+    schedule-board:
+      name: Schedule board
+      title: Schedule board
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.92, 0.06], offset: [0, 1.75, 0], color: "#14181f", finish: gloss }
+          - { shape: box, size: [1.5, 0.84, 0.01], offset: [0, 1.75, 0.035], color: "#0f1a26", emissive: "#1f3a5a", finish: gloss, part: screen }
+          - { shape: box, size: [0.12, 0.2, 0.01], offset: [-0.5, 1.5, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.32, 0.01], offset: [-0.3, 1.56, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.28, 0.01], offset: [-0.1, 1.54, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.45, 0.01], offset: [0.1, 1.625, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.38, 0.01], offset: [0.3, 1.59, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: box, size: [0.12, 0.6, 0.01], offset: [0.5, 1.7, 0.045], color: "#3fe08a", emissive: "#3fe08a", part: bars }
+          - { shape: capsule, size: [0.02, 1.2, 0.02], offset: [0, 1.95, 0.05], rotation: [0, 0, -80], color: "#ffb347", emissive: "#ff9f1a", part: bars }
+      behaviors:
+        - { type: flicker, part: bars, speed: 0.5, amount: 0.4 }
+        - { type: flicker, part: screen, speed: 0.2, amount: 0.2 }
+    booking-desk:
+      name: Booking desk
+      title: Booking desk
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.8, 0.06, 0.75], offset: [0, 0.75, 0], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [-0.85, 0.36, 0], color: "#1f2228", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [0.85, 0.36, 0], color: "#1f2228", finish: satin }
+          # Two monitors: the picture and the timeline
+          - { shape: box, size: [0.06, 0.2, 0.04], offset: [-0.42, 0.88, -0.24], color: "#1f1f1f", finish: metal }
+          - { shape: roundbox, size: [0.74, 0.44, 0.04], offset: [-0.42, 1.2, -0.24], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.68, 0.38, 0.01], offset: [-0.42, 1.21, -0.215], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: box, size: [0.06, 0.2, 0.04], offset: [0.42, 0.88, -0.24], color: "#1f1f1f", finish: metal }
+          - { shape: roundbox, size: [0.74, 0.44, 0.04], offset: [0.42, 1.2, -0.24], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.68, 0.38, 0.01], offset: [0.42, 1.21, -0.215], color: "#202530", emissive: "#2a3346", finish: gloss }
+          - { shape: box, size: [0.6, 0.05, 0.01], offset: [0.42, 1.3, -0.208], color: "#9a7cff", emissive: "#9a7cff", finish: gloss, part: timeline }
+          - { shape: box, size: [0.5, 0.05, 0.01], offset: [0.38, 1.22, -0.208], color: "#3fe08a", emissive: "#3fe08a", finish: gloss, part: timeline }
+          - { shape: box, size: [0.55, 0.05, 0.01], offset: [0.44, 1.14, -0.208], color: "#ffb347", emissive: "#ff9f1a", finish: gloss, part: timeline }
+          # Speakers, keyboard, jog wheel
+          - { shape: roundbox, size: [0.14, 0.24, 0.16], offset: [-0.82, 0.9, -0.22], color: "#14181f", finish: satin }
+          - { shape: roundbox, size: [0.14, 0.24, 0.16], offset: [0.82, 0.9, -0.22], color: "#14181f", finish: satin }
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.05, 0.79, 0.14], color: "#2b2b30", finish: satin }
+          - { shape: cylinder, size: [0.14, 0.03, 0.14], offset: [0.45, 0.795, 0.14], color: "#1f1f1f", finish: metal }
+          # Chair
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0, 0.46, 0.68], color: "#3b4252", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.5, 0.07], offset: [0, 0.74, 0.9], color: "#3b4252", finish: fabric }
+          - { shape: cylinder, size: [0.05, 0.42, 0.05], offset: [0, 0.21, 0.68], color: "#2b2b2b", finish: metal }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: timeline, speed: 0.8, amount: 0.3 }
+    filing-cabinets:
+      name: Filing cabinets
+      title: Records archive
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.56, 1.35, 0.6], offset: [-0.9, 0.68, 0], color: "#c9ced6", finish: metal }
+          - { shape: roundbox, size: [0.56, 1.35, 0.6], offset: [-0.3, 0.68, 0], color: "#b7c0c9", finish: metal }
+          - { shape: roundbox, size: [0.56, 1.35, 0.6], offset: [0.3, 0.68, 0], color: "#c9ced6", finish: metal }
+          - { shape: roundbox, size: [0.56, 1.35, 0.6], offset: [0.9, 0.68, 0], color: "#b7c0c9", finish: metal }
+          - { shape: box, size: [2.3, 0.01, 0.01], offset: [0, 0.36, 0.305], color: "#7c848d" }
+          - { shape: box, size: [2.3, 0.01, 0.01], offset: [0, 0.69, 0.305], color: "#7c848d" }
+          - { shape: box, size: [2.3, 0.01, 0.01], offset: [0, 1.02, 0.305], color: "#7c848d" }
+          - { shape: box, size: [0.14, 0.03, 0.03], offset: [-0.9, 0.55, 0.31], color: "#5b616b", finish: metal }
+          - { shape: box, size: [0.14, 0.03, 0.03], offset: [-0.3, 0.88, 0.31], color: "#5b616b", finish: metal }
+          - { shape: box, size: [0.14, 0.03, 0.03], offset: [0.3, 0.55, 0.31], color: "#5b616b", finish: metal }
+          - { shape: box, size: [0.14, 0.03, 0.03], offset: [0.9, 1.2, 0.31], color: "#5b616b", finish: metal }
+          - { shape: box, size: [0.12, 0.05, 0.01], offset: [-0.9, 1.2, 0.305], color: "#f4efe6" }
+          - { shape: box, size: [0.12, 0.05, 0.01], offset: [0.3, 1.2, 0.305], color: "#f4efe6" }
+          - { shape: box, size: [0.4, 0.12, 0.3], offset: [-0.6, 1.42, 0], color: "#e8d5b9", finish: fabric }
+          - { shape: box, size: [0.32, 0.08, 0.26], offset: [0.6, 1.4, 0], color: "#9fd3c7", finish: fabric }
+    records-scanner:
+      name: Records scanner
+      title: Records scanner
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.06, 0.75], offset: [0, 0.75, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [-0.75, 0.36, 0], color: "#8a6440", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.66], offset: [0.75, 0.36, 0], color: "#8a6440", finish: satin }
+          - { shape: roundbox, size: [0.6, 0.18, 0.45], offset: [-0.3, 0.87, 0], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [0.5, 0.01, 0.35], offset: [-0.3, 0.965, 0], color: "#dfeaf0", finish: glass }
+          - { shape: box, size: [0.5, 0.02, 0.03], offset: [-0.3, 0.975, -0.15], color: "#e6fbff", emissive: "#9fd3ff", finish: gloss, part: scan }
+          - { shape: box, size: [0.3, 0.12, 0.22], offset: [0.45, 0.84, 0.1], color: "#f4f4f0", finish: fabric }
+          - { shape: box, size: [0.3, 0.12, 0.22], offset: [0.45, 0.96, 0.1], rotation: [0, 8, 0], color: "#efe9df", finish: fabric }
+          - { shape: roundbox, size: [0.5, 0.32, 0.03], offset: [0.4, 1.15, -0.25], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.45, 0.27, 0.01], offset: [0.4, 1.15, -0.233], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss }
+      behaviors:
+        - { type: keyframes, part: scan, speed: 0.3, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0, 0.3] }] }
+      states:
+        - { id: ready, name: Ready, behaviors: [], glow: 0.4 }
+        - { id: scanning, name: Scanning, auto: true }
+      actions:
+        - { id: scan, name: Scan a batch, state: scanning, seconds: 60, gesture: use }
+
+    # ---- Director's office and staff lounge (floor 2)
+    whiteboard:
+      name: Whiteboard
+      title: Planning board
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2, 1.1, 0.05], offset: [0, 1.6, 0], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [1.9, 1, 0.01], offset: [0, 1.6, 0.03], color: "#fbfbf8", finish: gloss }
+          - { shape: box, size: [0.9, 0.03, 0.01], offset: [-0.4, 1.95, 0.037], color: "#2e86de" }
+          - { shape: box, size: [0.6, 0.03, 0.01], offset: [-0.55, 1.85, 0.037], color: "#2e86de" }
+          - { shape: box, size: [0.7, 0.03, 0.01], offset: [-0.5, 1.75, 0.037], color: "#2e86de" }
+          - { shape: torus, size: [0.3, 0.3, 0.3], offset: [0.45, 1.7, 0.037], color: "#c0392b" }
+          - { shape: box, size: [0.5, 0.03, 0.01], offset: [0.45, 1.4, 0.037], rotation: [0, 0, 25], color: "#3f6b5a" }
+          - { shape: box, size: [1.4, 0.04, 0.08], offset: [0, 1.06, 0.06], color: "#9aa3ad", finish: metal }
+    meeting-table:
+      name: Meeting table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.4, 0.07, 1.1], offset: [0, 0.75, 0], color: "#6b4a2e", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.72, 0.8], offset: [-0.95, 0.37, 0], color: "#3b2a20", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.72, 0.8], offset: [0.95, 0.37, 0], color: "#3b2a20", finish: satin }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [-0.6, 0.46, 0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [-0.6, 0.72, 1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0.6, 0.46, 0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [0.6, 0.72, 1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [-0.6, 0.46, -0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [-0.6, 0.72, -1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.08, 0.45], offset: [0.6, 0.46, -0.85], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.45, 0.45, 0.07], offset: [0.6, 0.72, -1.05], color: "#3f6b5a", finish: fabric }
+          - { shape: roundbox, size: [0.36, 0.02, 0.26], offset: [-0.5, 0.795, 0.15], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.36, 0.24, 0.01], offset: [-0.5, 0.92, 0.03], rotation: [-15, 0, 0], color: "#1d2733", emissive: "#7cc4ff", finish: gloss, part: screen }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [0.45, 0.83, -0.2], color: "#ffffff", finish: gloss, part: cup }
+          - { shape: box, size: [0.3, 0.01, 0.22], offset: [0.1, 0.79, 0.25], rotation: [0, -10, 0], color: "#f4efe6" }
+      behaviors:
+        - { type: blink, part: screen, speed: 0.2, amount: 0.25 }
+        - { type: steam, part: cup, speed: 0.5, amount: 0.7 }
+    computer:
+      name: Computer
+      title: Browser
+      category: static
+      # A real browser: agents use it (agentown browser), people watch its screen in the inspector and log in there.
+      browser: {}
+      look:
+        parts:
+          # Desk
+          - { shape: roundbox, size: [1.3, 0.06, 0.66], offset: [0, 0.75, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [-0.6, 0.36, 0], color: "#8a6440", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [0.6, 0.36, 0], color: "#8a6440", finish: satin }
+          # Monitor on its stand
+          - { shape: roundbox, size: [0.26, 0.02, 0.18], offset: [0, 0.79, -0.17], color: "#d9d4cc", finish: metal }
+          - { shape: box, size: [0.07, 0.24, 0.04], offset: [0, 0.91, -0.2], color: "#d9d4cc", finish: metal }
+          - { shape: roundbox, size: [0.8, 0.5, 0.04], offset: [0, 1.25, -0.19], color: "#2b2b30", finish: satin }
+          - { shape: box, size: [0.74, 0.43, 0.01], offset: [0, 1.26, -0.165], color: "#1b2a3a", emissive: "#7fc4ff", finish: gloss, part: screen }
+          - { shape: sphere, size: [0.025, 0.025, 0.01], offset: [0.35, 1.02, -0.165], color: "#3fe08a", emissive: "#3fe08a", part: led }
+          # Keyboard, mouse, a mug
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.04, 0.79, 0.12], color: "#efe9df", finish: satin }
+          - { shape: capsule, size: [0.05, 0.03, 0.08], offset: [0.32, 0.79, 0.13], rotation: [90, 0, 0], color: "#efe9df", finish: gloss }
+          - { shape: cylinder, size: [0.08, 0.1, 0.08], offset: [-0.5, 0.83, 0.05], color: "#c0773a", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: led, speed: 0.5, amount: 1 }
+    shelf:
+      name: Shelf
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.06, 1.8, 0.38], offset: [-0.87, 0.9, 0], color: "#8a6a4a", finish: satin }
+          - { shape: roundbox, size: [0.06, 1.8, 0.38], offset: [0.87, 0.9, 0], color: "#8a6a4a", finish: satin }
+          - { shape: box, size: [1.8, 1.8, 0.03], offset: [0, 0.9, -0.18], color: "#6f5238" }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 0.05, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 0.6, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 1.15, 0], color: "#a47c55", finish: satin }
+          - { shape: box, size: [1.75, 0.04, 0.36], offset: [0, 1.7, 0], color: "#a47c55", finish: satin }
+          - { shape: cylinder, size: [0.18, 0.26, 0.18], offset: [-0.6, 0.75, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.16, 0.15], offset: [-0.6, 0.7, 0], color: "#4a2c1a" }
+          - { shape: cylinder, size: [0.18, 0.26, 0.18], offset: [-0.35, 0.75, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.12, 0.15], offset: [-0.35, 0.68, 0], color: "#7a4a2a" }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.05, 0.8, 0], color: "#c9a227", finish: satin }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.34, 0.8, 0], color: "#2e6b5e", finish: satin }
+          - { shape: roundbox, size: [0.24, 0.34, 0.14], offset: [0.63, 0.8, 0], color: "#a33f2f", finish: satin }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.6, 1.23, 0], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.45, 1.23, 0], color: "#9fd3c7", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.1, 0.1], offset: [-0.3, 1.23, 0], color: "#ffffff", finish: gloss }
+          - { shape: box, size: [0.06, 0.28, 0.22], offset: [0.1, 1.31, 0], color: "#c0392b" }
+          - { shape: box, size: [0.06, 0.32, 0.22], offset: [0.17, 1.33, 0], color: "#2e86de" }
+          - { shape: box, size: [0.06, 0.26, 0.22], offset: [0.24, 1.3, 0], color: "#e8c547" }
+          - { shape: box, size: [0.06, 0.3, 0.22], offset: [0.31, 1.32, 0], rotation: [0, 0, -12], color: "#3f6b5a" }
+          - { shape: sphere, size: [0.3, 0.26, 0.24], offset: [0.6, 1.88, 0], color: "#3a9156", finish: satin }
+          - { shape: cylinder, size: [0.16, 0.14, 0.16], offset: [0.6, 1.77, 0], color: "#c56a3b" }
+          - { shape: roundbox, size: [0.5, 0.36, 0.3], offset: [-0.4, 0.26, 0], color: "#b08a5a", finish: fabric }
+          - { shape: roundbox, size: [0.5, 0.36, 0.3], offset: [0.3, 0.26, 0], color: "#9c7a4e", finish: fabric }
+    ceiling-fan:
+      name: Ceiling fan
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.04, 0.3, 0.04], offset: [0, 2.45, 0], color: "#3a332d", finish: metal }
+          - { shape: cylinder, size: [0.28, 0.12, 0.28], offset: [0, 2.28, 0], color: "#3a332d", finish: metal }
+          - { shape: roundbox, size: [1.7, 0.02, 0.16], offset: [0, 2.24, 0], color: "#8a6a4a", finish: satin, part: blades }
+          - { shape: roundbox, size: [0.16, 0.02, 1.7], offset: [0, 2.24, 0], color: "#8a6a4a", finish: satin, part: blades }
+          - { shape: sphere, size: [0.2, 0.14, 0.2], offset: [0, 2.17, 0], color: "#fff4d6", emissive: "#ffd89a", finish: gloss, part: light }
+      behaviors:
+        - { type: spin, part: blades, speed: 0.9 }
+        - { type: flicker, part: light, speed: 0.3, amount: 0.2 }
+
+      states:
+        - { id: on, name: "On" }
+        - { id: off, name: "Off", behaviors: [], glow: 0 }
+      actions:
+        - { id: switch-off, name: Switch off, state: off, seconds: 600, gesture: none }
+    rug:
+      name: Rug
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.6, 0.02, 1.8], offset: [0, 0.012, 0], color: "#a8553a", finish: fabric }
+          - { shape: roundbox, size: [2.2, 0.022, 1.4], offset: [0, 0.014, 0], color: "#e8d5b9", finish: fabric }
+          - { shape: roundbox, size: [1.6, 0.024, 0.8], offset: [0, 0.016, 0], color: "#3f6b5a", finish: fabric }
+    plant:
+      name: Plant
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.44, 0.46], offset: [0, 0.22, 0], color: "#c56a3b", finish: satin }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.44, 0], rotation: [90, 0, 0], color: "#b55e32", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.02, 0.4], offset: [0, 0.44, 0], color: "#3b2a20" }
+          - { shape: capsule, size: [0.04, 0.6, 0.04], offset: [0, 0.75, 0], color: "#2b6e3e", part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [0.18, 0.98, 0], rotation: [0, 0, 25], color: "#2f7d46", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [-0.16, 1.08, 0.06], rotation: [0, 40, -30], color: "#3a9156", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.5, 0.12, 0.3], offset: [0, 1.22, -0.1], rotation: [20, 90, 0], color: "#2b6e3e", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.44, 0.1, 0.28], offset: [0.06, 0.82, 0.2], rotation: [-25, 0, 10], color: "#45a463", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.4, 0.1, 0.26], offset: [-0.2, 0.86, -0.16], rotation: [25, 30, -10], color: "#358a4f", finish: satin, part: leaves }
+      behaviors:
+        - { type: sway, part: leaves, speed: 0.3, amount: 0.45 }
+    sofa:
+      name: Sofa
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.1, 0.36, 0.9], offset: [0, 0.27, 0], color: "#8d5f40", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [-0.49, 0.5, 0.06], color: "#b07d58", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [0.49, 0.5, 0.06], color: "#b07d58", finish: fabric }
+          - { shape: roundbox, size: [2.1, 0.62, 0.22], offset: [0, 0.74, -0.35], color: "#8d5f40", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [-1.0, 0.48, 0], color: "#7a5236", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [1.0, 0.48, 0], color: "#7a5236", finish: fabric }
+          - { shape: roundbox, size: [0.38, 0.34, 0.12], offset: [-0.62, 0.75, -0.18], rotation: [12, -8, 8], color: "#e7c27a", finish: fabric }
+          - { shape: roundbox, size: [0.36, 0.32, 0.12], offset: [0.66, 0.74, -0.18], rotation: [12, 8, -6], color: "#9fd3c7", finish: fabric }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [-0.95, 0.04, 0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [0.95, 0.04, 0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [-0.95, 0.04, -0.38], color: "#2b1d14" }
+          - { shape: cylinder, size: [0.06, 0.08, 0.06], offset: [0.95, 0.04, -0.38], color: "#2b1d14" }
+    coffee-table:
+      name: Coffee table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.1, 0.06, 0.6], offset: [0, 0.42, 0], color: "#6b4a2e", finish: satin }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [-0.48, 0.2, -0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [0.48, 0.2, -0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [-0.48, 0.2, 0.22], color: "#3b2a20" }
+          - { shape: cylinder, size: [0.05, 0.4, 0.05], offset: [0.48, 0.2, 0.22], color: "#3b2a20" }
+          - { shape: box, size: [0.3, 0.03, 0.22], offset: [-0.25, 0.465, 0.05], rotation: [0, 15, 0], color: "#c0392b" }
+          - { shape: box, size: [0.3, 0.03, 0.22], offset: [-0.22, 0.49, 0.02], rotation: [0, -5, 0], color: "#f4efe6" }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [0.28, 0.5, 0], color: "#ffffff", finish: gloss, part: cup }
+      behaviors:
+        - { type: steam, part: cup, speed: 0.45, amount: 0.7 }
+    cafe-table:
+      name: Café table
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.82, 0.05, 0.82], offset: [0, 0.75, 0], color: "#f1ece4", finish: gloss }
+          - { shape: cylinder, size: [0.07, 0.7, 0.07], offset: [0, 0.37, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.46, 0.04, 0.46], offset: [0, 0.02, 0], color: "#2b2b2b", finish: metal }
+          # Two bistro chairs
+          - { shape: cylinder, size: [0.42, 0.06, 0.42], offset: [-0.78, 0.46, 0], color: "#a0522d", finish: fabric }
+          - { shape: cylinder, size: [0.04, 0.44, 0.04], offset: [-0.78, 0.22, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [-0.78, 0.015, 0], color: "#2b2b2b", finish: metal }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [-0.98, 0.75, 0], rotation: [0, 90, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.42, 0.06, 0.42], offset: [0.78, 0.46, 0], color: "#a0522d", finish: fabric }
+          - { shape: cylinder, size: [0.04, 0.44, 0.04], offset: [0.78, 0.22, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [0.78, 0.015, 0], color: "#2b2b2b", finish: metal }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0.98, 0.75, 0], rotation: [0, 90, 0], color: "#2b2b2b", finish: metal }
+          # Cups of coffee, one still steaming
+          - { shape: cylinder, size: [0.17, 0.012, 0.17], offset: [0.16, 0.785, 0.1], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [0.16, 0.835, 0.1], color: "#ffffff", finish: gloss, part: cup }
+          - { shape: cylinder, size: [0.085, 0.01, 0.085], offset: [0.16, 0.882, 0.1], color: "#5a3420", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [-0.18, 0.835, -0.12], color: "#c0773a", finish: gloss }
+          - { shape: box, size: [0.2, 0.01, 0.14], offset: [-0.05, 0.785, 0.2], color: "#e8d5b9" }
+      behaviors:
+        - { type: steam, part: cup, speed: 0.5, amount: 0.8 }
+    espresso-station:
+      name: Espresso station
+      title: Espresso machine
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [3, 0.95, 0.72], offset: [0, 0.48, 0], color: "#2b1d14", finish: satin }
+          - { shape: roundbox, size: [3.1, 0.06, 0.8], offset: [0, 0.98, 0], color: "#efe9df", finish: gloss }
+          # The machine
+          - { shape: roundbox, size: [1.15, 0.56, 0.56], offset: [-0.55, 1.3, -0.06], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [1.05, 0.04, 0.5], offset: [-0.55, 1.6, -0.06], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.85, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.65, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.09, 0.07, 0.09], offset: [-0.45, 1.66, -0.06], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.13, 0.09, 0.13], offset: [-0.8, 1.06, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.13, 0.09, 0.13], offset: [-0.3, 1.06, 0.25], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.06, 0.04, 0.22], offset: [-0.8, 1.03, 0.4], color: "#1f1f1f" }
+          - { shape: box, size: [0.06, 0.04, 0.22], offset: [-0.3, 1.03, 0.4], color: "#1f1f1f" }
+          - { shape: cylinder, size: [0.1, 0.09, 0.1], offset: [-0.8, 1.06, 0.18], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.16, 0.012, 0.16], offset: [0.15, 1.017, 0.3], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.11, 0.1, 0.11], offset: [0.15, 1.07, 0.3], color: "#c0773a", finish: gloss, part: cup }
+          - { shape: capsule, size: [0.03, 0.32, 0.03], offset: [0.05, 1.12, 0.26], rotation: [20, 0, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.12, 0.02, 0.12], offset: [-0.55, 1.45, 0.226], rotation: [90, 0, 0], color: "#f4efe6", finish: gloss }
+          - { shape: sphere, size: [0.06, 0.06, 0.03], offset: [-0.18, 1.45, 0.226], color: "#ff5a36", emissive: "#ff3b1f", finish: gloss, part: led }
+          # Grinder
+          - { shape: roundbox, size: [0.26, 0.46, 0.3], offset: [0.45, 1.24, 0], color: "#1f1f1f", finish: satin }
+          - { shape: cone, size: [0.26, 0.32, 0.26], offset: [0.45, 1.63, 0], rotation: [180, 0, 0], color: "#dfeaf0", finish: glass }
+          - { shape: cone, size: [0.2, 0.22, 0.2], offset: [0.45, 1.6, 0], rotation: [180, 0, 0], color: "#4a2c1a", finish: satin }
+          # Milk jug, syrups
+          - { shape: cylinder, size: [0.1, 0.15, 0.1], offset: [0.85, 1.09, 0.16], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.15, 1.14, -0.18], color: "#b5651d", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.27, 1.14, -0.18], color: "#7d2e46", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.26, 0.08], offset: [1.39, 1.14, -0.18], color: "#e8c547", finish: glass }
+      behaviors:
+        - { type: blink, part: led, speed: 1.5 }
+        - { type: steam, part: cup, speed: 0.7, amount: 1.7 }
+      states:
+        - { id: ready, name: Ready, behaviors: [{ type: blink, part: led, speed: 0.4, amount: 0.4 }] }
+        - { id: brewing, name: Brewing, auto: true }
+      actions:
+        - { id: brew, name: Pull a shot, state: brewing, seconds: 30, gesture: use }
+    pendant-lamp:
+      name: Pendant lamp
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.015, 0.55, 0.015], offset: [0, 2.32, 0], color: "#1f1f1f" }
+          - { shape: cone, size: [0.42, 0.3, 0.42], offset: [0, 1.95, 0], color: "#2b2f36", finish: metal }
+          - { shape: sphere, size: [0.18, 0.18, 0.18], offset: [0, 1.7, 0], color: "#fff1c1", emissive: "#ffcf73", finish: gloss, part: bulb }
+      behaviors:
+        - { type: flicker, part: bulb, speed: 0.5, amount: 0.5 }
+        - { type: sway, speed: 0.15, amount: 0.08 }
+      states:
+        - { id: on, name: "On" }
+        - { id: dim, name: Dimmed, glow: 0.3 }
+      actions:
+        - { id: dim, name: Dim the light, state: dim, seconds: 600, gesture: none }
+    vending-machine:
+      name: Vending machine
+      title: Vending machine
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.9, 1.9, 0.8], offset: [0, 0.95, 0], color: "#c0392b", finish: gloss }
+          - { shape: box, size: [0.58, 1.28, 0.01], offset: [-0.1, 1.15, 0.395], color: "#fff4d6", emissive: "#ffe9b8", finish: gloss, part: glow }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 0.7, 0.35], color: "#2e86de" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 0.98, 0.35], color: "#e8c547" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 1.26, 0.35], color: "#3fa37a" }
+          - { shape: box, size: [0.55, 0.06, 0.15], offset: [-0.1, 1.54, 0.35], color: "#8e6bbf" }
+          - { shape: box, size: [0.6, 1.3, 0.02], offset: [-0.1, 1.15, 0.41], color: "#dfeaf0", finish: glass, opacity: 0.35 }
+          - { shape: box, size: [0.18, 0.3, 0.02], offset: [0.32, 1.2, 0.41], color: "#2b2b2b", finish: satin }
+          - { shape: box, size: [0.5, 0.15, 0.02], offset: [-0.1, 0.3, 0.41], color: "#1f1f1f" }
+      behaviors:
+        - { type: flicker, part: glow, speed: 0.5, amount: 0.3 }
+    # ---- The cleaning robot and the trash can it empties into.
+    cleaning-robot:
+      name: Cleaning robot
+      title: Cleaning robot
+      category: dynamic
+      cleaner: {}
+      look: { character: robot, color: "#9fd3c7", accent: "#2a9d8f", scale: 0.95 }
+      behaviors: [{ type: roam, amount: 0.5 }]
+      access: all
+      states:
+        - { id: patrol, name: On patrol }
+        - { id: sweeping, name: Sweeping, pose: work, behaviors: [{ type: roam, amount: 1.2 }] }
+    trash-can:
+      name: Trash can
+      title: Trash can
+      category: dynamic
+      trash: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.5, 0.06, 0.5], offset: [0, 0.03, 0], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.48, 0.72, 0.48], offset: [0, 0.4, 0], color: "#2a9d8f", finish: satin }
+          - { shape: torus, size: [0.48, 0.48, 0.48], offset: [0, 0.76, 0], rotation: [90, 0, 0], color: "#2b2f36", finish: satin }
+          - { shape: torus, size: [0.2, 0.2, 0.2], offset: [0, 0.42, 0.24], color: "#7cf2a8", emissive: "#3fe08a", finish: gloss, part: badge }
+          - { shape: box, size: [0.2, 0.04, 0.12], offset: [0, 0.05, 0.28], color: "#9aa3ad", finish: metal }
+          # The lid lifts while it is being emptied.
+          - { shape: cylinder, size: [0.52, 0.05, 0.52], offset: [0, 0.79, 0], color: "#2a9d8f", finish: gloss, part: lid }
+          - { shape: box, size: [0.16, 0.03, 0.04], offset: [0, 0.83, 0], color: "#2b2f36", finish: satin, part: lid }
+      behaviors:
+        - { type: blink, part: badge, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: closed, name: Closed }
+        - { id: emptying, name: Emptying, behaviors: [{ type: keyframes, part: lid, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.22, -0.08], rotation: [-35, 0, 0] }] }, { type: blink, part: badge, speed: 2, amount: 1 }] }
+
+
+    # ---- The wall calendar: every scheduled job, a month at a time.
+    wall-calendar:
+      name: Wall calendar
+      category: static
+      calendar: {}
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.08, 0.01], color: "#8a8f96", finish: metal }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [-0.05, 2.0, 0.008], rotation: [0, 0, -35], color: "#3b3b3b" }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [0.05, 2.0, 0.008], rotation: [0, 0, 35], color: "#3b3b3b" }
+          - { shape: box, size: [0.62, 0.86, 0.02], offset: [0, 1.51, 0], color: "#5b4636", finish: satin }
+          - { shape: box, size: [0.6, 0.2, 0.024], offset: [0, 1.83, 0.012], color: "#c0392b", finish: satin }
+          - { shape: box, size: [0.3, 0.05, 0.01], offset: [0, 1.83, 0.026], color: "#fdf6e3" }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.58, 0.58, 0.012], offset: [0, 1.43, 0.016], color: "#fbf8f1", finish: matte }
+          - { shape: box, size: [0.58, 0.02, 0.014], offset: [0, 1.13, 0.012], color: "#e8e1d3" }
+          - { shape: box, size: [0.54, 0.035, 0.01], offset: [0, 1.67, 0.022], color: "#c0392b" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.6, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.51, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.42, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.33, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.24, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: torus, size: [0.07, 0.07, 0.07], offset: [0.077, 1.465, 0.026], color: "#2a9d8f", emissive: "#2a9d8f", finish: gloss, part: today }
+      behaviors:
+        - { type: blink, part: today, speed: 0.25, amount: 0.5 }
+
+  objects:
+    # 1A lobby & admissions: the desk up front, the waiting area behind it
+    - { kind: reception-desk, room: 1a, at: [8.8, 1.7] }
+    - { kind: queue-display, room: 1a, at: [8.8, 0.1] }
+    - { kind: kiosk, room: 1a, at: [12.4, 3.4], rotationY: -30 }
+    - { kind: sanitizer-stand, room: 1a, at: [6.6, 0.5] }
+    - { kind: waiting-chairs, room: 1a, at: [6.0, 5.2] }
+    - { kind: waiting-chairs, room: 1a, at: [9.4, 5.2] }
+    - { kind: waiting-chairs, room: 1a, at: [6.0, 6.9] }
+    - { kind: waiting-chairs, room: 1a, at: [9.4, 6.9] }
+    - { kind: wheelchair, room: 1a, at: [12.8, 7.8], rotationY: -100 }
+    - { kind: pendant-lamp, room: 1a, at: [6.0, 6.0] }
+    - { kind: pendant-lamp, room: 1a, at: [9.4, 6.0] }
+    - { kind: plant, room: 1a, at: [0.6, 0.6] }
+    - { kind: plant, room: 1a, at: [13.4, 0.6] }
+    # 1B pharmacy store
+    - { kind: medicine-shelf, room: 1b, at: [4.4, 0.35] }
+    - { kind: medicine-shelf, room: 1b, at: [4.4, 8.65], rotationY: 180 }
+    - { kind: medicine-fridge, room: 1b, at: [6.9, 0.5] }
+    - { kind: dispensing-cabinet, room: 1b, at: [7.55, 4.6], rotationY: -90 }
+    - { kind: supply-cart, room: 1b, at: [4.4, 5.4] }
+    # 1C scheduling
+    - { kind: booking-desk, room: 1c, at: [6.6, 0.55] }
+    - { kind: booking-desk, room: 1c, at: [8.95, 0.55] }
+    - { kind: schedule-board, room: 1c, at: [9.9, 4.4], rotationY: -90 }
+    - { kind: plant, room: 1c, at: [0.6, 6.4] }
+    # 1D medical records
+    - { kind: filing-cabinets, room: 1d, at: [5.8, 0.4] }
+    - { kind: filing-cabinets, room: 1d, at: [8.6, 0.4] }
+    - { kind: filing-cabinets, room: 1d, at: [10.6, 4.0], rotationY: -90 }
+    - { kind: records-scanner, room: 1d, at: [6.4, 4.6] }
+    - { kind: plant, room: 1d, at: [0.6, 6.4] }
+    - { id: records-pc, kind: computer, room: 1d, at: [9.4, 6.5], rotationY: 180, label: Records PC }
+    # 2A director's office
+    - { id: office-pc, kind: computer, room: 2a, at: [1.6, 0.5], label: Office PC }
+    - { kind: whiteboard, room: 2a, at: [5, 0.1] }
+    - { kind: shelf, room: 2a, at: [8, 0.35] }
+    - { kind: rug, room: 2a, at: [6.0, 4.8] }
+    - { kind: meeting-table, room: 2a, at: [6.0, 4.8] }
+    - { kind: ceiling-fan, room: 2a, at: [6.0, 4.8] }
+    - { kind: plant, room: 2a, at: [9.4, 7.4] }
+    # 2B staff lounge
+    - { kind: vending-machine, room: 2b, at: [0.8, 0.5] }
+    - { kind: espresso-station, room: 2b, at: [9.45, 3.0], rotationY: -90 }
+    - { kind: cafe-table, room: 2b, at: [5.0, 2.6] }
+    - { kind: sofa, room: 2b, at: [4.0, 7.35], rotationY: 180 }
+    - { kind: coffee-table, room: 2b, at: [4.0, 6.4] }
+    - { kind: rug, room: 2b, at: [4.0, 5.9] }
+    - { kind: plant, room: 2b, at: [9.4, 7.4] }
+
+    # The cleaning robot and its trash can
+    - { id: cleaning-robot, kind: cleaning-robot, room: 1a, at: [4.2, 6.0], label: Shine }
+    - { id: trash-can, kind: trash-can, room: 1d, at: [2.0, 6.4] }
+
+    # The wall calendar: click it for the month of scheduled jobs
+    - { id: wall-calendar, kind: wall-calendar, room: 1a, at: [11.6, 0.1] }
+
+  avatars:
+    default: staff
+    byJobRole:
+      mascot: pip
+      director: manager
+      coordinator: coordinator
+      clerk: clerk

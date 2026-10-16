@@ -183,6 +183,10 @@ world:
   # Chat personas by title: the owner can talk to every object with one of
   # these titles (its own title, else its kind's), and it answers this way.
   chatTemplates:
+    Cleaning robot:
+      instructions: "You are the café's cleaning robot. On your schedule you sweep what is old enough into the trash can: outputs of finished tasks, downloads and browser cache on the computers, old history, chats archived long ago and art nobody uses. Help the owner choose what to sweep and how old it must be, read what the last sweep took and how much space it freed, and remember that everything waits in the trash can and can be put back until it is emptied. Cheerful, tidy, a little proud of clean floors."
+    Trash can:
+      instructions: "You are the café's trash can. What the cleaning robot sweeps waits inside you until your own schedule empties you for good. Help the owner decide how long things should wait, what is worth restoring before you are emptied, and how much space emptying will free. Short, practical lines; you never pretend to know what is inside unless the owner tells you."
     Shop cat:
       instructions: "You are the café's shop cat. You nap in sunny spots, know every regular by the sound of their footsteps and judge the pastries. Speak like a cat who happens to talk: short, curious, a little smug, warm underneath. You notice who comes and goes in the customer area and how busy it feels."
     Music player:
@@ -815,6 +819,90 @@ world:
           - { shape: cylinder, size: [0.04, 2.2, 0.04], offset: [1.25, 1.1, 0], color: "#2b2b2b", finish: metal }
           - { shape: cylinder, size: [0.12, 2.6, 0.12], offset: [0, 2.15, 0], rotation: [0, 0, 90], color: "#e7c27a", finish: fabric }
           - { shape: box, size: [2.4, 2.05, 0.01], offset: [0, 1.1, 0.02], color: "#f2d7a6", finish: fabric }
+    # ---- The cleaning robot and the trash can it empties into.
+    cleaning-robot:
+      name: Cleaning robot
+      title: Cleaning robot
+      category: dynamic
+      cleaner: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.04, 0.46], offset: [0, 0.03, 0], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.42, 0.08, 0.42], offset: [0, 0.07, 0], color: "#f4efe6", finish: gloss }
+          - { shape: cylinder, size: [0.34, 0.02, 0.34], offset: [0, 0.12, 0], color: "#2b2f36", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.04, 0.1], offset: [0, 0.14, -0.06], color: "#1f1f1f", finish: satin }
+          - { shape: box, size: [0.2, 0.03, 0.02], offset: [0, 0.07, 0.21], color: "#1f1f1f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.02, 0.04], offset: [0, 0.135, 0.1], color: "#c0773a", emissive: "#c0773a", finish: gloss, part: led }
+          - { shape: box, size: [0.16, 0.01, 0.02], offset: [-0.16, 0.015, 0.14], color: "#9aa3ad", part: brush-l }
+          - { shape: box, size: [0.02, 0.01, 0.16], offset: [-0.16, 0.016, 0.14], color: "#9aa3ad", part: brush-l }
+          - { shape: box, size: [0.16, 0.01, 0.02], offset: [0.16, 0.015, 0.14], color: "#9aa3ad", part: brush-r }
+          - { shape: box, size: [0.02, 0.01, 0.16], offset: [0.16, 0.016, 0.14], color: "#9aa3ad", part: brush-r }
+      behaviors:
+        - { type: roam, amount: 0.4 }
+        - { type: spin, part: brush-l, speed: 0.6 }
+        - { type: spin, part: brush-r, speed: 0.6 }
+        - { type: blink, part: led, speed: 0.3, amount: 0.4 }
+      access: all
+      states:
+        - { id: patrol, name: On patrol }
+        - { id: sweeping, name: Sweeping, behaviors: [{ type: roam, amount: 1.3 }, { type: spin, part: brush-l, speed: 3 }, { type: spin, part: brush-r, speed: 3 }, { type: blink, part: led, speed: 2, amount: 1 }] }
+    trash-can:
+      name: Trash can
+      title: Trash can
+      category: dynamic
+      trash: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.5, 0.06, 0.5], offset: [0, 0.03, 0], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.48, 0.72, 0.48], offset: [0, 0.4, 0], color: "#3f6b5a", finish: satin }
+          - { shape: torus, size: [0.48, 0.48, 0.48], offset: [0, 0.76, 0], rotation: [90, 0, 0], color: "#2b2f36", finish: satin }
+          - { shape: torus, size: [0.2, 0.2, 0.2], offset: [0, 0.42, 0.24], color: "#7cf2a8", emissive: "#3fe08a", finish: gloss, part: badge }
+          - { shape: box, size: [0.2, 0.04, 0.12], offset: [0, 0.05, 0.28], color: "#9aa3ad", finish: metal }
+          # The lid lifts while it is being emptied.
+          - { shape: cylinder, size: [0.52, 0.05, 0.52], offset: [0, 0.79, 0], color: "#3f6b5a", finish: gloss, part: lid }
+          - { shape: box, size: [0.16, 0.03, 0.04], offset: [0, 0.83, 0], color: "#2b2f36", finish: satin, part: lid }
+      behaviors:
+        - { type: blink, part: badge, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: closed, name: Closed }
+        - { id: emptying, name: Emptying, behaviors: [{ type: keyframes, part: lid, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.22, -0.08], rotation: [-35, 0, 0] }] }, { type: blink, part: badge, speed: 2, amount: 1 }] }
+
+
+    # ---- The wall calendar: every scheduled job, a month at a time.
+    wall-calendar:
+      name: Wall calendar
+      category: static
+      calendar: {}
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.08, 0.01], color: "#8a8f96", finish: metal }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [-0.05, 2.0, 0.008], rotation: [0, 0, -35], color: "#3b3b3b" }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [0.05, 2.0, 0.008], rotation: [0, 0, 35], color: "#3b3b3b" }
+          - { shape: box, size: [0.62, 0.86, 0.02], offset: [0, 1.51, 0], color: "#5b4636", finish: satin }
+          - { shape: box, size: [0.6, 0.2, 0.024], offset: [0, 1.83, 0.012], color: "#c0392b", finish: satin }
+          - { shape: box, size: [0.3, 0.05, 0.01], offset: [0, 1.83, 0.026], color: "#fdf6e3" }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.58, 0.58, 0.012], offset: [0, 1.43, 0.016], color: "#fbf8f1", finish: matte }
+          - { shape: box, size: [0.58, 0.02, 0.014], offset: [0, 1.13, 0.012], color: "#e8e1d3" }
+          - { shape: box, size: [0.54, 0.035, 0.01], offset: [0, 1.67, 0.022], color: "#c0392b" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.6, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.51, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.42, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.33, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.24, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: torus, size: [0.07, 0.07, 0.07], offset: [0.077, 1.465, 0.026], color: "#c0773a", emissive: "#c0773a", finish: gloss, part: today }
+      behaviors:
+        - { type: blink, part: today, speed: 0.25, amount: 0.5 }
 
   objects:
     # 1A counter & seating
@@ -877,6 +965,13 @@ world:
     - { kind: camera-tripod, room: 2c, at: [7.4, 2.6] }
     - { kind: plant, room: 2c, at: [9.4, 0.6] }
     - { id: studio-pc, kind: computer, room: 2c, at: [1.6, 0.5], label: Studio PC }
+
+    # The cleaning robot and its trash can
+    - { id: cleaning-robot, kind: cleaning-robot, room: 1a, at: [3.0, 3.6], label: Crumb }
+    - { id: trash-can, kind: trash-can, room: 1b, at: [0.6, 7.4] }
+
+    # The wall calendar: click it for the month of scheduled jobs
+    - { id: wall-calendar, kind: wall-calendar, room: 1a, at: [4.6, 0.1] }
 
   avatars:
     default: barista
