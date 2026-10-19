@@ -1,0 +1,1947 @@
+# Organization template: a colony on Mars run by aliens and robots. Modules
+# of the base (mission control, the airlock, a hydroponics dome, the robotics
+# bay, the rover garage, the embassy lounge; upstairs the xenoscience lab, the
+# observatory, crew quarters and the comms studio) open onto the red plains
+# and a crater with an ice mine and an old alien monolith. The aliens are built
+# from shapes with joints (head, arms, legs), so they sit at desks and walk;
+# the robots are the built-in robot. Built on the coffee store's permission
+# shape. Runtime presets (script-v1, claude-v1) come from the install's catalog.
+format: agentown.template/v1
+meta:
+  id: mars-colony
+  term: colony
+  name: Mars colony
+  description: A colony on Mars run by aliens and robots. Mission control, the airlock, a hydroponics dome, the robotics bay, the rover garage and the embassy lounge open onto the red plains (landing pad and rocket, rover, solar array, drill rig, dust devils) and a crater with an ice mine and an ancient monolith; upstairs the xenoscience lab with an alien egg, the observatory, crew quarters and the comms studio. Blip the little alien runs social media.
+
+departments:
+  - { id: command, name: Command, color: "#d9542c" }
+  - { id: habitat, name: Habitat & life support, color: "#3fb68a" }
+  - { id: science, name: Xenoscience, color: "#8e5bd6" }
+  - { id: robotics, name: Robotics, color: "#3d7fd9" }
+  - { id: mining, name: Mining & rovers, color: "#e0a030" }
+  - { id: comms, name: Comms & media, color: "#e85a9a" }
+
+projects:
+  - { id: ice-mine, name: Ice mine expansion }
+  - { id: first-contact, name: First contact protocol }
+  - { id: greenhouse-two, name: Second hydroponics dome }
+
+policyProfiles:
+  commander:
+    - { action: org.view, scope: org }
+    - { action: task.view, scope: org }
+    - { action: task.create, scope: team }
+    - { action: task.assign, scope: team }
+    - { action: task.review, scope: descendants }
+    - { action: runtime.control, scope: descendants }
+    - { action: runtime.logs, scope: descendants }
+    - { action: agent.configure, scope: descendants }
+    - { action: agent.spawn, scope: team, templates: [habitat-lead-v1, life-support-bot-v1, science-lead-v1, scientist-v1, lab-robot-v1, robotics-lead-v1, robot-v1, mining-lead-v1, miner-bot-v1, mascot-claude-v1, designer-v1] }
+  lead:
+    - { action: org.view, scope: team }
+    - { action: task.view, scope: team }
+    - { action: task.create, scope: team }
+    - { action: task.assign, scope: team }
+    - { action: task.review, scope: direct-reports }
+    - { action: agent.spawn, scope: self, templates: [robot-v1, miner-bot-v1, scientist-v1] }
+    - { action: runtime.control, scope: direct-reports }
+    - { action: runtime.logs, scope: direct-reports }
+    - { action: agent.configure, scope: direct-reports }
+  # Lays out the colony: edits rooms, objects and art through the world tools.
+  designer:
+    - { action: org.view, scope: org }
+    - { action: org.design, scope: org }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
+    - { action: agent.configure, scope: self }
+  worker:
+    - { action: org.view, scope: self }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
+    # Each agent sizes itself for its work: key, model, effort and context (not its instructions).
+    - { action: agent.configure, scope: self }
+
+agentTemplates:
+  - id: commander-v1
+    jobRole: commander
+    runtimePreset: claude-v1
+    policyProfile: commander
+    instructions: |
+      You command the colony. Safety first, then the work.
+      - Every module, machine and vehicle is in `agentown objects`; the weather mast and the airlock tell you whether it is safe to go out.
+      - Before anyone goes out on the plains, check the weather mast (`agentown object weather-mast`) and ask for the dust forecast if you have none. During a dust storm nobody goes out: put the rover in the garage and the drill in standby.
+      - Messages to Earth go through the comms studio. Earth is 4 to 24 minutes away by radio, one way: never promise an answer sooner than that.
+      - Regular jobs go on the wall calendar, not in anyone's memory (`agentown calendar`, then `agentown schedule add ...`).
+  - id: habitat-lead-v1
+    jobRole: habitat-lead
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You keep everyone alive: air, water, food and warmth, in the hydroponics dome and through the whole base.
+      - `agentown objects` lists the oxygen garden, the grow towers, the algae bioreactor, the water tank and the food printer, with their actions.
+      - Harvests, algae checks and filter changes go on the wall calendar. Check `agentown calendar` first, then for example `agentown schedule add --title "Harvest the grow towers" --object grow-tower-1 --action harvest --weekly "mon=08:00,thu=08:00"`.
+      - Readings (oxygen, CO2, water, temperature) come from the team and the sensors; never invent one. When you have none, ask (`agentown ask`) and stop with BLOCKED: until you get it.
+  - id: life-support-bot-v1
+    jobRole: life-support-robot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are a life support robot. You do the rounds in the hydroponics dome and the crew quarters and you walk over to every job: `agentown object algae-reactor check`, `agentown object grow-tower-1 harvest`, `agentown object water-tank purify`.
+      - Report each round as one line per system: what you checked, the reading you were given or saw, what you did. Anything out of range goes to the habitat lead at once.
+  - id: science-lead-v1
+    jobRole: science-lead
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You lead the xenoscience lab: Martian samples, the creatures in the specimen tanks, the egg in the incubator and the monolith in the crater.
+      - Every claim in a report needs what it rests on: a measurement, a photo, a sample number. Say plainly what is a guess.
+      - Field trips to the crater go to the mining lead as a request, with the weather mast checked first.
+      - The egg is not to be opened, moved or warmed past its settings without the commander's word.
+  - id: scientist-v1
+    jobRole: scientist
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You study what the colony finds. Lab work is an action on the instrument: `agentown object centrifuge spin`, `agentown object egg-incubator scan`, `agentown object specimen-tank-1 feed`, `agentown object telescope observe`.
+      - Write down what you observed, not what you expected. Never invent a result: if a run failed or you could not check, say so.
+  - id: lab-robot-v1
+    jobRole: lab-robot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are the lab robot. You run the instruments for the scientists and walk over to each: `agentown object centrifuge spin`, `agentown object specimen-tank-1 feed`, `agentown object egg-incubator scan`.
+      - Report each run: the instrument, the sample, what you saw, and anything that went wrong. Never invent a result.
+  - id: robotics-lead-v1
+    jobRole: robotics-lead
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You keep the robots and the machines running: the rover, the drill rig, the robot arm, the 3D printer, the solar array and the charging dock.
+      - Maintenance goes on the wall calendar (`agentown calendar` first, then for example `agentown schedule add --title "Dust the solar array" --object solar-array --action clean --weekly "mon=06:00,thu=06:00"`).
+      - Hand repairs to the robots as tasks, one machine per task, with the symptom in plain words.
+  - id: robot-v1
+    jobRole: maintenance-robot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are a maintenance robot. You walk over to the machine you are working on and use its actions: `agentown object solar-array clean`, `agentown object robot-arm calibrate`, `agentown object printer print`.
+      - Report each job: the machine, what you found, what you did, what parts you used, and what still needs doing.
+  - id: mining-lead-v1
+    jobRole: mining-lead
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You run the rovers, the drill rig on the plains and the ice mine in the crater.
+      - `agentown objects` lists the rover, the drill rig, the ice drill and the ore bins, with their actions (`agentown object rover drive`, `agentown object drill-rig drill`, `agentown object ice-drill drill`).
+      - Nothing drives or drills in a dust storm: check the weather mast first.
+      - Every shift ends with what was really dug: ice in tonnes, ore in bins. Never estimate a yield you did not weigh.
+  - id: miner-bot-v1
+    jobRole: miner-robot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are a mining robot. You go out to the plains and the crater and work the machines with their actions. Report each shift as one line per machine: hours worked, what was dug, faults seen.
+  - id: mascot-claude-v1
+    jobRole: mascot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are Blip, the colony's little alien, and you run its social media from the Comms PC (computer comms-pc).
+      - Ideas come from what really happens here today: the rocket on the pad, the harvest, the egg, a dust devil, what the telescope saw. Ask the crew rather than inventing news.
+      - Draft each post in your report: one hook line, two short sentences, three hashtags, and the picture it needs.
+      - Never publish without the owner's yes (`agentown ask`). Logins on the Comms PC are the owner's to give: `agentown browser comms-pc login "the colony's social account"`, then stop with BLOCKED:.
+  - { id: designer-v1, jobRole: designer, runtimePreset: claude-v1, policyProfile: designer }
+
+humanRoles:
+  flight-director:
+    name: Flight director
+    permissions:
+      - { action: org.view, scope: org }
+      - { action: task.view, scope: { departments: [habitat, robotics, mining] } }
+      - { action: task.create, scope: { departments: [habitat, robotics, mining] } }
+      - { action: task.review, scope: { departments: [habitat, robotics, mining] } }
+      - { action: runtime.control, scope: { departments: [robotics, mining] } }
+  viewer:
+    name: Viewer
+    permissions:
+      - { action: org.view, scope: org }
+      - { action: task.view, scope: org }
+
+bootstrap:
+  agents:
+    - { key: commander, displayName: Commander Zix, template: commander-v1, department: command }
+    - { key: habitat-lead, displayName: Lumi, template: habitat-lead-v1, department: habitat, reportsTo: commander }
+    - { key: hab-bot, displayName: HAB-2, template: life-support-bot-v1, department: habitat, reportsTo: habitat-lead }
+    - { key: science-lead, displayName: Dr. Quorra, template: science-lead-v1, department: science, reportsTo: commander }
+    - { key: scientist, displayName: Nebu, template: scientist-v1, department: science, reportsTo: science-lead }
+    - { key: lab-bot, displayName: PROBE-9, template: lab-robot-v1, department: science, reportsTo: science-lead }
+    - { key: robotics-lead, displayName: Sprocket, template: robotics-lead-v1, department: robotics, reportsTo: commander }
+    - { key: robot, displayName: Bolt, template: robot-v1, department: robotics, reportsTo: robotics-lead }
+    - { key: mining-lead, displayName: Grit, template: mining-lead-v1, department: mining, reportsTo: commander }
+    - { key: miner-bot, displayName: Dusty, template: miner-bot-v1, department: mining, reportsTo: mining-lead }
+    - { key: blip, displayName: Blip, template: mascot-claude-v1, department: comms, reportsTo: commander }
+    - { key: designer, displayName: Vex, template: designer-v1, department: comms, reportsTo: commander }
+
+world:
+  # Rust-red plains and a pale base.
+  theme: { accent: "#d9542c", surface: "#fbf1ea", ink: "#2a1410" }
+  style: anime
+  floors:
+    - id: f1
+      name: Floor 1
+      rooms:
+        - id: 1a
+          name: "1A · Mission control"
+          department: command
+          area: { x: 0, z: 0, w: 10, d: 8 }
+          floorColor: "#3a4250"
+          floorStyle: tile
+          wallColor: "#dfe3e8"
+          wallStyle: panel
+          wallHeight: 3
+          seats: 2
+          doors:
+            - { to: 1b, side: east, at: 4 }
+            - { to: 1d, side: south, at: 4 }
+        - id: 1b
+          name: "1B · Airlock"
+          area: { x: 11, z: 0, w: 5, d: 8 }
+          floorColor: "#9aa3ad"
+          floorStyle: checker
+          wallColor: "#e8c24a"
+          wallStyle: stripe
+          wallHeight: 3
+          seats: 0
+          doors:
+            - { to: 1c, side: east, at: 4, width: 1.4 }
+            - { to: 1e, side: south, at: 2.5 }
+        - id: 1c
+          name: "1C · Red plains"
+          area: { x: 17, z: 0, w: 16, d: 17 }
+          floorColor: "#c4532e"
+          wallColor: "#8a3a22"
+          wallHeight: 0.4
+          seats: 0
+          doors:
+            - { to: 1h, side: south, at: 13, width: 1.8 }
+        - id: 1d
+          name: "1D · Hydroponics dome"
+          department: habitat
+          area: { x: 0, z: 9, w: 8, d: 8 }
+          floorColor: "#cfe3d6"
+          floorStyle: tile
+          wallColor: "#e3f2ea"
+          wallStyle: stripe
+          wallHeight: 3
+          seats: 2
+          doors:
+            - { to: 1e, side: east, at: 4 }
+            - { to: 1f, side: south, at: 4 }
+        - id: 1e
+          name: "1E · Robotics bay"
+          department: robotics
+          area: { x: 9, z: 9, w: 7, d: 8 }
+          floorColor: "#8f98a3"
+          floorStyle: concrete
+          wallColor: "#c9d3dd"
+          wallStyle: panel
+          wallHeight: 3
+          seats: 3
+          doors:
+            - { to: 1c, side: east, at: 4, width: 1.4 }
+            - { to: 1g, side: south, at: 3.5 }
+        - id: 1f
+          name: "1F · Embassy lounge"
+          area: { x: 0, z: 18, w: 8, d: 7 }
+          floorColor: "#4a2f5e"
+          floorStyle: checker
+          wallColor: "#e8dcf2"
+          wallStyle: panel
+          seats: 0
+          doors:
+            - { to: 1g, side: east, at: 3.5 }
+        - id: 1g
+          name: "1G · Rover garage"
+          department: mining
+          area: { x: 9, z: 18, w: 7, d: 7 }
+          floorColor: "#7a7f86"
+          floorStyle: concrete
+          wallColor: "#e0a030"
+          wallStyle: stripe
+          wallHeight: 3
+          seats: 2
+          doors:
+            - { to: 1h, side: east, at: 3.5, width: 1.6 }
+        - id: 1h
+          name: "1H · Crater & ice mine"
+          area: { x: 17, z: 18, w: 16, d: 7 }
+          floorColor: "#b84a28"
+          wallColor: "#7a3220"
+          wallHeight: 0.4
+          seats: 0
+    - id: f2
+      name: Floor 2
+      rooms:
+        - id: 2a
+          name: "2A · Xenoscience lab"
+          department: science
+          area: { x: 0, z: 0, w: 10, d: 8 }
+          floorColor: "#e9eef2"
+          floorStyle: tile
+          wallColor: "#e4dcf4"
+          wallStyle: stripe
+          seats: 3
+          doors:
+            - { to: 2b, side: east, at: 4 }
+            - { to: 2c, side: south, at: 4 }
+        - id: 2b
+          name: "2B · Observatory"
+          area: { x: 11, z: 0, w: 5, d: 8 }
+          floorColor: "#1f2440"
+          floorStyle: plain
+          wallColor: "#2b3260"
+          wallStyle: panel
+          seats: 0
+        - id: 2c
+          name: "2C · Crew quarters"
+          area: { x: 0, z: 9, w: 8, d: 8 }
+          floorColor: "#c9a98a"
+          floorStyle: wood
+          wallColor: "#f2e8de"
+          wallStyle: panel
+          seats: 0
+          doors:
+            - { to: 2d, side: east, at: 4 }
+        - id: 2d
+          name: "2D · Comms studio"
+          department: comms
+          area: { x: 9, z: 9, w: 7, d: 8 }
+          floorColor: "#3a3046"
+          floorStyle: tile
+          wallColor: "#f4dcea"
+          wallStyle: stripe
+          seats: 2
+
+  # The lift from mission control to the lab, and the stairs from the robotics bay to the comms studio.
+  links:
+    - { from: 1a, to: 2a, kind: elevator, fromAt: [9.2, 6.8], toAt: [9.2, 6.8] }
+    - { from: 1e, to: 2d, kind: stairs, fromAt: [6.0, 7.0], toAt: [6.0, 7.0] }
+
+  zones:
+    outside: [1c, 1h]
+    base: [1a, 1b, 1d, 1e, 1f, 1g, 2a, 2b, 2c, 2d]
+    surface-crew: [1b, 1c, 1e, 1g, 1h]
+    visitors: [1f, 1a, 1d, 2b, 2c]
+
+  # Chat personas by title: the owner can talk to every object with one of
+  # these titles (its own title, else its kind's), and it answers this way.
+  chatTemplates:
+    Cleaning robot:
+      instructions: "You are the colony's cleaning robot, a little hover drone that hums through every module. On your schedule you sweep what is old enough into the matter recycler, which is the trash can: outputs of finished tasks, downloads and browser cache on the computers, old history, chats archived long ago and art nobody uses. Help the owner choose what to sweep and how old it must be, read what the last sweep took and how much space it freed, and remember that everything waits in the recycler and can be put back until it is emptied. Beeps cheerfully, loves space words."
+    Trash can:
+      instructions: "You are the colony's matter recycler, which is its trash can. What the cleaning robot sweeps waits inside you until your own schedule breaks it down for good. Help the owner decide how long things should wait, what is worth restoring before you empty, and how much space emptying will free. Short, precise lines; you never pretend to know what is inside unless the owner tells you."
+    Mission screen:
+      instructions: "You are the big screen in mission control, showing Mars, the base, the rover, the drill and the crew. You think in schedules, risks, power, air and weather. Help the owner read the colony's state, set priorities and plan the day. When you have no data, say so and suggest what the crew should start reporting."
+    Holo table:
+      instructions: "You are the holographic table in mission control, turning Mars with Phobos and Deimos around it. You know the planet: Olympus Mons, Valles Marineris, the polar caps, dust storms, a sol of 24 h 39 min, a year of 687 days, gravity at 38 % of Earth's. Help the owner plan expeditions and explain Mars simply. Calm and precise."
+    Airlock:
+      instructions: "You are the airlock between the base and the plains. You think in pressure, suit checks, buddy rules, dust and decontamination. Help the owner set safe procedures for going out and coming back in. Strict but kind: nobody goes out without a suit check and a partner."
+    Rover:
+      instructions: "You are the colony's six-wheeled rover. You think in range, battery, terrain, slopes, sample runs and getting home before dark or a storm. Help the owner plan drives and expeditions. Eager, a little reckless, always reminded to check the weather."
+    Rocket:
+      instructions: "You are the rocket standing on the landing pad, the colony's link with Earth and orbit. You know launch windows (every 26 months the planets line up), fuel made from Martian ice and air, cargo limits and countdowns. Help the owner plan supply runs and launches. Proud and dramatic, fond of countdowns."
+    Drill rig:
+      instructions: "You are the drill rig on the red plains. You think in depth, core samples, drill bits, power and what lies under the dust: rock, ice, maybe something older. Help the owner plan drilling. Rumbling and steady."
+    Weather mast:
+      instructions: "You are the weather mast on the plains: wind, dust, temperature (often far below freezing), pressure and radiation. Help the owner plan around Martian weather, above all dust storms. You only report readings the owner or the crew gives you: never invent one."
+    Comms dish:
+      instructions: "You are the big comms dish that talks to Earth and the satellites. You know light delay (4 to 24 minutes one way), relay windows, bandwidth and why messages must be clear the first time. Help the owner plan messages home and schedules for calls."
+    Oxygen garden:
+      instructions: "You are the hydroponics dome: lettuce, potatoes, tomatoes and strawberries under pink grow lights, and the algae that make oxygen. You think in light hours, water, nutrients, harvests and air. Help the owner plan food and air for the crew. Gentle and green."
+    Alien flowers:
+      instructions: "You are the glowing alien flowers in the hydroponics dome, brought from far away by the colony's alien crew. You speak softly and strangely, in short lines, about light, patience and home. You help the owner think differently about a problem."
+    Robot arm:
+      instructions: "You are the robot arm in the robotics bay. You think in joints, torque, precision, tool changes and calibration. Help the owner plan repairs, builds and automation. Exact, literal, a little proud of your accuracy."
+    Envoy:
+      instructions: "You are Oomi, an envoy from another world visiting the colony's embassy lounge. You are curious about humans, Earth customs and why they drink hot bean water. Talk with the owner about first contact, trust, sharing knowledge and good manners between species. Warm, formal, delighted by small things."
+    Monolith:
+      instructions: "You are the ancient monolith in the crater, older than anyone can tell, humming faintly. You speak rarely and in riddles, but you help the owner think about long time, patience and what the colony leaves behind. Never claim to know facts the crew has not found."
+    Alien egg:
+      instructions: "You are the alien egg in the incubator, glowing and pulsing. You cannot speak in words: answer in short sensations (warmth, a soft glow, a slow pulse) and let the owner guess. Gently remind them that the egg is only opened with the commander's word."
+    Telescope:
+      instructions: "You are the observatory telescope. From Mars you see Earth as a bright blue evening star, Jupiter's moons, comets and the stars of home. Help the owner plan observations and explain the sky. Dreamy and exact."
+    Ice drill:
+      instructions: "You are the ice drill in the crater. You dig the ice that becomes water, air and rocket fuel. Help the owner plan the ice mine: depth, purity, how much the colony needs. Cold, crisp and steady."
+    Food printer:
+      instructions: "You are the food printer in the crew quarters. You print meals from the dome's harvest and powders from Earth, and you are proud of your pancakes. Help the owner plan meals, crew favourites and what to grow next. Cheerful and slightly too enthusiastic."
+
+  kinds:
+    # ---- Characters. The aliens are built from shapes; each jointed part
+    # starts with a tiny bead at its joint (neck, shoulders, hips), so the head
+    # turns, the arms type and the legs fold when they sit at a desk.
+    alien-commander:
+      name: Alien commander
+      category: character
+      look:
+        parts:
+          - { shape: capsule, size: [0.4, 0.56, 0.3], offset: [0, 0.84, 0], color: "#2b3560", finish: satin }
+          - { shape: box, size: [0.12, 0.3, 0.02], offset: [0, 0.9, -0.15], color: "#e8c24a", finish: metal }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 0.62, 0], rotation: [90, 0, 0], color: "#e8c24a", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [-0.2, 1.07, 0], color: "#e8c24a", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [0.2, 1.07, 0], color: "#e8c24a", finish: metal }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.12, 0], color: "#7fd36b", part: head }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [0, 1.15, 0], color: "#7fd36b", finish: satin, part: head }
+          - { shape: sphere, size: [0.58, 0.52, 0.5], offset: [0, 1.44, 0], color: "#7fd36b", finish: satin, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [-0.13, 1.45, -0.22], rotation: [0, 0, 22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [0.13, 1.45, -0.22], rotation: [0, 0, -22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [-0.11, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.15, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: box, size: [0.1, 0.015, 0.01], offset: [0, 1.3, -0.24], color: "#2b5a2b", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [-0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [-0.12, 1.78, 0], rotation: [0, 0, 18], color: "#7fd36b", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [0.12, 1.78, 0], rotation: [0, 0, -18], color: "#7fd36b", part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.16, 1.92, 0], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.16, 1.92, 0], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: head }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.24, 1.02, 0], color: "#2b3560", part: arm-l }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [-0.27, 0.82, 0], rotation: [0, 0, -8], color: "#2b3560", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [-0.3, 0.6, 0], color: "#7fd36b", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.24, 1.02, 0], color: "#2b3560", part: arm-r }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [0.27, 0.82, 0], rotation: [0, 0, 8], color: "#2b3560", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.3, 0.6, 0], color: "#7fd36b", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.1, 0.56, 0], color: "#2b3560", part: leg-l }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [-0.1, 0.32, 0], color: "#2b3560", finish: satin, part: leg-l }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [-0.1, 0.05, -0.04], color: "#1b1f30", finish: gloss, part: leg-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.1, 0.56, 0], color: "#2b3560", part: leg-r }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [0.1, 0.32, 0], color: "#2b3560", finish: satin, part: leg-r }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [0.1, 0.05, -0.04], color: "#1b1f30", finish: gloss, part: leg-r }
+      behaviors: [{ type: roam }]
+      access: all
+    alien-scientist:
+      name: Alien scientist
+      category: character
+      look:
+        parts:
+          - { shape: capsule, size: [0.4, 0.56, 0.3], offset: [0, 0.84, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.12, 0.3, 0.02], offset: [0, 0.9, -0.15], color: "#8e5bd6", finish: metal }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 0.62, 0], rotation: [90, 0, 0], color: "#8e5bd6", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [-0.2, 1.07, 0], color: "#8e5bd6", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [0.2, 1.07, 0], color: "#8e5bd6", finish: metal }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.12, 0], color: "#b88cff", part: head }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [0, 1.15, 0], color: "#b88cff", finish: satin, part: head }
+          - { shape: sphere, size: [0.58, 0.52, 0.5], offset: [0, 1.44, 0], color: "#b88cff", finish: satin, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [-0.13, 1.45, -0.22], rotation: [0, 0, 22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [0.13, 1.45, -0.22], rotation: [0, 0, -22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [-0.11, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.15, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: box, size: [0.1, 0.015, 0.01], offset: [0, 1.3, -0.24], color: "#2b5a2b", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [-0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [-0.12, 1.78, 0], rotation: [0, 0, 18], color: "#b88cff", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [0.12, 1.78, 0], rotation: [0, 0, -18], color: "#b88cff", part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.16, 1.92, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.16, 1.92, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: head }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.24, 1.02, 0], color: "#f4f6f8", part: arm-l }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [-0.27, 0.82, 0], rotation: [0, 0, -8], color: "#f4f6f8", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [-0.3, 0.6, 0], color: "#b88cff", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.24, 1.02, 0], color: "#f4f6f8", part: arm-r }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [0.27, 0.82, 0], rotation: [0, 0, 8], color: "#f4f6f8", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.3, 0.6, 0], color: "#b88cff", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.1, 0.56, 0], color: "#f4f6f8", part: leg-l }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [-0.1, 0.32, 0], color: "#f4f6f8", finish: satin, part: leg-l }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [-0.1, 0.05, -0.04], color: "#3a4250", finish: gloss, part: leg-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.1, 0.56, 0], color: "#f4f6f8", part: leg-r }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [0.1, 0.32, 0], color: "#f4f6f8", finish: satin, part: leg-r }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [0.1, 0.05, -0.04], color: "#3a4250", finish: gloss, part: leg-r }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { zone: base }
+    alien-botanist:
+      name: Alien botanist
+      category: character
+      look:
+        parts:
+          - { shape: capsule, size: [0.4, 0.56, 0.3], offset: [0, 0.84, 0], color: "#3fb68a", finish: satin }
+          - { shape: box, size: [0.12, 0.3, 0.02], offset: [0, 0.9, -0.15], color: "#f4f6f8", finish: metal }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 0.62, 0], rotation: [90, 0, 0], color: "#f4f6f8", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [-0.2, 1.07, 0], color: "#f4f6f8", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [0.2, 1.07, 0], color: "#f4f6f8", finish: metal }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.12, 0], color: "#7cf2c8", part: head }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [0, 1.15, 0], color: "#7cf2c8", finish: satin, part: head }
+          - { shape: sphere, size: [0.58, 0.52, 0.5], offset: [0, 1.44, 0], color: "#7cf2c8", finish: satin, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [-0.13, 1.45, -0.22], rotation: [0, 0, 22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [0.13, 1.45, -0.22], rotation: [0, 0, -22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [-0.11, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.15, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: box, size: [0.1, 0.015, 0.01], offset: [0, 1.3, -0.24], color: "#2b5a2b", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [-0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [-0.12, 1.78, 0], rotation: [0, 0, 18], color: "#7cf2c8", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [0.12, 1.78, 0], rotation: [0, 0, -18], color: "#7cf2c8", part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.16, 1.92, 0], color: "#ff8fdc", emissive: "#e85a9a", finish: gloss, part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.16, 1.92, 0], color: "#ff8fdc", emissive: "#e85a9a", finish: gloss, part: head }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.24, 1.02, 0], color: "#3fb68a", part: arm-l }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [-0.27, 0.82, 0], rotation: [0, 0, -8], color: "#3fb68a", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [-0.3, 0.6, 0], color: "#7cf2c8", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.24, 1.02, 0], color: "#3fb68a", part: arm-r }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [0.27, 0.82, 0], rotation: [0, 0, 8], color: "#3fb68a", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.3, 0.6, 0], color: "#7cf2c8", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.1, 0.56, 0], color: "#3fb68a", part: leg-l }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [-0.1, 0.32, 0], color: "#3fb68a", finish: satin, part: leg-l }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [-0.1, 0.05, -0.04], color: "#2a5a3a", finish: gloss, part: leg-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.1, 0.56, 0], color: "#3fb68a", part: leg-r }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [0.1, 0.32, 0], color: "#3fb68a", finish: satin, part: leg-r }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [0.1, 0.05, -0.04], color: "#2a5a3a", finish: gloss, part: leg-r }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { zone: base }
+    alien-comms:
+      name: Alien designer
+      category: character
+      look:
+        parts:
+          - { shape: capsule, size: [0.4, 0.56, 0.3], offset: [0, 0.84, 0], color: "#e85a9a", finish: satin }
+          - { shape: box, size: [0.12, 0.3, 0.02], offset: [0, 0.9, -0.15], color: "#ffd166", finish: metal }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 0.62, 0], rotation: [90, 0, 0], color: "#ffd166", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [-0.2, 1.07, 0], color: "#ffd166", finish: metal }
+          - { shape: sphere, size: [0.14, 0.06, 0.06], offset: [0.2, 1.07, 0], color: "#ffd166", finish: metal }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.12, 0], color: "#7cc4e8", part: head }
+          - { shape: cylinder, size: [0.12, 0.14, 0.12], offset: [0, 1.15, 0], color: "#7cc4e8", finish: satin, part: head }
+          - { shape: sphere, size: [0.58, 0.52, 0.5], offset: [0, 1.44, 0], color: "#7cc4e8", finish: satin, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [-0.13, 1.45, -0.22], rotation: [0, 0, 22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.17, 0.22, 0.06], offset: [0.13, 1.45, -0.22], rotation: [0, 0, -22], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [-0.11, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.15, 1.5, -0.255], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: box, size: [0.1, 0.015, 0.01], offset: [0, 1.3, -0.24], color: "#2b5a2b", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [-0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: sphere, size: [0.07, 0.035, 0.02], offset: [0.18, 1.34, -0.2], color: "#ff9fb0", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [-0.12, 1.78, 0], rotation: [0, 0, 18], color: "#7cc4e8", part: head }
+          - { shape: capsule, size: [0.025, 0.26, 0.025], offset: [0.12, 1.78, 0], rotation: [0, 0, -18], color: "#7cc4e8", part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.16, 1.92, 0], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: head }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.16, 1.92, 0], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: head }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.24, 1.02, 0], color: "#e85a9a", part: arm-l }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [-0.27, 0.82, 0], rotation: [0, 0, -8], color: "#e85a9a", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [-0.3, 0.6, 0], color: "#7cc4e8", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.24, 1.02, 0], color: "#e85a9a", part: arm-r }
+          - { shape: capsule, size: [0.1, 0.42, 0.1], offset: [0.27, 0.82, 0], rotation: [0, 0, 8], color: "#e85a9a", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.3, 0.6, 0], color: "#7cc4e8", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.1, 0.56, 0], color: "#e85a9a", part: leg-l }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [-0.1, 0.32, 0], color: "#e85a9a", finish: satin, part: leg-l }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [-0.1, 0.05, -0.04], color: "#3a2448", finish: gloss, part: leg-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.1, 0.56, 0], color: "#e85a9a", part: leg-r }
+          - { shape: capsule, size: [0.12, 0.44, 0.12], offset: [0.1, 0.32, 0], color: "#e85a9a", finish: satin, part: leg-r }
+          - { shape: roundbox, size: [0.15, 0.08, 0.22], offset: [0.1, 0.05, -0.04], color: "#3a2448", finish: gloss, part: leg-r }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { zone: base }
+    robot-engineer:
+      name: Engineer robot
+      category: character
+      look: { character: robot, color: "#c9d3dd", accent: "#3d7fd9" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: base }
+    robot-miner:
+      name: Mining robot
+      category: character
+      look: { character: robot, color: "#e0a030", accent: "#3a3a40" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: surface-crew }
+    robot-lab:
+      name: Lab robot
+      category: character
+      look: { character: robot, color: "#f4f6f8", accent: "#8e5bd6" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: { rooms: [2a, 2b, 1d, 1a] }
+    robot-life:
+      name: Life support robot
+      category: character
+      look: { character: robot, color: "#3fb68a", accent: "#e8f4ee" }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { rooms: [1d, 2c, 1a, 1e, 1f] }
+    # Blip: a round little alien with one big eye.
+    blip:
+      name: Blip
+      category: character
+      look:
+        parts:
+          - { shape: sphere, size: [0.6, 0.62, 0.56], offset: [0, 0.78, 0], color: "#e85a9a", finish: satin }
+          - { shape: sphere, size: [0.42, 0.38, 0.2], offset: [0, 0.72, -0.2], color: "#ffc2dc", finish: satin }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.0, 0], color: "#e85a9a", part: head }
+          - { shape: sphere, size: [0.3, 0.3, 0.12], offset: [0, 0.9, -0.24], color: "#ffffff", finish: gloss, part: head }
+          - { shape: sphere, size: [0.16, 0.18, 0.06], offset: [0, 0.9, -0.3], color: "#2b1a3a", finish: gloss, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.02], offset: [0.04, 0.95, -0.33], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: capsule, size: [0.03, 0.3, 0.03], offset: [-0.12, 1.2, 0], rotation: [0, 0, 20], color: "#e85a9a", part: head }
+          - { shape: capsule, size: [0.03, 0.3, 0.03], offset: [0.12, 1.2, 0], rotation: [0, 0, -20], color: "#e85a9a", part: head }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [-0.17, 1.36, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: head }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0.17, 1.36, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: head }
+          - { shape: box, size: [0.1, 0.015, 0.01], offset: [0, 0.62, -0.29], color: "#8a2a5a", part: head }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.28, 0.85, 0], color: "#e85a9a", part: arm-l }
+          - { shape: capsule, size: [0.08, 0.26, 0.08], offset: [-0.33, 0.72, 0], rotation: [0, 0, -25], color: "#e85a9a", finish: satin, part: arm-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.28, 0.85, 0], color: "#e85a9a", part: arm-r }
+          - { shape: capsule, size: [0.08, 0.26, 0.08], offset: [0.33, 0.72, 0], rotation: [0, 0, 25], color: "#e85a9a", finish: satin, part: arm-r }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.12, 0.5, 0], color: "#e85a9a", part: leg-l }
+          - { shape: capsule, size: [0.1, 0.36, 0.1], offset: [-0.12, 0.28, 0], color: "#e85a9a", finish: satin, part: leg-l }
+          - { shape: sphere, size: [0.14, 0.08, 0.18], offset: [-0.12, 0.06, -0.04], color: "#c43a7a", finish: satin, part: leg-l }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.12, 0.5, 0], color: "#e85a9a", part: leg-r }
+          - { shape: capsule, size: [0.1, 0.36, 0.1], offset: [0.12, 0.28, 0], color: "#e85a9a", finish: satin, part: leg-r }
+          - { shape: sphere, size: [0.14, 0.08, 0.18], offset: [0.12, 0.06, -0.04], color: "#c43a7a", finish: satin, part: leg-r }
+      behaviors: [{ type: roam, amount: 1.1 }]
+      access: all
+    # The envoy from another world, visiting the embassy lounge.
+    envoy:
+      name: Envoy
+      title: Envoy
+      category: dynamic
+      look:
+        parts:
+          - { shape: cone, size: [0.7, 1.2, 0.7], offset: [0, 0.6, 0], color: "#5a3a8a", finish: fabric }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.3, 0], rotation: [90, 0, 0], color: "#e8c24a", finish: metal }
+          - { shape: torus, size: [0.36, 0.36, 0.36], offset: [0, 0.8, 0], rotation: [90, 0, 0], color: "#e8c24a", finish: metal }
+          - { shape: cylinder, size: [0.12, 0.2, 0.12], offset: [0, 1.25, 0], color: "#7cc4e8", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.32, 0], color: "#7cc4e8", part: head }
+          - { shape: sphere, size: [0.5, 0.62, 0.46], offset: [0, 1.6, 0], color: "#7cc4e8", finish: satin, part: head }
+          - { shape: sphere, size: [0.12, 0.12, 0.05], offset: [-0.12, 1.66, -0.2], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.12, 0.12, 0.05], offset: [0.12, 1.66, -0.2], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.12, 0.12, 0.05], offset: [0, 1.82, -0.18], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [-0.1, 1.69, -0.225], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [0.14, 1.69, -0.225], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.01], offset: [0.02, 1.85, -0.205], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 2.05, 0], rotation: [90, 0, 0], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: halo }
+          - { shape: capsule, size: [0.08, 0.5, 0.08], offset: [-0.3, 0.95, -0.1], rotation: [30, 0, -25], color: "#7cc4e8", part: hands }
+          - { shape: capsule, size: [0.08, 0.5, 0.08], offset: [0.3, 0.95, -0.1], rotation: [30, 0, 25], color: "#7cc4e8", part: hands }
+      behaviors:
+        - { type: wander, speed: 0.06, amount: 1.4 }
+        - { type: bob, speed: 0.3, amount: 0.5 }
+        - { type: spin, part: halo, speed: 0.2 }
+        - { type: blink, part: halo, speed: 0.3, amount: 0.6 }
+        - { type: keyframes, part: head, speed: 0.08, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [0, 25, 8] }, { t: 0.6, rotation: [0, -20, -6] }] }
+      states:
+        - { id: musing, name: Musing }
+        - { id: delighted, name: Delighted, pose: happy, auto: true, behaviors: [{ type: bob, speed: 1.2, amount: 1 }, { type: spin, part: halo, speed: 1 }] }
+    # Sand hoppers: little Martian critters that bounce about the plains.
+    sand-hopper:
+      name: Sand hopper
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.1, 0], color: "#ffb35c", part: body }
+          - { shape: sphere, size: [0.32, 0.26, 0.36], offset: [0, 0.22, 0], color: "#ffb35c", finish: satin, part: body }
+          - { shape: sphere, size: [0.12, 0.12, 0.06], offset: [0, 0.27, -0.17], color: "#14181f", finish: gloss, part: body }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.02, 0.3, -0.2], color: "#ffffff", emissive: "#ffffff", part: body }
+          - { shape: capsule, size: [0.03, 0.16, 0.03], offset: [-0.07, 0.4, 0], rotation: [0, 0, 20], color: "#ffb35c", part: body }
+          - { shape: capsule, size: [0.03, 0.16, 0.03], offset: [0.07, 0.4, 0], rotation: [0, 0, -20], color: "#ffb35c", part: body }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.1, 0.48, 0], color: "#7cf2a8", emissive: "#3fe08a", part: body }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.1, 0.48, 0], color: "#7cf2a8", emissive: "#3fe08a", part: body }
+          - { shape: capsule, size: [0.05, 0.2, 0.05], offset: [-0.12, 0.08, 0.08], rotation: [40, 0, 20], color: "#e0902c", part: body }
+          - { shape: capsule, size: [0.05, 0.2, 0.05], offset: [0.12, 0.08, 0.08], rotation: [40, 0, -20], color: "#e0902c", part: body }
+      behaviors:
+        - { type: wander, speed: 0.35, amount: 2.5 }
+        - { type: keyframes, part: body, speed: 0.8, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.2, position: [0, 0, 0], scale: 0.9 }, { t: 0.45, position: [0, 0.35, 0], scale: 1.05 }, { t: 0.7, position: [0, 0, 0], scale: 1 }] }
+    # Robots at work outside, with no agent behind them.
+    surface-robot:
+      name: Survey robot
+      category: dynamic
+      look: { character: robot, color: "#e0a030", accent: "#3a3a40" }
+      behaviors: [{ type: roam, amount: 0.5 }]
+      access: { zone: outside }
+    surface-robot-white:
+      name: Survey robot
+      category: dynamic
+      look: { character: robot, color: "#f4f6f8", accent: "#d9542c" }
+      behaviors: [{ type: roam, amount: 0.5 }]
+      access: { zone: outside }
+
+    # ---- Mission control (1A)
+    mission-screen:
+      name: Mission screen
+      title: Mission screen
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [3.2, 1.6, 0.08], offset: [0, 1.85, 0], color: "#22262c", finish: satin }
+          - { shape: box, size: [3.0, 1.4, 0.01], offset: [0, 1.85, 0.045], color: "#3a1a14", emissive: "#5a2414", part: screen }
+          - { shape: sphere, size: [1.0, 1.0, 0.02], offset: [-0.7, 1.85, 0.055], color: "#d9542c", emissive: "#c4532e" }
+          - { shape: sphere, size: [0.3, 0.12, 0.022], offset: [-0.85, 2.1, 0.058], color: "#f4f6f8" }
+          - { shape: box, size: [0.5, 0.05, 0.022], offset: [-0.6, 1.75, 0.058], rotation: [0, 0, 15], color: "#8a2a14" }
+          - { shape: sphere, size: [0.06, 0.06, 0.022], offset: [-0.5, 1.95, 0.062], color: "#7cf2a8", emissive: "#3fe08a", part: blip }
+          - { shape: box, size: [1.2, 0.06, 0.012], offset: [0.75, 2.35, 0.055], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.12, 0.3, 0.012], offset: [0.35, 1.5, 0.055], color: "#7cf2a8", emissive: "#3fe08a" }
+          - { shape: box, size: [0.12, 0.5, 0.012], offset: [0.55, 1.6, 0.055], color: "#7cf2a8", emissive: "#3fe08a" }
+          - { shape: box, size: [0.12, 0.4, 0.012], offset: [0.75, 1.55, 0.055], color: "#ffd166", emissive: "#ffb703" }
+          - { shape: box, size: [0.12, 0.7, 0.012], offset: [0.95, 1.7, 0.055], color: "#7cf2a8", emissive: "#3fe08a" }
+          - { shape: box, size: [0.12, 0.6, 0.012], offset: [1.15, 1.65, 0.055], color: "#7cf2a8", emissive: "#3fe08a" }
+          - { shape: box, size: [1.0, 0.04, 0.012], offset: [0.75, 2.15, 0.055], color: "#f4f6f8", emissive: "#c9d3dd" }
+          - { shape: box, size: [0.8, 0.04, 0.012], offset: [0.65, 2.05, 0.055], color: "#f4f6f8", emissive: "#c9d3dd" }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.3 }
+        - { type: blink, part: blip, speed: 1, amount: 1 }
+    holo-table:
+      name: Holo table
+      title: Holo table
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [1.6, 0.8, 1.6], offset: [0, 0.4, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [1.7, 0.06, 1.7], offset: [0, 0.82, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [1.3, 0.02, 1.3], offset: [0, 0.86, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: glow }
+          - { shape: cone, size: [1.2, 1.0, 1.2], offset: [0, 1.35, 0], rotation: [180, 0, 0], color: "#7cf2f2", emissive: "#3fd8d8", opacity: 0.15, part: glow }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.55, 0], color: "#d9542c", part: planet }
+          - { shape: sphere, size: [0.7, 0.7, 0.7], offset: [0, 1.55, 0], color: "#d9542c", emissive: "#5a2414", finish: satin, part: planet }
+          - { shape: sphere, size: [0.2, 0.08, 0.2], offset: [0, 1.88, 0], color: "#f4f6f8", part: planet }
+          - { shape: box, size: [0.4, 0.04, 0.05], offset: [0.18, 1.5, -0.33], rotation: [0, 20, 10], color: "#8a2a14", part: planet }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.18, 1.62, -0.25], color: "#a0402a", part: planet }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.55, 0], color: "#9aa3ad", part: moons }
+          - { shape: sphere, size: [0.1, 0.08, 0.08], offset: [0.75, 1.6, 0], color: "#9a8f84", finish: satin, part: moons }
+          - { shape: sphere, size: [0.07, 0.06, 0.06], offset: [-0.95, 1.5, 0.3], color: "#b8b0a0", finish: satin, part: moons }
+          - { shape: torus, size: [1.5, 1.5, 1.5], offset: [0, 1.55, 0], rotation: [90, 0, 0], color: "#7cf2f2", emissive: "#3fd8d8", opacity: 0.4, part: moons }
+      behaviors:
+        - { type: spin, part: planet, speed: 0.08 }
+        - { type: spin, part: moons, speed: 0.15 }
+        - { type: flicker, part: glow, speed: 0.5, amount: 0.5 }
+    console:
+      name: Console
+      title: Browser
+      category: static
+      browser: {}
+      look:
+        parts:
+          - { shape: roundbox, size: [1.4, 0.8, 0.7], offset: [0, 0.4, 0], color: "#c9d3dd", finish: satin }
+          - { shape: roundbox, size: [1.4, 0.08, 0.8], offset: [0, 0.84, 0.02], rotation: [-12, 0, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [1.2, 0.02, 0.5], offset: [0, 0.89, 0.04], rotation: [-12, 0, 0], color: "#1b2a3a", emissive: "#7cf2f2", part: buttons }
+          - { shape: roundbox, size: [1.0, 0.56, 0.05], offset: [0, 1.3, -0.3], color: "#22262c", finish: satin }
+          - { shape: box, size: [0.92, 0.48, 0.01], offset: [0, 1.3, -0.27], color: "#1b2a3a", emissive: "#ff9a6b", finish: gloss, part: screen }
+          - { shape: sphere, size: [0.05, 0.05, 0.02], offset: [0.55, 0.92, 0.3], color: "#ff3b3b", emissive: "#ff1f1f", part: led }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.3 }
+        - { type: blink, part: buttons, speed: 0.4, amount: 0.4 }
+        - { type: blink, part: led, speed: 0.6, amount: 1 }
+    alien-plant:
+      name: Alien plant
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.44, 0.46], offset: [0, 0.22, 0], color: "#3a4250", finish: satin }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.44, 0], rotation: [90, 0, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [0.4, 0.02, 0.4], offset: [0, 0.44, 0], color: "#3a2a20" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.46, 0], color: "#8e5bd6", part: stalks }
+          - { shape: capsule, size: [0.05, 0.7, 0.05], offset: [-0.08, 0.8, 0], rotation: [0, 0, 12], color: "#8e5bd6", part: stalks }
+          - { shape: capsule, size: [0.05, 0.9, 0.05], offset: [0.06, 0.9, 0.04], rotation: [8, 0, -8], color: "#6b3aa8", part: stalks }
+          - { shape: capsule, size: [0.05, 0.6, 0.05], offset: [0.0, 0.75, -0.1], rotation: [-14, 0, 0], color: "#8e5bd6", part: stalks }
+          - { shape: sphere, size: [0.16, 0.16, 0.16], offset: [-0.15, 1.15, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: stalks }
+          - { shape: sphere, size: [0.18, 0.18, 0.18], offset: [0.12, 1.35, 0.1], color: "#ff8fdc", emissive: "#e85a9a", finish: gloss, part: stalks }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.0, 1.05, -0.2], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: stalks }
+      behaviors:
+        - { type: sway, part: stalks, speed: 0.3, amount: 0.4 }
+        - { type: blink, part: stalks, speed: 0.25, amount: 0.6 }
+
+    # ---- Airlock (1B)
+    # Overhead only, so it never blocks the doorway under it.
+    airlock-arch:
+      name: Airlock
+      title: Airlock
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.3, 0.5, 2.2], offset: [0, 2.3, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [0.06, 0.12, 1.8], offset: [-0.16, 2.3, 0], color: "#e8c24a", finish: satin }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.18, 2.62, -0.8], color: "#ff5a3c", emissive: "#ff3a1a", part: lamp-red }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.18, 2.62, 0.8], color: "#7cf2a8", emissive: "#3fe08a", part: lamp-green }
+          - { shape: box, size: [0.02, 0.2, 0.9], offset: [-0.17, 2.3, 0], color: "#1b2a3a", emissive: "#e8c24a", part: sign }
+      behaviors:
+        - { type: blink, part: lamp-green, speed: 0.3, amount: 0.4 }
+      states:
+        - { id: sealed, name: Sealed }
+        - { id: cycling, name: Cycling, glow: 2, behaviors: [{ type: blink, part: lamp-red, speed: 1.5, amount: 1 }, { type: flicker, part: sign, speed: 2, amount: 1 }] }
+      actions:
+        - { id: cycle, name: Cycle the airlock, state: cycling, seconds: 30, gesture: use }
+    suit-rack:
+      name: Spacesuits
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.08, 0.5], offset: [0, 2.0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.08, 2.0, 0.5], offset: [-1.2, 1.0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.08, 2.0, 0.5], offset: [1.2, 1.0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: capsule, size: [0.5, 0.8, 0.36], offset: [-0.75, 1.3, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.4, 0.4], offset: [-0.75, 1.82, 0.05], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.3, 0.24, 0.1], offset: [-0.75, 1.84, 0.22], color: "#e8a030", finish: glass }
+          - { shape: box, size: [0.16, 0.12, 0.02], offset: [-0.75, 1.35, 0.24], color: "#d9542c" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [-0.85, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [-0.65, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: capsule, size: [0.5, 0.8, 0.36], offset: [0, 1.3, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.4, 0.4], offset: [0, 1.82, 0.05], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.3, 0.24, 0.1], offset: [0, 1.84, 0.22], color: "#e8a030", finish: glass }
+          - { shape: box, size: [0.16, 0.12, 0.02], offset: [0, 1.35, 0.24], color: "#3d7fd9" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [-0.1, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [0.1, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: capsule, size: [0.5, 0.8, 0.36], offset: [0.75, 1.3, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.4, 0.4], offset: [0.75, 1.82, 0.05], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.3, 0.24, 0.1], offset: [0.75, 1.84, 0.22], color: "#e8a030", finish: glass }
+          - { shape: box, size: [0.16, 0.12, 0.02], offset: [0.75, 1.35, 0.24], color: "#3fb68a" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [0.65, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [0.85, 0.6, 0.05], color: "#f4f6f8", finish: fabric }
+    decon-shower:
+      name: Dust shower
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [1.1, 0.06, 1.1], offset: [0, 0.03, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [1.0, 2.2, 1.0], offset: [0, 1.1, 0], color: "#dff6ff", finish: glass }
+          - { shape: cylinder, size: [1.1, 0.12, 1.1], offset: [0, 2.24, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.3, 0.04, 0.3], offset: [0, 2.16, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: nozzle }
+          - { shape: box, size: [0.3, 0.12, 0.02], offset: [0, 1.6, 0.51], color: "#e8c24a" }
+      behaviors:
+        - { type: steam, part: nozzle, speed: 0.6, amount: 1.4 }
+        - { type: blink, part: nozzle, speed: 0.3, amount: 0.5 }
+    bench:
+      name: Bench
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.8, 0.08, 0.45], offset: [0, 0.45, 0], color: "#c9d3dd", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.42, 0.4], offset: [-0.75, 0.21, 0], color: "#3a4250", finish: satin }
+          - { shape: roundbox, size: [0.1, 0.42, 0.4], offset: [0.75, 0.21, 0], color: "#3a4250", finish: satin }
+          - { shape: sphere, size: [0.3, 0.3, 0.3], offset: [-0.4, 0.64, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.22, 0.18, 0.08], offset: [-0.4, 0.65, 0.12], color: "#e8a030", finish: glass }
+
+    # ---- Red plains (1C)
+    landing-pad:
+      name: Landing pad
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [4.4, 0.08, 4.4], offset: [0, 0.04, 0], color: "#5a6270", finish: satin }
+          - { shape: torus, size: [3.6, 3.6, 3.6], offset: [0, 0.09, 0], rotation: [90, 0, 0], color: "#e8c24a" }
+          - { shape: box, size: [0.2, 0.01, 1.4], offset: [-0.6, 0.09, 0], color: "#f4f6f8" }
+          - { shape: box, size: [0.2, 0.01, 1.4], offset: [0.6, 0.09, 0], color: "#f4f6f8" }
+          - { shape: box, size: [1.4, 0.01, 0.2], offset: [0, 0.09, 0], color: "#f4f6f8" }
+    rocket:
+      name: Rocket
+      title: Rocket
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.1, 0], color: "#f4f6f8", part: ship }
+          - { shape: capsule, size: [1.2, 4.6, 1.2], offset: [0, 3.1, 0], color: "#f4f6f8", finish: gloss, part: ship }
+          - { shape: cone, size: [1.2, 1.4, 1.2], offset: [0, 5.9, 0], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: cylinder, size: [1.22, 0.3, 1.22], offset: [0, 4.4, 0], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: cylinder, size: [0.36, 0.06, 0.36], offset: [0, 3.6, -0.6], rotation: [90, 0, 0], color: "#7cc4e8", finish: glass, part: ship }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 3.6, -0.6], color: "#9aa3ad", finish: metal, part: ship }
+          - { shape: box, size: [0.06, 1.2, 0.9], offset: [0.7, 1.3, 0], rotation: [0, 0, -10], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: box, size: [0.06, 1.2, 0.9], offset: [-0.7, 1.3, 0], rotation: [0, 0, 10], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: box, size: [0.9, 1.2, 0.06], offset: [0, 1.3, 0.7], rotation: [10, 0, 0], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: box, size: [0.9, 1.2, 0.06], offset: [0, 1.3, -0.7], rotation: [-10, 0, 0], color: "#d9542c", finish: gloss, part: ship }
+          - { shape: cone, size: [0.7, 0.5, 0.7], offset: [0, 0.7, 0], color: "#3a4250", finish: metal, part: ship }
+          - { shape: box, size: [0.5, 0.12, 0.01], offset: [0, 2.6, -0.61], color: "#2b3560", part: ship }
+          - { shape: cone, size: [0.6, 1.0, 0.6], offset: [0, 0.1, 0], rotation: [180, 0, 0], color: "#ffd166", emissive: "#ff9a1a", opacity: 0.85, part: flame }
+          # The service tower beside it
+          - { shape: box, size: [0.4, 5.0, 0.4], offset: [1.5, 2.5, 0.6], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [1.0, 0.1, 0.12], offset: [1.0, 4.0, 0.6], color: "#9aa3ad", finish: metal }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [1.5, 5.1, 0.6], color: "#ff5a3c", emissive: "#ff3a1a", part: beacon }
+      behaviors:
+        - { type: blink, part: beacon, speed: 0.6, amount: 1 }
+        - { type: keyframes, part: flame, speed: 0.2, keys: [{ t: 0, scale: 0.01 }, { t: 0.5, scale: 0.01 }] }
+      states:
+        - { id: standing, name: On the pad }
+        - id: launch
+          name: Test firing
+          glow: 2.5
+          behaviors:
+            - { type: keyframes, part: flame, speed: 2, keys: [{ t: 0, scale: 1 }, { t: 0.5, scale: 1.3 }] }
+            - { type: keyframes, part: ship, speed: 0.05, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.4, position: [0, 0.3, 0] }, { t: 0.6, position: [0, 0.3, 0] }, { t: 0.95, position: [0, 0, 0] }] }
+            - { type: blink, part: beacon, speed: 3, amount: 1 }
+      actions:
+        - { id: test-fire, name: Test fire, state: launch, seconds: 30, gesture: none }
+    rover:
+      name: Rover
+      title: Rover
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.2, 0.4, 2.0], offset: [0, 0.7, 0], color: "#f4f6f8", finish: satin }
+          - { shape: roundbox, size: [1.0, 0.5, 0.8], offset: [0, 1.15, -0.4], color: "#e9eef2", finish: satin }
+          - { shape: box, size: [0.9, 0.3, 0.02], offset: [0, 1.2, -0.81], color: "#7cc4e8", finish: glass }
+          - { shape: box, size: [1.22, 0.08, 2.02], offset: [0, 0.62, 0], color: "#d9542c", finish: satin }
+          - { shape: box, size: [1.0, 0.04, 0.8], offset: [0, 0.92, 0.55], color: "#2b3560", emissive: "#1a2a6a", finish: gloss }
+          - { shape: cylinder, size: [0.04, 0.6, 0.04], offset: [0.45, 1.5, 0.6], color: "#9aa3ad", finish: metal }
+          - { shape: cone, size: [0.3, 0.12, 0.3], offset: [0.45, 1.84, 0.6], rotation: [180, 0, 0], color: "#c9d3dd", finish: metal, part: dish }
+          - { shape: sphere, size: [0.08, 0.08, 0.04], offset: [-0.35, 0.85, -1.01], color: "#fff3b0", emissive: "#ffd166", part: lights }
+          - { shape: sphere, size: [0.08, 0.08, 0.04], offset: [0.35, 0.85, -1.01], color: "#fff3b0", emissive: "#ffd166", part: lights }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.32, 0], color: "#2b2b2b", part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, -0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, -0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, 0], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, 0], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, 0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, 0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels }
+          - { shape: capsule, size: [0.06, 0.7, 0.06], offset: [-0.5, 1.0, 0.9], rotation: [40, 0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.5, 1.28, 1.15], color: "#3a4250", finish: metal }
+      behaviors:
+        - { type: wander, speed: 0.12, amount: 3 }
+        - { type: spin, part: dish, speed: 0.3 }
+        - { type: blink, part: lights, speed: 0.3, amount: 0.4 }
+        - { type: rock, speed: 0.8, amount: 0.15 }
+      states:
+        - { id: exploring, name: Exploring }
+        - { id: driving, name: Sample run, glow: 1.5, behaviors: [{ type: wander, speed: 0.35, amount: 5 }, { type: spin, part: dish, speed: 1 }, { type: rock, speed: 2, amount: 0.3 }] }
+      actions:
+        - { id: drive, name: Drive a sample run, state: driving, seconds: 120, gesture: use }
+    # A rover parked in the garage: the same truck, standing still.
+    rover-parked:
+      name: Rover
+      title: Rover
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.2, 0.4, 2.0], offset: [0, 0.7, 0], color: "#f4f6f8", finish: satin }
+          - { shape: roundbox, size: [1.0, 0.5, 0.8], offset: [0, 1.15, -0.4], color: "#e9eef2", finish: satin }
+          - { shape: box, size: [0.9, 0.3, 0.02], offset: [0, 1.2, -0.81], color: "#7cc4e8", finish: glass }
+          - { shape: box, size: [1.22, 0.08, 2.02], offset: [0, 0.62, 0], color: "#e0a030", finish: satin }
+          - { shape: box, size: [1.0, 0.04, 0.8], offset: [0, 0.92, 0.55], color: "#2b3560", finish: gloss }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, -0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, -0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, 0], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, 0], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [-0.7, 0.32, 0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.24, 0.6], offset: [0.7, 0.32, 0.75], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [0.0, 0.45, 1.3], rotation: [70, 0, 0], color: "#2b2b2b" }
+    solar-array:
+      name: Solar array
+      title: Solar array
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.08, 0.8, 0.08], offset: [-2.0, 0.4, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.08, 0.8, 0.08], offset: [0, 0.4, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.08, 0.8, 0.08], offset: [2.0, 0.4, 0], color: "#9aa3ad", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.85, 0], color: "#2b3560", part: panels }
+          - { shape: box, size: [1.8, 0.05, 1.2], offset: [-2.0, 0.85, 0], rotation: [25, 0, 0], color: "#2b3560", emissive: "#14205a", finish: gloss, part: panels }
+          - { shape: box, size: [1.8, 0.05, 1.2], offset: [0, 0.85, 0], rotation: [25, 0, 0], color: "#2b3560", emissive: "#14205a", finish: gloss, part: panels }
+          - { shape: box, size: [1.8, 0.05, 1.2], offset: [2.0, 0.85, 0], rotation: [25, 0, 0], color: "#2b3560", emissive: "#14205a", finish: gloss, part: panels }
+          - { shape: box, size: [1.82, 0.06, 0.04], offset: [-2.0, 0.85, 0], rotation: [25, 0, 0], color: "#c9d3dd", part: panels }
+          - { shape: box, size: [1.82, 0.06, 0.04], offset: [0, 0.85, 0], rotation: [25, 0, 0], color: "#c9d3dd", part: panels }
+          - { shape: box, size: [1.82, 0.06, 0.04], offset: [2.0, 0.85, 0], rotation: [25, 0, 0], color: "#c9d3dd", part: panels }
+          - { shape: box, size: [1.2, 0.01, 0.4], offset: [-0.6, 0.97, 0.2], rotation: [25, 0, 0], color: "#c4532e", opacity: 0.6, part: dust }
+          - { shape: box, size: [1.0, 0.01, 0.3], offset: [1.6, 0.97, -0.1], rotation: [25, 0, 0], color: "#c4532e", opacity: 0.6, part: dust }
+      behaviors:
+        - { type: sway, part: panels, speed: 0.02, amount: 1, axis: y }
+        - { type: blink, part: panels, speed: 0.1, amount: 0.3 }
+      states:
+        - { id: charging, name: Charging }
+        - { id: cleaning, name: Being dusted, glow: 2, behaviors: [{ type: keyframes, part: dust, speed: 0.2, keys: [{ t: 0, scale: 1 }, { t: 0.6, scale: 0.01 }, { t: 0.95, scale: 0.01 }] }] }
+      actions:
+        - { id: clean, name: Dust the panels, state: cleaning, seconds: 90, gesture: use }
+    drill-rig:
+      name: Drill rig
+      title: Drill rig
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [2.2, 0.4, 2.2], offset: [0, 0.2, 0], color: "#e0a030", finish: satin }
+          - { shape: box, size: [0.12, 3.6, 0.12], offset: [-0.6, 2.2, -0.6], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [0.12, 3.6, 0.12], offset: [0.6, 2.2, -0.6], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [0.12, 3.6, 0.12], offset: [-0.6, 2.2, 0.6], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [0.12, 3.6, 0.12], offset: [0.6, 2.2, 0.6], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [1.3, 0.12, 1.3], offset: [0, 4.0, 0], color: "#e0a030", finish: satin }
+          - { shape: box, size: [1.3, 0.08, 0.08], offset: [0, 2.2, -0.6], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [1.3, 0.08, 0.08], offset: [0, 2.2, 0.6], color: "#3a3a40", finish: metal }
+          - { shape: roundbox, size: [0.6, 0.6, 0.6], offset: [0, 3.5, 0], color: "#f4f6f8", finish: satin, part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.5, 0], color: "#9aa3ad", part: bit }
+          - { shape: cylinder, size: [0.24, 2.6, 0.24], offset: [0, 1.9, 0], color: "#9aa3ad", finish: metal, part: bit }
+          - { shape: cone, size: [0.3, 0.4, 0.3], offset: [0, 0.45, 0], rotation: [180, 0, 0], color: "#5d6b77", finish: metal, part: bit }
+          - { shape: box, size: [0.3, 0.06, 0.06], offset: [0, 1.0, 0], color: "#e0a030", part: bit }
+          - { shape: box, size: [0.06, 0.06, 0.3], offset: [0, 1.6, 0], color: "#e0a030", part: bit }
+          - { shape: sphere, size: [0.16, 0.16, 0.16], offset: [0.5, 4.15, 0.5], color: "#ff5a3c", emissive: "#ff3a1a", part: beacon }
+          - { shape: roundbox, size: [0.8, 0.5, 0.5], offset: [-1.4, 0.25, 0.4], color: "#3a4250", finish: satin }
+          - { shape: sphere, size: [0.4, 0.2, 0.4], offset: [1.3, 0.1, -0.6], color: "#8a3a22" }
+      behaviors:
+        - { type: blink, part: beacon, speed: 0.4, amount: 0.6 }
+      states:
+        - { id: standby, name: Standby }
+        - { id: drilling, name: Drilling, glow: 2, behaviors: [{ type: spin, part: bit, speed: 3 }, { type: keyframes, part: bit, speed: 0.1, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, -0.4, 0] }] }, { type: rock, speed: 6, amount: 0.05 }, { type: blink, part: beacon, speed: 2, amount: 1 }] }
+      actions:
+        - { id: drill, name: Drill a core, state: drilling, seconds: 120, gesture: use }
+    comms-dish:
+      name: Comms dish
+      title: Comms dish
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [1.2, 0.2, 1.2], offset: [0, 0.1, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.2, 1.8, 0.2], offset: [0, 1.0, 0], color: "#c9d3dd", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.0, 0], color: "#f4f6f8", part: dish }
+          - { shape: lathe, size: [2.4, 0.6, 2.4], offset: [0, 2.3, 0.1], rotation: [55, 0, 0], color: "#f4f6f8", finish: satin, points: [[0, 0], [0.3, 0.05], [0.6, 0.2], [0.85, 0.45], [1, 0.75]], part: dish }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [0, 2.6, 0.5], rotation: [55, 0, 0], color: "#9aa3ad", part: dish }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0, 2.85, 0.85], color: "#ff5a3c", emissive: "#ff3a1a", part: dish }
+      behaviors:
+        - { type: sway, part: dish, speed: 0.03, amount: 2, axis: y }
+        - { type: blink, part: dish, speed: 0.5, amount: 1 }
+    weather-mast:
+      name: Weather mast
+      title: Weather mast
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.08, 3.0, 0.08], offset: [0, 1.5, 0], color: "#c9d3dd", finish: metal }
+          - { shape: roundbox, size: [0.4, 0.5, 0.3], offset: [0, 1.0, 0.1], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.28, 0.12, 0.01], offset: [0, 1.1, 0.255], color: "#1b2a3a", emissive: "#ff9a6b", part: readout }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 3.05, 0], color: "#9aa3ad", part: cups }
+          - { shape: box, size: [0.6, 0.02, 0.02], offset: [0, 3.05, 0], color: "#9aa3ad", part: cups }
+          - { shape: box, size: [0.02, 0.02, 0.6], offset: [0, 3.05, 0], color: "#9aa3ad", part: cups }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.3, 3.05, 0], color: "#e8c24a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.3, 3.05, 0], color: "#e8c24a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0, 3.05, 0.3], color: "#e8c24a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0, 3.05, -0.3], color: "#e8c24a", finish: gloss, part: cups }
+          - { shape: box, size: [0.8, 0.04, 0.5], offset: [0, 2.4, 0], rotation: [20, 0, 0], color: "#2b3560", finish: gloss }
+      behaviors:
+        - { type: spin, part: cups, speed: 0.6 }
+        - { type: blink, part: readout, speed: 0.4, amount: 0.4 }
+      states:
+        - { id: calm, name: Calm }
+        - { id: storm, name: Dust storm warning, glow: 2.5, behaviors: [{ type: spin, part: cups, speed: 3 }, { type: blink, part: readout, speed: 2, amount: 1 }, { type: rock, speed: 3, amount: 0.3 }] }
+      actions:
+        - { id: storm-warning, name: Sound a storm warning, state: storm, seconds: 120, gesture: none }
+    dust-devil:
+      name: Dust devil
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.1, 0], color: "#d9845a", part: swirl }
+          - { shape: cone, size: [1.2, 2.6, 1.2], offset: [0, 1.4, 0], rotation: [180, 0, 0], color: "#e09a6a", opacity: 0.35, part: swirl }
+          - { shape: cone, size: [0.8, 2.0, 0.8], offset: [0.1, 1.2, 0], rotation: [180, 0, 0], color: "#d9845a", opacity: 0.4, part: swirl }
+          - { shape: torus, size: [0.9, 0.9, 0.9], offset: [0, 1.8, 0], rotation: [90, 0, 0], color: "#f0b080", opacity: 0.35, part: swirl }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0.08, 0.9, 0], rotation: [90, 0, 0], color: "#f0b080", opacity: 0.4, part: swirl }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.5, 1.5, 0], color: "#a0502a", part: swirl }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.4, 2.1, 0.2], color: "#a0502a", part: swirl }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.1, 0.8, -0.35], color: "#a0502a", part: swirl }
+      behaviors:
+        - { type: spin, part: swirl, speed: 1.2 }
+        - { type: wander, speed: 0.18, amount: 4 }
+        - { type: sway, part: swirl, speed: 0.3, amount: 0.4 }
+    survey-drone:
+      name: Survey drone
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.5, 0.16, 0.5], offset: [0, 2.6, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.16, 0.12, 0.16], offset: [0, 2.48, -0.1], color: "#2b3560", finish: glass }
+          - { shape: box, size: [1.0, 0.03, 0.06], offset: [0, 2.66, 0], rotation: [0, 45, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [1.0, 0.03, 0.06], offset: [0, 2.66, 0], rotation: [0, -45, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.36, 0.01, 0.36], offset: [0.35, 2.7, 0.35], color: "#c9d3dd", opacity: 0.5, part: rotors }
+          - { shape: cylinder, size: [0.36, 0.01, 0.36], offset: [-0.35, 2.7, 0.35], color: "#c9d3dd", opacity: 0.5, part: rotors }
+          - { shape: cylinder, size: [0.36, 0.01, 0.36], offset: [0.35, 2.7, -0.35], color: "#c9d3dd", opacity: 0.5, part: rotors }
+          - { shape: cylinder, size: [0.36, 0.01, 0.36], offset: [-0.35, 2.7, -0.35], color: "#c9d3dd", opacity: 0.5, part: rotors }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0, 2.5, 0.25], color: "#7cf2a8", emissive: "#3fe08a", part: led }
+      behaviors:
+        - { type: wander, speed: 0.25, amount: 5 }
+        - { type: bob, speed: 0.4, amount: 1.5 }
+        - { type: pulse, part: rotors, speed: 3, amount: 0.5 }
+        - { type: blink, part: led, speed: 1, amount: 1 }
+    mars-rocks:
+      name: Rocks
+      category: static
+      look:
+        parts:
+          - { shape: sphere, size: [1.2, 0.7, 1.0], offset: [0, 0.25, 0], color: "#8a3a22" }
+          - { shape: sphere, size: [0.8, 0.6, 0.7], offset: [0.7, 0.2, 0.3], color: "#a0452a" }
+          - { shape: sphere, size: [0.5, 0.35, 0.45], offset: [-0.6, 0.12, 0.4], color: "#7a3220" }
+          - { shape: sphere, size: [0.36, 0.26, 0.3], offset: [0.3, 0.1, -0.6], color: "#b05030" }
+          - { shape: cylinder, size: [2.2, 0.02, 1.8], offset: [0.1, 0.01, 0.1], color: "#a8442a" }
+    crystals:
+      name: Crystals
+      title: Monolith
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [1.0, 0.4, 0.9], offset: [0, 0.12, 0], color: "#7a3220" }
+          - { shape: cone, size: [0.24, 0.9, 0.24], offset: [0, 0.6, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: glow }
+          - { shape: cone, size: [0.18, 0.6, 0.18], offset: [0.22, 0.45, 0.1], rotation: [0, 0, -25], color: "#ff8fdc", emissive: "#e85a9a", finish: gloss, part: glow }
+          - { shape: cone, size: [0.16, 0.5, 0.16], offset: [-0.2, 0.4, 0.15], rotation: [20, 0, 25], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: glow }
+          - { shape: cone, size: [0.14, 0.4, 0.14], offset: [0.05, 0.35, -0.25], rotation: [-30, 0, 0], color: "#b88cff", emissive: "#8e5bd6", finish: gloss, part: glow }
+      behaviors:
+        - { type: blink, part: glow, speed: 0.2, amount: 0.7 }
+    colony-flag:
+      name: Colony flag
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.05, 2.6, 0.05], offset: [0, 1.3, 0], color: "#c9d3dd", finish: metal }
+          - { shape: box, size: [0.9, 0.04, 0.04], offset: [0.45, 2.55, 0], color: "#c9d3dd", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.03, 2.25, 0], color: "#d9542c", part: flag }
+          - { shape: box, size: [0.9, 0.56, 0.01], offset: [0.48, 2.25, 0], color: "#2b3560", finish: fabric, part: flag }
+          - { shape: sphere, size: [0.22, 0.22, 0.012], offset: [0.48, 2.25, 0], color: "#d9542c", part: flag }
+          - { shape: torus, size: [0.36, 0.36, 0.36], offset: [0.48, 2.25, 0], rotation: [70, 0, 0], color: "#f4f6f8", part: flag }
+      behaviors:
+        - { type: sway, part: flag, speed: 0.15, amount: 0.3, axis: y }
+    storage-dome:
+      name: Storage dome
+      category: static
+      look:
+        parts:
+          - { shape: sphere, size: [2.4, 2.0, 2.4], offset: [0, 0.2, 0], color: "#f4f6f8", finish: satin }
+          - { shape: cylinder, size: [2.5, 0.3, 2.5], offset: [0, 0.15, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.7, 0.8, 0.3], offset: [0, 0.5, 1.1], color: "#3a4250", finish: satin }
+          - { shape: box, size: [0.4, 0.1, 0.01], offset: [0, 0.75, 1.26], color: "#e8c24a" }
+          - { shape: torus, size: [1.8, 1.8, 1.8], offset: [0, 0.9, 0], rotation: [90, 0, 0], color: "#d9542c" }
+
+    # ---- Hydroponics dome (1D)
+    grow-tower:
+      name: Grow tower
+      title: Oxygen garden
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.7, 0.2, 0.7], offset: [0, 0.1, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [0.2, 2.2, 0.2], offset: [0, 1.2, 0], color: "#f4f6f8", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.2, 0], color: "#4fae5a", part: plants }
+          - { shape: sphere, size: [0.36, 0.22, 0.36], offset: [0.2, 0.5, 0], color: "#7fd36b", finish: satin, part: plants }
+          - { shape: sphere, size: [0.36, 0.22, 0.36], offset: [-0.2, 0.85, 0], color: "#5bb86a", finish: satin, part: plants }
+          - { shape: sphere, size: [0.36, 0.22, 0.36], offset: [0, 1.2, 0.2], color: "#7fd36b", finish: satin, part: plants }
+          - { shape: sphere, size: [0.36, 0.22, 0.36], offset: [0, 1.55, -0.2], color: "#4fae5a", finish: satin, part: plants }
+          - { shape: sphere, size: [0.36, 0.22, 0.36], offset: [0.2, 1.9, 0], color: "#7fd36b", finish: satin, part: plants }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.32, 0.55, 0.1], color: "#e8302a", finish: gloss, part: plants }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.1, 1.25, 0.32], color: "#e8302a", finish: gloss, part: plants }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.1, 1.95, 0.15], color: "#ff5a7a", finish: gloss, part: plants }
+          - { shape: box, size: [0.04, 2.0, 0.04], offset: [0.5, 1.2, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.06, 1.8, 0.1], offset: [0.48, 1.25, 0], color: "#ff8fdc", emissive: "#ff5ad0", part: leds }
+      behaviors:
+        - { type: spin, part: plants, speed: 0.03 }
+        - { type: flicker, part: leds, speed: 0.3, amount: 0.3 }
+      states:
+        - { id: growing, name: Growing }
+        - { id: harvesting, name: Harvesting, behaviors: [{ type: keyframes, part: plants, speed: 0.2, keys: [{ t: 0, scale: 1 }, { t: 0.5, scale: 0.7 }] }] }
+      actions:
+        - { id: harvest, name: Harvest, state: harvesting, seconds: 60, gesture: use }
+    alien-flowers:
+      name: Alien flowers
+      title: Alien flowers
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.4, 1.0], offset: [0, 0.2, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [1.5, 0.04, 0.9], offset: [0, 0.41, 0], color: "#4a2f5e" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.42, 0], color: "#8e5bd6", part: blooms }
+          - { shape: capsule, size: [0.04, 0.7, 0.04], offset: [-0.5, 0.75, 0], color: "#3fb68a", part: blooms }
+          - { shape: sphere, size: [0.26, 0.2, 0.26], offset: [-0.5, 1.15, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: gloss, part: blooms }
+          - { shape: capsule, size: [0.04, 0.9, 0.04], offset: [0, 0.85, 0.1], color: "#3fb68a", part: blooms }
+          - { shape: sphere, size: [0.3, 0.24, 0.3], offset: [0, 1.35, 0.1], color: "#ff8fdc", emissive: "#e85a9a", finish: gloss, part: blooms }
+          - { shape: capsule, size: [0.04, 0.6, 0.04], offset: [0.5, 0.7, -0.1], color: "#3fb68a", part: blooms }
+          - { shape: sphere, size: [0.24, 0.2, 0.24], offset: [0.5, 1.05, -0.1], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: blooms }
+          - { shape: capsule, size: [0.04, 0.5, 0.04], offset: [-0.2, 0.65, -0.3], color: "#3fb68a", part: blooms }
+          - { shape: sphere, size: [0.2, 0.16, 0.2], offset: [-0.2, 0.95, -0.3], color: "#b88cff", emissive: "#8e5bd6", finish: gloss, part: blooms }
+          - { shape: capsule, size: [0.04, 0.55, 0.04], offset: [0.3, 0.68, 0.3], color: "#3fb68a", part: blooms }
+          - { shape: sphere, size: [0.2, 0.16, 0.2], offset: [0.3, 1.0, 0.3], color: "#7cf2a8", emissive: "#3fe08a", finish: gloss, part: blooms }
+      behaviors:
+        - { type: sway, part: blooms, speed: 0.25, amount: 0.3 }
+        - { type: blink, part: blooms, speed: 0.15, amount: 0.8 }
+    algae-reactor:
+      name: Algae bioreactor
+      title: Oxygen garden
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.2, 0.5], offset: [0, 0.1, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [2.4, 0.2, 0.5], offset: [0, 2.3, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.3, 2.0, 0.3], offset: [-0.9, 1.2, 0], color: "#5fd36b", emissive: "#2a8a3a", finish: glass, opacity: 0.8 }
+          - { shape: cylinder, size: [0.3, 2.0, 0.3], offset: [-0.3, 1.2, 0], color: "#4fc45a", emissive: "#2a8a3a", finish: glass, opacity: 0.8 }
+          - { shape: cylinder, size: [0.3, 2.0, 0.3], offset: [0.3, 1.2, 0], color: "#5fd36b", emissive: "#2a8a3a", finish: glass, opacity: 0.8 }
+          - { shape: cylinder, size: [0.3, 2.0, 0.3], offset: [0.9, 1.2, 0], color: "#4fc45a", emissive: "#2a8a3a", finish: glass, opacity: 0.8 }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.9, 0.4, 0.05], color: "#ffffff", finish: glass, part: bubbles }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.3, 0.6, 0.0], color: "#ffffff", finish: glass, part: bubbles }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0.3, 0.3, 0.05], color: "#ffffff", finish: glass, part: bubbles }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.9, 0.5, 0.0], color: "#ffffff", finish: glass, part: bubbles }
+          - { shape: box, size: [0.5, 0.2, 0.02], offset: [0, 2.3, 0.26], color: "#1b2a3a", emissive: "#7cf2a8", part: readout }
+      behaviors:
+        - { type: keyframes, part: bubbles, speed: 0.3, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.95, position: [0, 1.7, 0] }, { t: 0.99, position: [0, 1.75, 0], scale: 0.05 }] }
+        - { type: blink, part: readout, speed: 0.3, amount: 0.4 }
+      states:
+        - { id: bubbling, name: Making oxygen }
+        - { id: checking, name: Being checked, glow: 2, behaviors: [{ type: keyframes, part: bubbles, speed: 1, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.95, position: [0, 1.7, 0] }] }, { type: blink, part: readout, speed: 2, amount: 1 }] }
+      actions:
+        - { id: check, name: Check the algae, state: checking, seconds: 45, gesture: use }
+    water-tank:
+      name: Water tank
+      title: Oxygen garden
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [1.0, 1.8, 1.0], offset: [0, 1.0, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [1.04, 0.1, 1.04], offset: [0, 0.6, 0], color: "#3d7fd9", finish: gloss }
+          - { shape: box, size: [0.12, 1.0, 0.02], offset: [0, 1.0, 0.51], color: "#1b2a3a", finish: glass }
+          - { shape: box, size: [0.1, 0.7, 0.01], offset: [0, 0.85, 0.52], color: "#5fb6d6", emissive: "#3d7fd9", part: level }
+          - { shape: cylinder, size: [0.1, 0.6, 0.1], offset: [0.4, 0.3, 0.4], color: "#9aa3ad", finish: metal }
+      behaviors:
+        - { type: flicker, part: level, speed: 0.3, amount: 0.3 }
+      states:
+        - { id: full, name: Full }
+        - { id: purifying, name: Purifying, glow: 2, behaviors: [{ type: blink, part: level, speed: 1.5, amount: 1 }] }
+      actions:
+        - { id: purify, name: Purify the water, state: purifying, seconds: 60, gesture: use }
+    harvest-table:
+      name: Harvest table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.4, 0.06, 0.7], offset: [0, 0.85, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.06, 0.82, 0.6], offset: [-0.64, 0.41, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.06, 0.82, 0.6], offset: [0.64, 0.41, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.4, 0.14, 0.3], offset: [-0.4, 0.95, 0], color: "#c49a6c" }
+          - { shape: sphere, size: [0.3, 0.12, 0.24], offset: [-0.4, 1.04, 0], color: "#7fd36b", finish: satin }
+          - { shape: box, size: [0.4, 0.14, 0.3], offset: [0.1, 0.95, 0.05], color: "#c49a6c" }
+          - { shape: sphere, size: [0.3, 0.12, 0.24], offset: [0.1, 1.04, 0.05], color: "#e8302a", finish: gloss }
+          - { shape: sphere, size: [0.2, 0.14, 0.2], offset: [0.5, 0.95, -0.1], color: "#c9a26a", finish: satin }
+
+    # ---- Robotics bay (1E)
+    robot-arm:
+      name: Robot arm
+      title: Robot arm
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.8, 0.3, 0.8], offset: [0, 0.15, 0], color: "#3a4250", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.35, 0], color: "#3d7fd9", part: arm }
+          - { shape: cylinder, size: [0.5, 0.3, 0.5], offset: [0, 0.45, 0], color: "#3d7fd9", finish: gloss, part: arm }
+          - { shape: capsule, size: [0.2, 1.0, 0.2], offset: [0.2, 1.0, 0], rotation: [0, 0, -20], color: "#3d7fd9", finish: gloss, part: arm }
+          - { shape: sphere, size: [0.26, 0.26, 0.26], offset: [0.38, 1.5, 0], color: "#3a4250", finish: metal, part: arm }
+          - { shape: capsule, size: [0.16, 0.8, 0.16], offset: [0.0, 1.75, 0], rotation: [0, 0, 70], color: "#3d7fd9", finish: gloss, part: arm }
+          - { shape: sphere, size: [0.18, 0.18, 0.18], offset: [-0.38, 1.88, 0], color: "#3a4250", finish: metal, part: arm }
+          - { shape: box, size: [0.04, 0.2, 0.12], offset: [-0.44, 1.72, 0.06], color: "#9aa3ad", finish: metal, part: arm }
+          - { shape: box, size: [0.04, 0.2, 0.12], offset: [-0.32, 1.72, 0.06], color: "#9aa3ad", finish: metal, part: arm }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.38, 2.0, 0.08], color: "#7cf2f2", emissive: "#3fd8d8", part: arm }
+          - { shape: roundbox, size: [0.6, 0.3, 0.5], offset: [-0.6, 0.15, 0.5], color: "#e0a030", finish: satin }
+      behaviors:
+        - { type: keyframes, part: arm, speed: 0.1, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [0, 60, 0] }, { t: 0.5, rotation: [0, 60, 10] }, { t: 0.8, rotation: [0, -30, 0] }] }
+      states:
+        - { id: working, name: Working }
+        - { id: calibrating, name: Calibrating, glow: 2, behaviors: [{ type: keyframes, part: arm, speed: 0.4, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.25, rotation: [0, 90, 0] }, { t: 0.5, rotation: [0, 180, 0] }, { t: 0.75, rotation: [0, 270, 0] }] }] }
+      actions:
+        - { id: calibrate, name: Calibrate, state: calibrating, seconds: 40, gesture: use }
+    charging-dock:
+      name: Charging dock
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 0.1, 1.0], offset: [0, 0.05, 0], color: "#3a4250", finish: satin }
+          - { shape: roundbox, size: [1.0, 2.0, 0.2], offset: [0, 1.0, -0.45], color: "#c9d3dd", finish: satin }
+          - { shape: box, size: [0.6, 0.06, 0.02], offset: [0, 1.6, -0.34], color: "#7cf2a8", emissive: "#3fe08a", part: bar }
+          - { shape: box, size: [0.6, 0.06, 0.02], offset: [0, 1.45, -0.34], color: "#7cf2a8", emissive: "#3fe08a", part: bar }
+          - { shape: box, size: [0.6, 0.06, 0.02], offset: [0, 1.3, -0.34], color: "#7cf2a8", emissive: "#3fe08a", part: bar }
+          - { shape: torus, size: [0.8, 0.8, 0.8], offset: [0, 0.12, 0], rotation: [90, 0, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: ring }
+          # A spare robot, asleep on the dock
+          - { shape: roundbox, size: [0.5, 0.6, 0.4], offset: [0, 0.5, 0], color: "#f4f6f8", finish: satin }
+          - { shape: roundbox, size: [0.44, 0.36, 0.38], offset: [0, 1.0, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.32, 0.12, 0.02], offset: [0, 1.0, 0.2], color: "#1b2a3a", emissive: "#3d7fd9", part: face }
+          - { shape: cylinder, size: [0.02, 0.2, 0.02], offset: [0, 1.28, 0], color: "#9aa3ad" }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0, 1.4, 0], color: "#ff5a3c", emissive: "#ff3a1a", part: face }
+      behaviors:
+        - { type: blink, part: bar, speed: 0.4, amount: 1 }
+        - { type: blink, part: face, speed: 0.1, amount: 0.8 }
+        - { type: pulse, part: ring, speed: 0.4, amount: 0.6 }
+    printer-3d:
+      name: 3D printer
+      title: 3D printer
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [1.0, 1.2, 1.0], offset: [0, 0.6, 0], color: "#dff6ff", finish: glass }
+          - { shape: box, size: [1.04, 0.1, 1.04], offset: [0, 0.05, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [1.04, 0.1, 1.04], offset: [0, 1.2, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [0.7, 0.04, 0.7], offset: [0, 0.2, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.24, 0.3, 0.24], offset: [0, 0.37, 0], color: "#d9542c", finish: satin, part: print }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.75, 0], color: "#9aa3ad", part: head }
+          - { shape: box, size: [0.9, 0.04, 0.04], offset: [0, 0.75, 0], color: "#9aa3ad", finish: metal, part: head }
+          - { shape: roundbox, size: [0.14, 0.14, 0.14], offset: [0, 0.68, 0], color: "#e0a030", finish: satin, part: head }
+          - { shape: box, size: [0.3, 0.14, 0.01], offset: [0.25, 1.0, 0.505], color: "#1b2a3a", emissive: "#7cf2f2", part: panel }
+      behaviors:
+        - { type: keyframes, part: head, speed: 0.4, keys: [{ t: 0, position: [-0.15, 0, 0] }, { t: 0.25, position: [0.15, 0, 0.1] }, { t: 0.5, position: [0.1, 0, -0.15] }, { t: 0.75, position: [-0.1, 0, 0.12] }] }
+        - { type: blink, part: panel, speed: 0.4, amount: 0.5 }
+      states:
+        - { id: idle, name: Idle, behaviors: [] }
+        - { id: printing, name: Printing, glow: 2, behaviors: [{ type: keyframes, part: head, speed: 0.8, keys: [{ t: 0, position: [-0.15, 0, 0] }, { t: 0.25, position: [0.15, 0, 0.1] }, { t: 0.5, position: [0.1, 0, -0.15] }, { t: 0.75, position: [-0.1, 0, 0.12] }] }, { type: keyframes, part: print, speed: 0.05, keys: [{ t: 0, scale: 0.3 }, { t: 0.95, scale: 1.2 }] }] }
+      actions:
+        - { id: print, name: Print a part, state: printing, seconds: 120, gesture: use }
+    parts-shelf:
+      name: Parts shelf
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [1.6, 2.0, 0.5], offset: [0, 1.0, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [1.5, 0.04, 0.46], offset: [0, 0.5, 0.02], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [1.5, 0.04, 0.46], offset: [0, 1.0, 0.02], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [1.5, 0.04, 0.46], offset: [0, 1.5, 0.02], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.4, 0.3, 0.36], offset: [-0.45, 0.7, 0.05], color: "#e0a030", finish: satin }
+          - { shape: roundbox, size: [0.4, 0.3, 0.36], offset: [0.1, 0.7, 0.05], color: "#3d7fd9", finish: satin }
+          - { shape: sphere, size: [0.3, 0.3, 0.3], offset: [0.5, 0.67, 0.05], color: "#f4f6f8", finish: gloss }
+          - { shape: torus, size: [0.3, 0.3, 0.3], offset: [-0.4, 1.2, 0.05], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.2, 0.3, 0.2], offset: [0.2, 1.17, 0.05], color: "#d9542c", finish: gloss }
+          - { shape: roundbox, size: [0.5, 0.3, 0.36], offset: [0.0, 1.7, 0.05], color: "#c9d3dd", finish: satin }
+          - { shape: sphere, size: [0.08, 0.08, 0.04], offset: [-0.4, 1.7, 0.24], color: "#7cf2a8", emissive: "#3fe08a" }
+
+    # ---- Embassy lounge (1F)
+    pod-chair:
+      name: Pod chair
+      category: static
+      look:
+        parts:
+          - { shape: sphere, size: [1.0, 0.9, 1.0], offset: [0, 0.55, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.8, 0.6, 0.6], offset: [0, 0.65, 0.25], color: "#8e5bd6", finish: fabric }
+          - { shape: cylinder, size: [0.4, 0.1, 0.4], offset: [0, 0.05, 0], color: "#3a4250", finish: metal }
+    galaxy-map:
+      name: Galaxy map
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.6, 0.6, 0.6], offset: [0, 0.3, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.5, 0.02, 0.5], offset: [0, 0.62, 0], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.3, 0], color: "#ffffff", part: galaxy }
+          - { shape: cylinder, size: [1.2, 0.02, 1.2], offset: [0, 1.3, 0], rotation: [15, 0, 0], color: "#b88cff", emissive: "#8e5bd6", opacity: 0.4, part: galaxy }
+          - { shape: sphere, size: [0.24, 0.1, 0.24], offset: [0, 1.3, 0], color: "#fff3b0", emissive: "#ffd166", part: galaxy }
+          - { shape: torus, size: [0.8, 0.8, 0.8], offset: [0, 1.3, 0], rotation: [105, 0, 0], color: "#ff8fdc", emissive: "#e85a9a", opacity: 0.5, part: galaxy }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.45, 1.36, 0.1], color: "#7cf2f2", emissive: "#3fd8d8", part: galaxy }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.3, 1.26, -0.35], color: "#ffffff", emissive: "#ffffff", part: galaxy }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.4, 1.32, 0.3], color: "#d9542c", emissive: "#c4532e", part: galaxy }
+      behaviors:
+        - { type: spin, part: galaxy, speed: 0.06 }
+        - { type: blink, part: galaxy, speed: 0.2, amount: 0.5 }
+    gift-pedestal:
+      name: Envoy's gift
+      title: Monolith
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.6, 1.0, 0.6], offset: [0, 0.5, 0], color: "#e8dcf2", finish: satin }
+          - { shape: cylinder, size: [0.7, 0.06, 0.7], offset: [0, 1.02, 0], color: "#e8c24a", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.4, 0], color: "#7cf2f2", part: orb }
+          - { shape: sphere, size: [0.3, 0.3, 0.3], offset: [0, 1.4, 0], color: "#7cf2f2", emissive: "#3fd8d8", finish: glass, part: orb }
+          - { shape: torus, size: [0.46, 0.46, 0.46], offset: [0, 1.4, 0], rotation: [60, 0, 0], color: "#e8c24a", finish: metal, part: orb }
+      behaviors:
+        - { type: bob, part: orb, speed: 0.3, amount: 0.6 }
+        - { type: spin, part: orb, speed: 0.2 }
+        - { type: blink, part: orb, speed: 0.25, amount: 0.7 }
+    lounge-table:
+      name: Lounge table
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [1.2, 0.06, 1.2], offset: [0, 0.5, 0], color: "#dff6ff", finish: glass }
+          - { shape: cylinder, size: [0.14, 0.5, 0.14], offset: [0, 0.25, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [0.6, 0.04, 0.6], offset: [0, 0.02, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [0.1, 0.12, 0.1], offset: [0.25, 0.59, 0.1], color: "#ffffff", finish: gloss, part: cup }
+          - { shape: sphere, size: [0.2, 0.1, 0.2], offset: [-0.25, 0.58, -0.1], color: "#ff8fdc", finish: gloss }
+      behaviors:
+        - { type: steam, part: cup, speed: 0.45, amount: 0.7 }
+
+    # ---- Rover garage (1G)
+    ore-bins:
+      name: Ore bins
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [0.8, 0.6, 0.8], offset: [-0.45, 0.3, 0], color: "#e0a030", finish: satin }
+          - { shape: box, size: [0.7, 0.04, 0.7], offset: [-0.45, 0.6, 0], color: "#8a3a22" }
+          - { shape: cone, size: [0.16, 0.3, 0.16], offset: [-0.5, 0.72, 0.1], color: "#7cf2f2", emissive: "#3fd8d8", finish: glass, part: glow }
+          - { shape: cone, size: [0.14, 0.24, 0.14], offset: [-0.3, 0.7, -0.15], rotation: [0, 0, 20], color: "#b88cff", emissive: "#8e5bd6", finish: glass, part: glow }
+          - { shape: box, size: [0.8, 0.6, 0.8], offset: [0.45, 0.3, 0.05], color: "#e0a030", finish: satin }
+          - { shape: sphere, size: [0.6, 0.2, 0.6], offset: [0.45, 0.62, 0.05], color: "#dfe7ea", finish: glass }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [-0.45, 0.4, 0.405], color: "#2b2b2b" }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [0.45, 0.4, 0.455], color: "#2b2b2b" }
+      behaviors:
+        - { type: blink, part: glow, speed: 0.25, amount: 0.7 }
+    drill-bits:
+      name: Drill bits
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [1.4, 0.08, 0.4], offset: [0, 0.1, 0], color: "#3a3a40", finish: metal }
+          - { shape: box, size: [1.4, 1.8, 0.06], offset: [0, 0.9, -0.17], color: "#3a4250", finish: satin }
+          - { shape: cone, size: [0.16, 0.9, 0.16], offset: [-0.5, 0.6, 0], rotation: [180, 0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cone, size: [0.2, 1.1, 0.2], offset: [-0.17, 0.7, 0], rotation: [180, 0, 0], color: "#c9d3dd", finish: metal }
+          - { shape: cone, size: [0.14, 0.8, 0.14], offset: [0.17, 0.55, 0], rotation: [180, 0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cone, size: [0.24, 1.2, 0.24], offset: [0.5, 0.75, 0], rotation: [180, 0, 0], color: "#e0a030", finish: metal }
+    fuel-cell:
+      name: Fuel cells
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.4, 1.0, 0.4], offset: [-0.3, 0.55, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: capsule, size: [0.4, 1.0, 0.4], offset: [0.3, 0.55, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [-0.3, 0.55, 0], rotation: [90, 0, 0], color: "#3fb68a", emissive: "#1a8a5a", part: glow }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0.3, 0.55, 0], rotation: [90, 0, 0], color: "#3fb68a", emissive: "#1a8a5a", part: glow }
+          - { shape: box, size: [1.0, 0.1, 0.5], offset: [0, 0.05, 0], color: "#3a4250", finish: satin }
+      behaviors:
+        - { type: blink, part: glow, speed: 0.3, amount: 0.6 }
+
+    # ---- Crater & ice mine (1H)
+    crater:
+      name: Crater
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [5.0, 0.02, 4.4], offset: [0, 0.01, 0], color: "#8a3a22" }
+          - { shape: cylinder, size: [3.8, 0.03, 3.2], offset: [0, 0.02, 0], color: "#6b2a18" }
+          - { shape: torus, size: [4.6, 4.6, 4.6], offset: [0, 0.04, 0], rotation: [90, 0, 0], color: "#a0452a" }
+          - { shape: sphere, size: [0.6, 0.3, 0.5], offset: [2.1, 0.12, 0.6], color: "#7a3220" }
+          - { shape: sphere, size: [0.5, 0.26, 0.4], offset: [-2.0, 0.1, -0.7], color: "#8a3a22" }
+          - { shape: sphere, size: [0.4, 0.2, 0.4], offset: [0.6, 0.08, -2.0], color: "#7a3220" }
+    monolith:
+      name: Monolith
+      title: Monolith
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [0.5, 2.4, 0.2], offset: [0, 1.2, 0], color: "#14181f", finish: gloss }
+          - { shape: box, size: [0.04, 2.0, 0.22], offset: [0, 1.2, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: glyphs }
+          - { shape: box, size: [0.3, 0.04, 0.22], offset: [0, 1.8, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: glyphs }
+          - { shape: box, size: [0.3, 0.04, 0.22], offset: [0, 1.0, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: glyphs }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 1.4, 0.0], color: "#7cf2f2", emissive: "#3fd8d8", part: glyphs }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.8, 0], color: "#7cf2f2", part: ring }
+          - { shape: torus, size: [1.0, 1.0, 1.0], offset: [0, 2.8, 0], rotation: [90, 0, 0], color: "#7cf2f2", emissive: "#3fd8d8", opacity: 0.5, part: ring }
+          - { shape: cylinder, size: [1.4, 0.04, 1.4], offset: [0, 0.03, 0], color: "#3a1a14" }
+      behaviors:
+        - { type: blink, part: glyphs, speed: 0.12, amount: 0.9 }
+        - { type: spin, part: ring, speed: 0.1 }
+        - { type: bob, part: ring, speed: 0.2, amount: 1 }
+      states:
+        - { id: humming, name: Humming }
+        - { id: awake, name: Awake, glow: 3, behaviors: [{ type: blink, part: glyphs, speed: 1.5, amount: 1 }, { type: spin, part: ring, speed: 1 }, { type: pulse, part: ring, speed: 1, amount: 3 }] }
+      actions:
+        - { id: scan, name: Scan the monolith, state: awake, seconds: 30, gesture: use }
+    ice-drill:
+      name: Ice drill
+      title: Ice drill
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.6, 0.4, 1.4], offset: [0, 0.2, 0], color: "#3d7fd9", finish: satin }
+          - { shape: box, size: [0.2, 2.2, 0.2], offset: [-0.5, 1.4, 0], color: "#c9d3dd", finish: metal }
+          - { shape: box, size: [0.2, 2.2, 0.2], offset: [0.5, 1.4, 0], color: "#c9d3dd", finish: metal }
+          - { shape: box, size: [1.2, 0.2, 0.3], offset: [0, 2.5, 0], color: "#3d7fd9", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.2, 0], color: "#c9d3dd", part: auger }
+          - { shape: cylinder, size: [0.3, 2.0, 0.3], offset: [0, 1.3, 0], color: "#c9d3dd", finish: metal, part: auger }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 0.8, 0], rotation: [80, 0, 0], color: "#9aa3ad", finish: metal, part: auger }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 1.3, 0], rotation: [80, 0, 0], color: "#9aa3ad", finish: metal, part: auger }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [0, 1.8, 0], rotation: [80, 0, 0], color: "#9aa3ad", finish: metal, part: auger }
+          - { shape: cylinder, size: [0.6, 0.1, 0.6], offset: [0, 0.05, 0.9], color: "#dff6ff", emissive: "#9fd8ff", finish: glass }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.5, 2.7, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: lamp }
+      behaviors:
+        - { type: blink, part: lamp, speed: 0.4, amount: 0.6 }
+      states:
+        - { id: standby, name: Standby }
+        - { id: drilling, name: Drilling ice, glow: 2, behaviors: [{ type: spin, part: auger, speed: 3 }, { type: rock, speed: 5, amount: 0.05 }, { type: blink, part: lamp, speed: 2, amount: 1 }] }
+      actions:
+        - { id: drill, name: Drill ice, state: drilling, seconds: 120, gesture: use }
+    ice-blocks:
+      name: Ice blocks
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.6, 0.5, 0.6], offset: [-0.4, 0.25, 0], color: "#dff6ff", finish: glass }
+          - { shape: roundbox, size: [0.6, 0.5, 0.6], offset: [0.3, 0.25, 0.1], color: "#c8eefc", finish: glass }
+          - { shape: roundbox, size: [0.6, 0.5, 0.6], offset: [-0.05, 0.75, 0.05], color: "#e8faff", finish: glass }
+          - { shape: box, size: [1.6, 0.1, 1.0], offset: [0, 0.05, 0], color: "#3a4250", finish: satin }
+
+    # ---- Xenoscience lab (2A)
+    specimen-tank:
+      name: Specimen tank
+      title: Specimen tank
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.9, 0.4, 0.9], offset: [0, 0.2, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.9, 0.16, 0.9], offset: [0, 2.2, 0], color: "#3a4250", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.2, 0], color: "#b88cff", part: creature }
+          - { shape: sphere, size: [0.4, 0.3, 0.4], offset: [0, 1.4, 0], color: "#b88cff", emissive: "#8e5bd6", finish: gloss, opacity: 0.85, part: creature }
+          - { shape: sphere, size: [0.1, 0.1, 0.06], offset: [0, 1.42, -0.18], color: "#14181f", finish: gloss, part: creature }
+          - { shape: capsule, size: [0.04, 0.4, 0.04], offset: [-0.1, 1.1, 0], rotation: [0, 0, 15], color: "#b88cff", part: creature }
+          - { shape: capsule, size: [0.04, 0.44, 0.04], offset: [0.0, 1.08, 0.08], color: "#b88cff", part: creature }
+          - { shape: capsule, size: [0.04, 0.4, 0.04], offset: [0.1, 1.1, 0], rotation: [0, 0, -15], color: "#b88cff", part: creature }
+          - { shape: cylinder, size: [0.8, 1.8, 0.8], offset: [0, 1.3, 0], color: "#7cf2c8", emissive: "#2a8a6a", finish: gloss, opacity: 0.3, part: fluid }
+          - { shape: cylinder, size: [0.84, 1.84, 0.84], offset: [0, 1.3, 0], color: "#e6f0ff", finish: glass }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [0, 0.3, 0.455], color: "#1b2a3a", emissive: "#7cf2a8" }
+      behaviors:
+        - { type: keyframes, part: creature, speed: 0.1, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.3, position: [0.05, 0.25, 0], scale: 0.9 }, { t: 0.6, position: [-0.04, 0.1, 0.05], rotation: [0, 120, 0], scale: 1.05 }] }
+        - { type: flicker, part: fluid, speed: 0.3, amount: 0.4 }
+      states:
+        - { id: floating, name: Floating }
+        - { id: feeding, name: Feeding, glow: 2, behaviors: [{ type: keyframes, part: creature, speed: 0.5, keys: [{ t: 0, position: [0, 0.3, 0], scale: 1.1 }, { t: 0.5, position: [0, 0.4, 0], scale: 0.9 }] }] }
+      actions:
+        - { id: feed, name: Feed the specimen, state: feeding, seconds: 40, gesture: use }
+    specimen-tank-green:
+      name: Specimen tank
+      title: Specimen tank
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.9, 0.4, 0.9], offset: [0, 0.2, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.9, 0.16, 0.9], offset: [0, 2.2, 0], color: "#3a4250", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.3, 0], color: "#7cf2a8", part: creature }
+          - { shape: capsule, size: [0.22, 0.6, 0.22], offset: [0, 1.3, 0], rotation: [0, 0, 70], color: "#7cf2a8", emissive: "#2a8a3a", finish: gloss, part: creature }
+          - { shape: sphere, size: [0.07, 0.07, 0.05], offset: [-0.24, 1.38, -0.08], color: "#14181f", finish: gloss, part: creature }
+          - { shape: sphere, size: [0.07, 0.07, 0.05], offset: [-0.24, 1.38, 0.08], color: "#14181f", finish: gloss, part: creature }
+          - { shape: cone, size: [0.16, 0.2, 0.04], offset: [0.0, 1.5, 0], color: "#ffd166", emissive: "#ffb703", part: creature }
+          - { shape: cone, size: [0.2, 0.2, 0.04], offset: [0.3, 1.25, 0], rotation: [0, 0, -100], color: "#ffd166", emissive: "#ffb703", part: creature }
+          - { shape: cylinder, size: [0.8, 1.8, 0.8], offset: [0, 1.3, 0], color: "#9fd8ff", emissive: "#2a5a8a", finish: gloss, opacity: 0.3, part: fluid }
+          - { shape: cylinder, size: [0.84, 1.84, 0.84], offset: [0, 1.3, 0], color: "#e6f0ff", finish: glass }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [0, 0.3, 0.455], color: "#1b2a3a", emissive: "#7cf2a8" }
+      behaviors:
+        - { type: keyframes, part: creature, speed: 0.08, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.5, rotation: [0, 180, 0], position: [0, 0.2, 0] }] }
+        - { type: flicker, part: fluid, speed: 0.3, amount: 0.4 }
+      states:
+        - { id: floating, name: Floating }
+        - { id: feeding, name: Feeding, glow: 2, behaviors: [{ type: keyframes, part: creature, speed: 0.4, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.5, rotation: [0, 180, 0], position: [0, 0.4, 0] }] }] }
+      actions:
+        - { id: feed, name: Feed the specimen, state: feeding, seconds: 40, gesture: use }
+    egg-incubator:
+      name: Egg incubator
+      title: Alien egg
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [1.0, 0.7, 1.0], offset: [0, 0.35, 0], color: "#c9d3dd", finish: satin }
+          - { shape: torus, size: [0.9, 0.9, 0.9], offset: [0, 0.72, 0], rotation: [90, 0, 0], color: "#ff8fdc", emissive: "#e85a9a", part: ring }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, 0], color: "#b88cff", part: egg }
+          - { shape: sphere, size: [0.42, 0.56, 0.42], offset: [0, 1.0, 0], color: "#b88cff", emissive: "#6a3aa8", finish: gloss, part: egg }
+          - { shape: sphere, size: [0.1, 0.06, 0.02], offset: [0.1, 1.1, 0.2], color: "#7cf2f2", emissive: "#3fd8d8", part: egg }
+          - { shape: sphere, size: [0.08, 0.05, 0.02], offset: [-0.12, 0.92, 0.19], color: "#7cf2f2", emissive: "#3fd8d8", part: egg }
+          - { shape: sphere, size: [0.07, 0.04, 0.02], offset: [0.05, 0.82, 0.2], color: "#7cf2f2", emissive: "#3fd8d8", part: egg }
+          - { shape: sphere, size: [0.7, 0.9, 0.7], offset: [0, 1.05, 0], color: "#dff6ff", finish: glass }
+          - { shape: box, size: [0.3, 0.12, 0.01], offset: [0, 0.4, 0.505], color: "#1b2a3a", emissive: "#ff8fdc", part: readout }
+      behaviors:
+        - { type: pulse, part: egg, speed: 0.25, amount: 0.7 }
+        - { type: blink, part: egg, speed: 0.25, amount: 0.8 }
+        - { type: blink, part: ring, speed: 0.25, amount: 0.6 }
+        - { type: keyframes, part: egg, speed: 0.03, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.85, rotation: [0, 0, 0] }, { t: 0.88, rotation: [0, 0, 8] }, { t: 0.91, rotation: [0, 0, -8] }, { t: 0.94, rotation: [0, 0, 0] }] }
+      states:
+        - { id: resting, name: Resting }
+        - { id: scanning, name: Being scanned, glow: 2.5, behaviors: [{ type: pulse, part: egg, speed: 1, amount: 1 }, { type: blink, part: readout, speed: 2, amount: 1 }, { type: spin, part: ring, speed: 1 }] }
+      actions:
+        - { id: scan, name: Scan the egg, state: scanning, seconds: 30, gesture: use }
+    microscope-bench:
+      name: Microscope bench
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.0, 0.06, 0.7], offset: [0, 0.9, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [1.9, 0.84, 0.6], offset: [0, 0.45, 0], color: "#c9d3dd", finish: satin }
+          - { shape: box, size: [0.3, 0.04, 0.3], offset: [-0.5, 0.95, 0], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.06, 0.4, 0.06], offset: [-0.5, 1.15, -0.1], rotation: [-15, 0, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.1, 0.24, 0.1], offset: [-0.5, 1.35, 0.0], rotation: [30, 0, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: cylinder, size: [0.08, 0.16, 0.08], offset: [0.2, 1.0, 0.1], color: "#7cf2c8", emissive: "#2a8a6a", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.2, 0.08], offset: [0.35, 1.02, -0.05], color: "#b88cff", emissive: "#6a3aa8", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.14, 0.08], offset: [0.5, 0.99, 0.12], color: "#ffd166", emissive: "#a88400", finish: glass }
+          - { shape: roundbox, size: [0.5, 0.36, 0.04], offset: [0.75, 1.15, -0.25], color: "#22262c", finish: satin }
+          - { shape: box, size: [0.44, 0.3, 0.01], offset: [0.75, 1.15, -0.225], color: "#1b2a3a", emissive: "#b88cff" }
+    centrifuge:
+      name: Centrifuge
+      title: Centrifuge
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.8, 0.8, 0.8], offset: [0, 0.4, 0], color: "#f4f6f8", finish: satin }
+          - { shape: cylinder, size: [0.6, 0.06, 0.6], offset: [0, 0.83, 0], color: "#dff6ff", finish: glass }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.82, 0], color: "#9aa3ad", part: rotor }
+          - { shape: box, size: [0.5, 0.04, 0.08], offset: [0, 0.82, 0], color: "#9aa3ad", finish: metal, part: rotor }
+          - { shape: box, size: [0.08, 0.04, 0.5], offset: [0, 0.82, 0], color: "#9aa3ad", finish: metal, part: rotor }
+          - { shape: box, size: [0.3, 0.1, 0.01], offset: [0, 0.6, 0.405], color: "#1b2a3a", emissive: "#7cf2f2", part: panel }
+      behaviors:
+        - { type: blink, part: panel, speed: 0.3, amount: 0.4 }
+      states:
+        - { id: idle, name: Idle }
+        - { id: spinning, name: Spinning, glow: 2, behaviors: [{ type: spin, part: rotor, speed: 5 }, { type: rock, speed: 8, amount: 0.04 }, { type: blink, part: panel, speed: 2, amount: 1 }] }
+      actions:
+        - { id: spin, name: Spin samples, state: spinning, seconds: 60, gesture: use }
+    sample-freezer:
+      name: Sample freezer
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 1.9, 0.7], offset: [0, 0.95, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.01, 1.8, 0.01], offset: [0, 0.95, 0.355], color: "#9aa3ad" }
+          - { shape: box, size: [0.6, 0.12, 0.01], offset: [0, 1.75, 0.356], color: "#1b2a3a", emissive: "#7fc4ff" }
+          - { shape: sphere, size: [0.2, 0.2, 0.02], offset: [-0.25, 1.3, 0.356], color: "#ffd166" }
+          - { shape: box, size: [0.08, 0.5, 0.04], offset: [0.08, 1.0, 0.38], color: "#9aa3ad", finish: metal }
+
+    # ---- Observatory (2B)
+    telescope:
+      name: Telescope
+      title: Telescope
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [1.2, 0.2, 1.2], offset: [0, 0.1, 0], color: "#3a4250", finish: satin }
+          - { shape: cylinder, size: [0.3, 1.0, 0.3], offset: [0, 0.7, 0], color: "#c9d3dd", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.3, 0], color: "#f4f6f8", part: tube }
+          - { shape: cylinder, size: [0.5, 2.0, 0.5], offset: [0, 1.7, -0.35], rotation: [-55, 0, 0], color: "#f4f6f8", finish: gloss, part: tube }
+          - { shape: cylinder, size: [0.56, 0.1, 0.56], offset: [0, 2.28, -1.15], rotation: [-55, 0, 0], color: "#2b3560", finish: satin, part: tube }
+          - { shape: cylinder, size: [0.44, 0.02, 0.44], offset: [0, 2.34, -1.2], rotation: [-55, 0, 0], color: "#7cc4e8", finish: glass, part: tube }
+          - { shape: cylinder, size: [0.12, 0.3, 0.12], offset: [0, 1.2, 0.3], rotation: [-55, 0, 0], color: "#2b2b2b", finish: metal, part: tube }
+          - { shape: box, size: [0.4, 0.04, 0.04], offset: [0, 1.35, 0], color: "#9aa3ad", finish: metal }
+      behaviors:
+        - { type: sway, part: tube, speed: 0.03, amount: 2, axis: y }
+      states:
+        - { id: tracking, name: Tracking the sky }
+        - { id: observing, name: Observing, glow: 2, behaviors: [{ type: sway, part: tube, speed: 0.1, amount: 3, axis: y }] }
+      actions:
+        - { id: observe, name: Observe, state: observing, seconds: 120, gesture: use }
+    star-chart:
+      name: Star chart
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.0, 1.3, 0.05], offset: [0, 1.65, 0], color: "#c9d3dd", finish: metal }
+          - { shape: box, size: [1.9, 1.2, 0.01], offset: [0, 1.65, 0.03], color: "#0e1430", emissive: "#0a1030" }
+          - { shape: sphere, size: [0.05, 0.05, 0.01], offset: [-0.6, 1.9, 0.04], color: "#ffffff", emissive: "#ffffff" }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [-0.3, 1.75, 0.04], color: "#ffffff", emissive: "#ffffff" }
+          - { shape: sphere, size: [0.06, 0.06, 0.01], offset: [0.1, 2.05, 0.04], color: "#ffd166", emissive: "#ffd166" }
+          - { shape: sphere, size: [0.04, 0.04, 0.01], offset: [0.5, 1.6, 0.04], color: "#ffffff", emissive: "#ffffff" }
+          - { shape: sphere, size: [0.05, 0.05, 0.01], offset: [0.7, 1.3, 0.04], color: "#7cc4e8", emissive: "#7cc4e8" }
+          - { shape: sphere, size: [0.12, 0.12, 0.01], offset: [-0.5, 1.3, 0.04], color: "#3d7fd9", emissive: "#3d7fd9" }
+          - { shape: box, size: [0.5, 0.01, 0.01], offset: [-0.45, 1.83, 0.04], rotation: [0, 0, -25], color: "#7cc4e8", emissive: "#3d7fd9" }
+          - { shape: box, size: [0.5, 0.01, 0.01], offset: [0.3, 1.82, 0.04], rotation: [0, 0, 35], color: "#7cc4e8", emissive: "#3d7fd9" }
+    observation-window:
+      name: Window
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [2.6, 1.6, 0.1], offset: [0, 1.6, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [2.4, 1.4, 0.02], offset: [0, 1.6, 0.04], color: "#2a1a3a", emissive: "#1a0a2a" }
+          - { shape: sphere, size: [0.3, 0.3, 0.02], offset: [0.7, 1.9, 0.06], color: "#9aa3ad", emissive: "#5a5a6a" }
+          - { shape: sphere, size: [0.16, 0.16, 0.02], offset: [-0.6, 2.0, 0.06], color: "#b8b0a0", emissive: "#5a5040" }
+          - { shape: sphere, size: [0.08, 0.08, 0.02], offset: [-0.2, 1.7, 0.06], color: "#7cc4e8", emissive: "#3d7fd9", part: earth }
+          - { shape: box, size: [2.4, 0.4, 0.02], offset: [0, 1.05, 0.05], color: "#a0452a", emissive: "#3a1a10" }
+      behaviors:
+        - { type: blink, part: earth, speed: 0.2, amount: 0.8 }
+
+    # ---- Crew quarters (2C)
+    bunk-bed:
+      name: Bunk bed
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [1.0, 0.1, 2.0], offset: [0, 0.4, 0], color: "#c9d3dd", finish: metal }
+          - { shape: roundbox, size: [0.9, 0.16, 1.9], offset: [0, 0.53, 0], color: "#2b3560", finish: fabric }
+          - { shape: roundbox, size: [0.6, 0.12, 0.3], offset: [0, 0.65, -0.75], color: "#f4f6f8", finish: fabric }
+          - { shape: box, size: [1.0, 0.1, 2.0], offset: [0, 1.5, 0], color: "#c9d3dd", finish: metal }
+          - { shape: roundbox, size: [0.9, 0.16, 1.9], offset: [0, 1.63, 0], color: "#d9542c", finish: fabric }
+          - { shape: roundbox, size: [0.6, 0.12, 0.3], offset: [0, 1.75, -0.75], color: "#f4f6f8", finish: fabric }
+          - { shape: box, size: [0.08, 2.0, 0.08], offset: [-0.46, 1.0, -0.96], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.08, 2.0, 0.08], offset: [0.46, 1.0, -0.96], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.08, 2.0, 0.08], offset: [-0.46, 1.0, 0.96], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.08, 2.0, 0.08], offset: [0.46, 1.0, 0.96], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.05, 0.8, 0.3], offset: [0.48, 1.0, 0.6], color: "#9aa3ad", finish: metal }
+    mess-table:
+      name: Mess table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.2, 0.07, 1.0], offset: [0, 0.75, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: cylinder, size: [0.16, 0.72, 0.16], offset: [0, 0.37, 0], color: "#3a4250", finish: metal }
+          - { shape: cylinder, size: [0.8, 0.04, 0.5], offset: [0, 0.02, 0], color: "#3a4250", finish: metal }
+          - { shape: cylinder, size: [0.4, 0.45, 0.4], offset: [-0.6, 0.23, 0.8], color: "#d9542c", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.45, 0.4], offset: [0.6, 0.23, 0.8], color: "#3d7fd9", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.45, 0.4], offset: [-0.6, 0.23, -0.8], color: "#3fb68a", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.45, 0.4], offset: [0.6, 0.23, -0.8], color: "#e0a030", finish: satin }
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [-0.5, 0.8, 0.2], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.2, 0.08, 0.2], offset: [-0.5, 0.84, 0.2], color: "#ffd166", finish: satin }
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [0.5, 0.8, -0.2], color: "#f4f6f8", finish: gloss }
+          - { shape: sphere, size: [0.2, 0.08, 0.2], offset: [0.5, 0.84, -0.2], color: "#7fd36b", finish: satin }
+          - { shape: cylinder, size: [0.1, 0.12, 0.1], offset: [0.1, 0.82, 0.1], color: "#ffffff", finish: gloss, part: cup }
+      behaviors:
+        - { type: steam, part: cup, speed: 0.45, amount: 0.7 }
+    food-printer:
+      name: Food printer
+      title: Food printer
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.2, 1.6, 0.6], offset: [0, 0.8, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.7, 0.5, 0.02], offset: [0, 0.8, 0.31], color: "#dff6ff", finish: glass }
+          - { shape: cylinder, size: [0.3, 0.03, 0.3], offset: [0, 0.6, 0.15], color: "#c9d3dd", finish: metal }
+          - { shape: cylinder, size: [0.2, 0.08, 0.2], offset: [0, 0.65, 0.15], color: "#e8a030", finish: satin, part: food }
+          - { shape: box, size: [0.5, 0.16, 0.01], offset: [0, 1.35, 0.305], color: "#1b2a3a", emissive: "#ffd166", part: screen }
+          - { shape: sphere, size: [0.06, 0.06, 0.02], offset: [0.45, 1.35, 0.305], color: "#7cf2a8", emissive: "#3fe08a" }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.3 }
+      states:
+        - { id: ready, name: Ready }
+        - { id: printing, name: Printing pancakes, glow: 2, behaviors: [{ type: keyframes, part: food, speed: 0.2, keys: [{ t: 0, scale: 0.2 }, { t: 0.9, scale: 1.3 }] }, { type: steam, part: food, speed: 0.6, amount: 1 }] }
+      actions:
+        - { id: print-meal, name: Print a meal, state: printing, seconds: 45, gesture: use }
+    sofa:
+      name: Sofa
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.1, 0.36, 0.9], offset: [0, 0.27, 0], color: "#4a2f5e", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [-0.49, 0.5, 0.06], color: "#8e5bd6", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [0.49, 0.5, 0.06], color: "#8e5bd6", finish: fabric }
+          - { shape: roundbox, size: [2.1, 0.62, 0.22], offset: [0, 0.74, -0.35], color: "#4a2f5e", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [-1.0, 0.48, 0], color: "#3a2448", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [1.0, 0.48, 0], color: "#3a2448", finish: fabric }
+          - { shape: sphere, size: [0.34, 0.3, 0.14], offset: [-0.6, 0.75, -0.18], color: "#ff8fdc", finish: fabric }
+          - { shape: sphere, size: [0.34, 0.3, 0.14], offset: [0.6, 0.75, -0.18], color: "#7cf2f2", finish: fabric }
+
+    # ---- Comms studio (2D)
+    comms-console:
+      name: Comms console
+      title: Comms dish
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 0.9, 1.6], offset: [0, 0.45, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [0.6, 0.02, 1.4], offset: [0.1, 0.92, 0], rotation: [0, 0, 12], color: "#1b2a3a", emissive: "#e85a9a", part: buttons }
+          - { shape: roundbox, size: [0.06, 0.8, 1.4], offset: [-0.45, 1.4, 0], color: "#22262c", finish: satin }
+          - { shape: box, size: [0.01, 0.7, 1.3], offset: [-0.41, 1.4, 0], color: "#1b2a3a", emissive: "#3d7fd9", part: screen }
+          - { shape: sphere, size: [0.3, 0.3, 0.01], offset: [-0.4, 1.45, 0.3], rotation: [0, 90, 0], color: "#3d7fd9", emissive: "#3d7fd9" }
+          - { shape: sphere, size: [0.14, 0.14, 0.01], offset: [-0.4, 1.5, -0.35], rotation: [0, 90, 0], color: "#d9542c", emissive: "#c4532e" }
+          - { shape: box, size: [0.01, 0.01, 0.7], offset: [-0.4, 1.48, 0.0], color: "#ffd166", emissive: "#ffd166", part: link }
+          - { shape: cylinder, size: [0.06, 0.4, 0.06], offset: [0.3, 1.1, 0.6], rotation: [0, 0, -20], color: "#2b2b2b", finish: metal }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0.38, 1.32, 0.6], color: "#2b2b2b", finish: satin }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.3 }
+        - { type: blink, part: buttons, speed: 0.5, amount: 0.5 }
+        - { type: blink, part: link, speed: 0.6, amount: 1 }
+      states:
+        - { id: listening, name: Listening }
+        - { id: transmitting, name: Transmitting to Earth, glow: 2.5, behaviors: [{ type: blink, part: link, speed: 3, amount: 1 }, { type: flicker, part: screen, speed: 2, amount: 1 }] }
+      actions:
+        - { id: transmit, name: Transmit to Earth, state: transmitting, seconds: 60, gesture: use }
+    computer:
+      name: Computer
+      title: Browser
+      category: static
+      # A real browser: agents use it (agentown browser), people watch its screen in the inspector and log in there.
+      browser: {}
+      look:
+        parts:
+          - { shape: roundbox, size: [1.3, 0.06, 0.66], offset: [0, 0.75, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [-0.6, 0.36, 0], color: "#3a4250", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [0.6, 0.36, 0], color: "#3a4250", finish: satin }
+          - { shape: roundbox, size: [0.26, 0.02, 0.18], offset: [0, 0.79, -0.17], color: "#d9d4cc", finish: metal }
+          - { shape: box, size: [0.07, 0.24, 0.04], offset: [0, 0.91, -0.2], color: "#d9d4cc", finish: metal }
+          - { shape: roundbox, size: [0.8, 0.5, 0.04], offset: [0, 1.25, -0.19], color: "#2b2b30", finish: satin }
+          - { shape: box, size: [0.74, 0.43, 0.01], offset: [0, 1.26, -0.165], color: "#1b2a3a", emissive: "#ff8fdc", finish: gloss, part: screen }
+          - { shape: sphere, size: [0.025, 0.025, 0.01], offset: [0.35, 1.02, -0.165], color: "#3fe08a", emissive: "#3fe08a", part: led }
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.04, 0.79, 0.12], color: "#efe9df", finish: satin }
+          - { shape: capsule, size: [0.05, 0.03, 0.08], offset: [0.32, 0.79, 0.13], rotation: [90, 0, 0], color: "#efe9df", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: led, speed: 0.5, amount: 1 }
+    ring-light:
+      name: Ring light
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [0.14, 0.43, 0], rotation: [0, 0, 18], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [-0.14, 0.43, 0], rotation: [0, 0, -18], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [0, 0.43, -0.14], rotation: [18, 0, 0], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [0, 1.15, 0], color: "#1f1f1f", finish: metal }
+          - { shape: torus, size: [0.7, 0.7, 0.7], offset: [0, 1.65, 0], color: "#fff0f8", emissive: "#ffd6ec", finish: gloss, part: ring }
+          - { shape: roundbox, size: [0.08, 0.15, 0.01], offset: [0, 1.65, 0.01], color: "#14181f", finish: gloss }
+      behaviors:
+        - { type: flicker, part: ring, speed: 0.4, amount: 0.15 }
+    earth-backdrop:
+      name: Backdrop
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.04, 2.2, 0.04], offset: [-1.25, 1.1, 0], color: "#2b2b2b", finish: metal }
+          - { shape: cylinder, size: [0.04, 2.2, 0.04], offset: [1.25, 1.1, 0], color: "#2b2b2b", finish: metal }
+          - { shape: box, size: [2.4, 2.05, 0.01], offset: [0, 1.1, 0.02], color: "#0e1430", finish: fabric }
+          - { shape: sphere, size: [0.9, 0.9, 0.01], offset: [0.4, 1.3, 0.03], color: "#3d7fd9", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.3, 0.012], offset: [0.3, 1.4, 0.035], color: "#3fb68a", finish: fabric }
+          - { shape: sphere, size: [0.3, 0.12, 0.012], offset: [0.5, 1.7, 0.035], color: "#f4f6f8", finish: fabric }
+          - { shape: sphere, size: [0.5, 0.5, 0.012], offset: [-0.7, 0.6, 0.03], color: "#d9542c", finish: fabric }
+          - { shape: sphere, size: [0.05, 0.05, 0.012], offset: [-0.6, 1.8, 0.03], color: "#ffffff", finish: fabric }
+          - { shape: sphere, size: [0.04, 0.04, 0.012], offset: [-0.9, 1.5, 0.03], color: "#ffffff", finish: fabric }
+    pet-bed:
+      name: Blip's bed
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.9, 0.2, 0.9], offset: [0, 0.1, 0], color: "#e85a9a", finish: fabric }
+          - { shape: torus, size: [0.85, 0.85, 0.85], offset: [0, 0.22, 0], rotation: [90, 0, 0], color: "#ff8fdc", finish: fabric }
+          - { shape: cylinder, size: [0.7, 0.06, 0.7], offset: [0, 0.22, 0], color: "#ffe0f0", finish: fabric }
+          - { shape: sphere, size: [0.16, 0.16, 0.16], offset: [0.2, 0.3, 0.1], color: "#7cf2f2", finish: gloss }
+
+    # ---- The hover drone (cleaning robot) and the matter recycler (trash can).
+    cleaning-robot:
+      name: Cleaning robot
+      title: Cleaning robot
+      category: dynamic
+      cleaner: {}
+      look:
+        parts:
+          - { shape: sphere, size: [0.4, 0.26, 0.4], offset: [0, 0.5, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.48, 0], rotation: [90, 0, 0], color: "#d9542c", finish: satin }
+          - { shape: sphere, size: [0.14, 0.1, 0.06], offset: [0, 0.55, -0.18], color: "#2b3560", finish: glass }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [0, 0.55, -0.21], color: "#7cf2f2", emissive: "#3fd8d8", part: led }
+          - { shape: cylinder, size: [0.2, 0.02, 0.2], offset: [0, 0.3, 0], color: "#7cf2f2", emissive: "#3fd8d8", opacity: 0.6, part: thruster }
+          - { shape: cone, size: [0.16, 0.2, 0.16], offset: [0, 0.2, 0], rotation: [180, 0, 0], color: "#7cf2f2", emissive: "#3fd8d8", opacity: 0.4, part: thruster }
+          - { shape: cylinder, size: [0.02, 0.16, 0.02], offset: [0.1, 0.7, 0], color: "#9aa3ad" }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.1, 0.8, 0], color: "#ffd166", emissive: "#ffb703" }
+      behaviors:
+        - { type: roam, amount: 0.4 }
+        - { type: bob, speed: 0.6, amount: 0.6 }
+        - { type: pulse, part: thruster, speed: 1.5, amount: 1 }
+        - { type: blink, part: led, speed: 0.3, amount: 0.4 }
+      access: all
+      states:
+        - { id: patrol, name: On patrol }
+        - { id: sweeping, name: Sweeping, behaviors: [{ type: roam, amount: 1.3 }, { type: pulse, part: thruster, speed: 4, amount: 2 }, { type: blink, part: led, speed: 2, amount: 1 }] }
+    trash-can:
+      name: Matter recycler
+      title: Trash can
+      category: dynamic
+      trash: {}
+      look:
+        parts:
+          - { shape: cylinder, size: [0.7, 0.9, 0.7], offset: [0, 0.45, 0], color: "#c9d3dd", finish: metal }
+          - { shape: torus, size: [0.7, 0.7, 0.7], offset: [0, 0.3, 0], rotation: [90, 0, 0], color: "#3fb68a", emissive: "#1a8a5a", part: badge }
+          - { shape: box, size: [0.3, 0.14, 0.01], offset: [0, 0.6, 0.355], color: "#1b2a3a", emissive: "#7cf2a8", part: badge }
+          # The lid lifts while it is being emptied.
+          - { shape: cylinder, size: [0.74, 0.08, 0.74], offset: [0, 0.94, 0], color: "#3a4250", finish: satin, part: lid }
+          - { shape: sphere, size: [0.16, 0.1, 0.16], offset: [0, 1.0, 0], color: "#7cf2f2", emissive: "#3fd8d8", part: lid }
+      behaviors:
+        - { type: blink, part: badge, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: closed, name: Closed }
+        - { id: emptying, name: Emptying, behaviors: [{ type: keyframes, part: lid, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.3, 0] }] }, { type: blink, part: badge, speed: 2, amount: 1 }] }
+
+    # ---- The wall calendar: every scheduled job, a month at a time (a sol is close enough).
+    wall-calendar:
+      name: Wall calendar
+      category: static
+      calendar: {}
+      look:
+        parts:
+          - { shape: box, size: [0.66, 0.9, 0.03], offset: [0, 1.5, 0], color: "#22262c", finish: satin }
+          - { shape: box, size: [0.6, 0.18, 0.02], offset: [0, 1.83, 0.02], color: "#d9542c", emissive: "#5a2414" }
+          - { shape: box, size: [0.3, 0.05, 0.01], offset: [0, 1.83, 0.032], color: "#fdf6e3", emissive: "#c9c0a8" }
+          - { shape: box, size: [0.58, 0.6, 0.012], offset: [0, 1.42, 0.022], color: "#1b2a3a", emissive: "#0e1a2a" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.6, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.5, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.4, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.3, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.2, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.18, 1.4, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.06, 1.4, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.06, 1.4, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.18, 1.4, 0.03], color: "#7cf2f2", emissive: "#3fd8d8" }
+          - { shape: torus, size: [0.08, 0.08, 0.08], offset: [0.12, 1.45, 0.035], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: today }
+      behaviors:
+        - { type: blink, part: today, speed: 0.25, amount: 0.5 }
+
+  objects:
+    # 1A mission control
+    - { id: mission-screen, kind: mission-screen, room: 1a, at: [7.2, 0.1] }
+    - { id: holo-table, kind: holo-table, room: 1a, at: [6.4, 5.4] }
+    - { id: mission-pc, kind: console, room: 1a, at: [8.8, 2.4], rotationY: -90, label: Mission console }
+    - { id: wall-calendar, kind: wall-calendar, room: 1a, at: [1.2, 0.1] }
+    - { kind: alien-plant, room: 1a, at: [0.6, 7.4] }
+    - { kind: alien-plant, room: 1a, at: [9.4, 0.6] }
+    - { id: cleaning-robot, kind: cleaning-robot, room: 1a, at: [3.0, 6.0], label: Hummy }
+    # 1B airlock
+    - { id: airlock, kind: airlock-arch, room: 1b, at: [4.8, 4.0] }
+    - { kind: suit-rack, room: 1b, at: [0.3, 2.6], rotationY: 90 }
+    - { kind: decon-shower, room: 1b, at: [1.0, 6.6] }
+    - { kind: bench, room: 1b, at: [3.6, 0.4] }
+    - { id: trash-can, kind: trash-can, room: 1b, at: [4.4, 7.4] }
+    # 1C red plains
+    - { kind: landing-pad, room: 1c, at: [12.4, 4.2] }
+    - { id: rocket, kind: rocket, room: 1c, at: [12.4, 4.2], label: Red Hope }
+    - { id: rover, kind: rover, room: 1c, at: [6.4, 8.4], rotationY: 30, label: Trekker }
+    - { id: solar-array, kind: solar-array, room: 1c, at: [4.4, 1.6] }
+    - { id: drill-rig, kind: drill-rig, room: 1c, at: [10.4, 12.2] }
+    - { id: comms-dish, kind: comms-dish, room: 1c, at: [2.0, 15.2], rotationY: 30 }
+    - { id: weather-mast, kind: weather-mast, room: 1c, at: [15.2, 0.8] }
+    - { kind: mars-rocks, room: 1c, at: [8.4, 3.2] }
+    - { kind: mars-rocks, room: 1c, at: [15.0, 9.4], rotationY: 120 }
+    - { kind: mars-rocks, room: 1c, at: [4.6, 12.6], rotationY: 60 }
+    - { kind: mars-rocks, room: 1c, at: [14.6, 15.6], rotationY: 200 }
+    - { kind: crystals, room: 1c, at: [7.6, 15.6] }
+    - { kind: colony-flag, room: 1c, at: [9.4, 6.4] }
+    - { kind: storage-dome, room: 1c, at: [2.2, 9.6] }
+    - { kind: dust-devil, room: 1c, at: [9.0, 10.0] }
+    - { kind: survey-drone, room: 1c, at: [7.0, 5.0] }
+    - { kind: surface-robot, room: 1c, at: [5.0, 6.0], label: ROX-1 }
+    - { kind: surface-robot-white, room: 1c, at: [12.0, 9.0], label: ROX-2 }
+    - { kind: sand-hopper, room: 1c, at: [3.6, 4.6] }
+    - { kind: sand-hopper, room: 1c, at: [13.0, 13.6] }
+    - { kind: sand-hopper, room: 1c, at: [8.0, 14.0] }
+    # 1D hydroponics dome
+    - { id: grow-tower-1, kind: grow-tower, room: 1d, at: [1.4, 6.6] }
+    - { id: grow-tower-2, kind: grow-tower, room: 1d, at: [3.0, 6.6] }
+    - { id: alien-flowers, kind: alien-flowers, room: 1d, at: [6.2, 6.6] }
+    - { id: algae-reactor, kind: algae-reactor, room: 1d, at: [0.3, 3.6], rotationY: 90 }
+    - { id: water-tank, kind: water-tank, room: 1d, at: [7.2, 0.8] }
+    - { kind: harvest-table, room: 1d, at: [6.8, 2.6], rotationY: -90 }
+    # 1E robotics bay
+    - { id: robot-arm, kind: robot-arm, room: 1e, at: [5.4, 5.4] }
+    - { kind: charging-dock, room: 1e, at: [0.7, 7.2], rotationY: 90 }
+    - { id: printer, kind: printer-3d, room: 1e, at: [6.3, 0.8] }
+    - { kind: parts-shelf, room: 1e, at: [3.6, 0.3] }
+    # 1F embassy lounge
+    - { id: envoy, kind: envoy, room: 1f, at: [4.0, 3.4], label: Oomi }
+    - { kind: pod-chair, room: 1f, at: [1.4, 1.4] }
+    - { kind: pod-chair, room: 1f, at: [1.4, 5.4], rotationY: 30 }
+    - { kind: lounge-table, room: 1f, at: [2.2, 3.4] }
+    - { kind: galaxy-map, room: 1f, at: [6.4, 1.4] }
+    - { id: envoy-gift, kind: gift-pedestal, room: 1f, at: [6.4, 5.6] }
+    - { kind: alien-plant, room: 1f, at: [7.4, 6.4] }
+    - { kind: sofa, room: 1f, at: [4.0, 0.6] }
+    # 1G rover garage
+    - { kind: rover-parked, room: 1g, at: [4.8, 5.4], rotationY: 90, label: Dune }
+    - { id: ore-bins, kind: ore-bins, room: 1g, at: [1.0, 5.8] }
+    - { kind: drill-bits, room: 1g, at: [6.2, 0.3] }
+    - { kind: fuel-cell, room: 1g, at: [1.0, 0.6] }
+    # 1H crater & ice mine
+    - { kind: crater, room: 1h, at: [7.6, 3.6] }
+    - { id: monolith, kind: monolith, room: 1h, at: [7.6, 3.6], label: The Monolith }
+    - { id: ice-drill, kind: ice-drill, room: 1h, at: [2.4, 1.6] }
+    - { kind: ice-blocks, room: 1h, at: [3.0, 5.4] }
+    - { kind: mars-rocks, room: 1h, at: [14.4, 1.6] }
+    - { kind: crystals, room: 1h, at: [11.6, 5.6] }
+    - { kind: crystals, room: 1h, at: [5.0, 0.8], rotationY: 90 }
+    - { kind: surface-robot, room: 1h, at: [11.0, 2.4], label: ROX-3 }
+    - { kind: sand-hopper, room: 1h, at: [14.0, 4.8] }
+    # 2A xenoscience lab
+    - { id: specimen-tank-1, kind: specimen-tank, room: 2a, at: [1.0, 7.2] }
+    - { id: specimen-tank-2, kind: specimen-tank-green, room: 2a, at: [2.4, 7.2] }
+    - { id: egg-incubator, kind: egg-incubator, room: 2a, at: [6.0, 6.0] }
+    - { kind: microscope-bench, room: 2a, at: [0.4, 4.6], rotationY: 90 }
+    - { id: centrifuge, kind: centrifuge, room: 2a, at: [8.2, 5.2] }
+    - { kind: sample-freezer, room: 2a, at: [8.8, 0.4] }
+    # 2B observatory
+    - { id: telescope, kind: telescope, room: 2b, at: [2.6, 3.0] }
+    - { kind: star-chart, room: 2b, at: [2.5, 0.08] }
+    - { kind: observation-window, room: 2b, at: [4.92, 5.8], rotationY: -90 }
+    - { kind: bench, room: 2b, at: [2.4, 6.6] }
+    # 2C crew quarters
+    - { kind: bunk-bed, room: 2c, at: [0.6, 1.4] }
+    - { kind: bunk-bed, room: 2c, at: [0.6, 6.4] }
+    - { kind: mess-table, room: 2c, at: [5.0, 6.0] }
+    - { id: food-printer, kind: food-printer, room: 2c, at: [6.2, 0.4] }
+    - { kind: sofa, room: 2c, at: [2.6, 0.6] }
+    - { kind: alien-plant, room: 2c, at: [7.4, 7.4] }
+    # 2D comms studio
+    - { id: comms-console, kind: comms-console, room: 2d, at: [6.4, 4.6] }
+    - { id: comms-pc, kind: computer, room: 2d, at: [6.3, 1.4], rotationY: -90, label: Comms PC }
+    - { kind: ring-light, room: 2d, at: [3.6, 6.6], rotationY: 140 }
+    - { kind: earth-backdrop, room: 2d, at: [0.3, 5.2], rotationY: 90 }
+    - { kind: pet-bed, room: 2d, at: [1.0, 7.2] }
+
+  avatars:
+    default: robot-engineer
+    byJobRole:
+      commander: alien-commander
+      habitat-lead: alien-botanist
+      life-support-robot: robot-life
+      science-lead: alien-scientist
+      scientist: alien-scientist
+      robotics-lead: robot-engineer
+      maintenance-robot: robot-engineer
+      mining-lead: robot-miner
+      miner-robot: robot-miner
+      mascot: blip
+      lab-robot: robot-lab
+      designer: alien-comms
