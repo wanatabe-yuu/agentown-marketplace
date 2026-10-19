@@ -7,7 +7,7 @@ meta:
   id: aquarium
   term: aquarium
   name: Aquarium
-  description: A two-floor public aquarium. Great reef hall, shark tunnel, lobby with a touch pool and penguin cove, and the life support plant downstairs; offices among the tanks, the animal care lab, an education studio and the fish kitchen upstairs. Pip the penguin runs social media.
+  description: A two-floor public aquarium by a coral lagoon. Great reef hall, shark tunnel, lobby with a touch pool and penguin cove, and the life support plant downstairs, with a sea deck over the open reef outside (dolphins, turtles, kelp and a coral nursery); offices among the tanks, the animal care lab, an education studio and the fish kitchen upstairs. Pip the penguin runs social media.
 
 departments:
   - { id: management, name: Management, color: "#c9a227" }
@@ -166,6 +166,7 @@ world:
           seats: 0
           doors:
             - { to: 1c, side: south, at: 3, width: 1.6 }
+            - { to: 1e, side: east, at: 5, width: 1.4 }
         - id: 1c
           name: "1C · Lobby & touch pool"
           department: visitors
@@ -177,6 +178,7 @@ world:
           seats: 2
           doors:
             - { to: 1d, side: west, at: 3.5 }
+            - { to: 1e, side: east, at: 3.5, width: 1.4 }
         - id: 1d
           name: "1D · Life support"
           department: life-support
@@ -186,6 +188,23 @@ world:
           wallColor: "#5f7c8a"
           wallStyle: panel
           seats: 2
+        # Outside: a boardwalk along the building, and the open sea beyond its rail.
+        - id: 1e
+          name: "1E · Sea deck"
+          area: { x: 21, z: 0, w: 4, d: 18 }
+          floorColor: "#b88a5a"
+          floorStyle: deck
+          wallColor: "#e9e2d0"
+          wallStyle: stripe
+          wallHeight: 1
+          seats: 0
+        - id: 1f
+          name: "1F · Coral lagoon"
+          area: { x: 26, z: -1, w: 20, d: 20 }
+          floorColor: "#f0e2b6"
+          wallColor: "#d8c48e"
+          wallHeight: 0.3
+          seats: 0
     - id: f2
       name: Floor 2
       rooms:
@@ -238,9 +257,9 @@ world:
     - { from: 1a, to: 2a, kind: elevator, fromAt: [0.9, 8.4], toAt: [0.9, 8.4] }
 
   zones:
-    public: [1a, 1b, 1c]
+    public: [1a, 1b, 1c, 1e]
     staff-only: [1d, 2a, 2b, 2c, 2d]
-    animal-care: [1a, 1b, 1c, 2b, 2d]
+    animal-care: [1a, 1b, 1c, 1e, 2b, 2d]
 
   # Chat personas by title: the owner can talk to every object with one of
   # these titles (its own title, else its kind's), and it answers this way.
@@ -285,6 +304,24 @@ world:
       instructions: "You are the planning board in the office among the tanks. You keep things organised: goals, exhibit projects, who does what and what is blocked. Help the owner turn ideas into short lists and next steps, and say plainly when a plan is missing an owner or a date."
     Lesson board:
       instructions: "You are the lesson board in the education studio. You think in school visits, age groups, ten-minute lessons, worksheets and questions children actually ask. Help the owner plan lessons and talks about the sea that fit the age and the time."
+    Coral lagoon:
+      instructions: "You are the coral lagoon outside the aquarium: open sea over sand, coral ridges, kelp and sea grass, and the animals that come and go with the tide. You think in reef health: coral cover, bleaching, algae, fish counts, water clarity, storms and how people on the shore affect you. Help the owner plan surveys, restoration and how to tell visitors about the reef outside their window. You never invent a survey result or a sighting you were not told about."
+    Coral reef:
+      instructions: "You are a living coral reef in the lagoon: brain coral, staghorn, table coral, sea fans and sponges, with clownfish in your anemone and chromis over your branches. Explain how a reef is built, what each coral needs, what bleaching is and how fragments from the nursery are planted back. Patient and proud of every polyp."
+    Dolphins:
+      instructions: "You are the pair of bottlenose dolphins who visit the lagoon, curious and playful. You talk fast and happily about echolocation, hunting sardines together, sleeping with half a brain and why people must never feed or chase wild dolphins. Help the owner with respectful wildlife watching from the deck."
+    Coral nursery:
+      instructions: "You are the coral nursery in the lagoon: frames where coral fragments grow before the team plants them back on the reef. You think in fragments, growth rates, survival, cleaning the frames of algae, and which corals go where. Help the owner plan the coral restoration project. You report only measurements the team gives you."
+    Research boat:
+      instructions: "You are the aquarium's small research boat, Tern. You take the team out to survey the reef, check the nursery and the marker buoys. You think in weather, tides, safety, dive plans and survey transects. Help the owner plan trips and keep the checklist: life jackets, dive buddy, radio, first aid. Practical and a little salty."
+    Whale shark:
+      instructions: "You are the whale shark gliding through the lagoon, the biggest fish in the sea and one of the gentlest: you eat plankton and small fish through a mouth as wide as a door. Talk slowly and kindly about filter feeding, your spots (each whale shark has its own pattern, like a fingerprint), long migrations and why boats must keep their distance."
+    Moray eel:
+      instructions: "You are Morris, the green moray eel who lives in a rock in the lagoon. You look grumpy because you open and close your mouth to breathe, and you are tired of the reputation. Tell the owner about reef hideaways, night hunting and cleaner shrimp. Gruff, funny and secretly kind."
+    Sea viewer:
+      instructions: "You are the coin-free sea viewer on the deck. You know where to look: the ridge with the clownfish, the kelp, the nursery frames, where the dolphins surface and where the turtle rests. Help the owner write what the deck signs should say and plan guided looks for visitors."
+    Lagoon guide:
+      instructions: "You are the sign on the sea deck that names the animals of the lagoon. Help the owner choose which animals to feature, write short, true captions a child can read, and keep them up to date with what the team has really seen."
     Studio camera:
       instructions: "You are the camera in the education studio. You think in shots, hooks and posting schedules. Help the owner with videos and posts: what to film today, short scripts for the penguin, captions and what performed well. Upbeat and concrete."
 
@@ -1498,6 +1535,753 @@ world:
           - { shape: box, size: [0.25, 0.04, 0.01], offset: [-0.7, 1.45, 0.038], color: "#2b2b2b" }
           - { shape: box, size: [0.25, 0.04, 0.01], offset: [-0.7, 1.25, 0.038], color: "#2b2b2b" }
 
+    # ---- Outside: the sea deck (1E) and the coral lagoon (1F). The lagoon is a
+    # 20 m square of open sea: sand at the bottom, the surface at 1.8 m, coral,
+    # kelp and sea grass, and everything that lives on a reef swimming through it.
+    sea-water:
+      name: Lagoon water
+      title: Coral lagoon
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [19.9, 1.78, 19.9], offset: [0, 0.9, 0], color: "#05a6cf", finish: gloss, opacity: 0.32 }
+          - { shape: box, size: [19.9, 0.04, 19.9], offset: [0, 1.8, 0], color: "#2fb8de", finish: gloss, opacity: 0.16 }
+          # Sun glints on the surface
+          - { shape: sphere, size: [0.8, 0.01, 0.1], offset: [-6.0, 1.83, -5.5], rotation: [0, 20, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-a }
+          - { shape: sphere, size: [0.6, 0.01, 0.1], offset: [2.5, 1.83, -7.0], rotation: [0, -10, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-a }
+          - { shape: sphere, size: [1.0, 0.01, 0.1], offset: [6.5, 1.83, 1.0], rotation: [0, 30, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-a }
+          - { shape: sphere, size: [0.7, 0.01, 0.1], offset: [-3.0, 1.83, 6.0], rotation: [0, -25, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-a }
+          - { shape: sphere, size: [0.7, 0.01, 0.1], offset: [-7.5, 1.83, 2.0], rotation: [0, 5, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-b }
+          - { shape: sphere, size: [0.9, 0.01, 0.1], offset: [1.0, 1.83, 3.5], rotation: [0, 40, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-b }
+          - { shape: sphere, size: [0.7, 0.01, 0.1], offset: [7.0, 1.83, -4.0], rotation: [0, -35, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-b }
+          - { shape: sphere, size: [0.8, 0.01, 0.1], offset: [5.0, 1.83, 7.5], rotation: [0, 15, 0], color: "#ffffff", emissive: "#d9fbff", opacity: 0.45, part: glint-b }
+      behaviors:
+        - { type: blink, part: glint-a, speed: 0.25, amount: 0.9 }
+        - { type: blink, part: glint-b, speed: 0.18, amount: 0.9 }
+        - { type: keyframes, part: glint-a, speed: 0.05, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0.6, 0, 0.3] }] }
+        - { type: keyframes, part: glint-b, speed: 0.04, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [-0.5, 0, 0.4] }] }
+
+    # A long ridge of reef: rock, brain coral, staghorn, table coral, sea fans,
+    # sponges, and an anemone with its clownfish.
+    reef-ridge:
+      name: Coral reef
+      title: Coral reef
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [3.0, 0.6, 2.0], offset: [0, 0.2, 0], color: "#b8a587" }
+          - { shape: sphere, size: [1.7, 1.0, 1.3], offset: [-0.6, 0.55, -0.2], color: "#a8957a" }
+          - { shape: sphere, size: [1.2, 0.8, 1.0], offset: [1.0, 0.5, 0.3], color: "#bfae8f" }
+          - { shape: sphere, size: [0.7, 0.5, 0.7], offset: [-1.2, 1.05, 0.1], color: "#e9b44c", finish: satin }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [-1.2, 1.12, 0.1], rotation: [90, 0, 0], color: "#c9922e", finish: satin }
+          - { shape: sphere, size: [0.55, 0.4, 0.55], offset: [1.3, 0.95, 0.5], color: "#d98f4e", finish: satin }
+          # Staghorn coral
+          - { shape: capsule, size: [0.09, 0.6, 0.09], offset: [-0.3, 1.35, -0.3], rotation: [0, 0, 20], color: "#f2a7c3", finish: satin }
+          - { shape: capsule, size: [0.09, 0.55, 0.09], offset: [-0.15, 1.4, -0.2], rotation: [15, 0, -15], color: "#f2a7c3", finish: satin }
+          - { shape: capsule, size: [0.09, 0.5, 0.09], offset: [-0.45, 1.3, -0.1], rotation: [-15, 0, 30], color: "#f2a7c3", finish: satin }
+          - { shape: capsule, size: [0.08, 0.45, 0.08], offset: [0.0, 1.32, -0.4], rotation: [-20, 0, -25], color: "#f2a7c3", finish: satin }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [-0.6, 1.25, -0.35], rotation: [20, 0, 35], color: "#f7c4d8", finish: satin }
+          # Table coral
+          - { shape: cylinder, size: [0.1, 0.3, 0.1], offset: [0.6, 1.15, -0.3], color: "#7fb07a" }
+          - { shape: cylinder, size: [0.95, 0.06, 0.95], offset: [0.6, 1.32, -0.3], color: "#9ccf8a", finish: satin }
+          # Sponges
+          - { shape: cylinder, size: [0.15, 0.5, 0.15], offset: [1.5, 0.95, -0.1], color: "#ff9a3c", finish: satin }
+          - { shape: cylinder, size: [0.12, 0.38, 0.12], offset: [1.66, 0.9, 0.05], color: "#ffb35c", finish: satin }
+          - { shape: cylinder, size: [0.13, 0.6, 0.13], offset: [1.38, 1.0, 0.12], color: "#ff9a3c", finish: satin }
+          - { shape: cylinder, size: [0.32, 0.05, 0.32], offset: [-1.45, 0.75, 0.75], color: "#5fd3b0", finish: satin }
+          - { shape: sphere, size: [0.36, 0.26, 0.3], offset: [-0.4, 0.95, 0.75], color: "#5fd3b0", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.26], offset: [0.9, 0.7, 0.95], color: "#c57bff", finish: satin }
+          # Sea fans, swaying from their foot
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.9, 1.05, -0.6], color: "#b05fd6", part: fan-a }
+          - { shape: cone, size: [0.9, 0.9, 0.05], offset: [-0.9, 1.5, -0.6], rotation: [0, 15, 0], color: "#b05fd6", finish: satin, part: fan-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [1.15, 0.95, -0.5], color: "#e8506a", part: fan-b }
+          - { shape: cone, size: [0.7, 0.7, 0.05], offset: [1.15, 1.3, -0.5], rotation: [0, -20, 0], color: "#e8506a", finish: satin, part: fan-b }
+          # The anemone and its clownfish
+          - { shape: sphere, size: [0.42, 0.2, 0.42], offset: [0.2, 1.02, 0.55], color: "#ff8fb8", finish: satin }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.2, 1.08, 0.55], color: "#ffc2dc", part: anemone }
+          - { shape: capsule, size: [0.045, 0.22, 0.045], offset: [0.1, 1.18, 0.5], rotation: [0, 0, 20], color: "#ffc2dc", finish: satin, part: anemone }
+          - { shape: capsule, size: [0.045, 0.24, 0.045], offset: [0.22, 1.2, 0.45], rotation: [-15, 0, 0], color: "#ffc2dc", finish: satin, part: anemone }
+          - { shape: capsule, size: [0.045, 0.22, 0.045], offset: [0.32, 1.18, 0.58], rotation: [0, 0, -20], color: "#ffc2dc", finish: satin, part: anemone }
+          - { shape: capsule, size: [0.045, 0.2, 0.045], offset: [0.2, 1.17, 0.68], rotation: [20, 0, 0], color: "#ffc2dc", finish: satin, part: anemone }
+          - { shape: capsule, size: [0.045, 0.2, 0.045], offset: [0.08, 1.16, 0.64], rotation: [15, 0, 20], color: "#ffc2dc", finish: satin, part: anemone }
+          - { shape: sphere, size: [0.17, 0.1, 0.07], offset: [0.2, 1.36, 0.62], color: "#ff7a1a", finish: gloss, part: clown }
+          - { shape: box, size: [0.03, 0.1, 0.075], offset: [0.24, 1.36, 0.62], color: "#ffffff", part: clown }
+          - { shape: cone, size: [0.08, 0.08, 0.025], offset: [0.08, 1.36, 0.62], rotation: [0, 0, -90], color: "#ff7a1a", part: clown }
+          - { shape: sphere, size: [0.14, 0.09, 0.06], offset: [0.4, 1.3, 0.5], color: "#ff7a1a", finish: gloss, part: clown }
+          - { shape: box, size: [0.03, 0.09, 0.065], offset: [0.43, 1.3, 0.5], color: "#ffffff", part: clown }
+          - { shape: cone, size: [0.07, 0.07, 0.02], offset: [0.3, 1.3, 0.5], rotation: [0, 0, -90], color: "#ff7a1a", part: clown }
+          # Blue chromis over the staghorn
+          - { shape: sphere, size: [0.13, 0.08, 0.05], offset: [-0.5, 1.75, -0.2], color: "#3fb6ff", finish: gloss, part: chromis }
+          - { shape: cone, size: [0.05, 0.05, 0.02], offset: [-0.58, 1.75, -0.2], rotation: [0, 0, -90], color: "#3fb6ff", part: chromis }
+          - { shape: sphere, size: [0.12, 0.07, 0.05], offset: [-0.25, 1.68, -0.05], color: "#3fb6ff", finish: gloss, part: chromis }
+          - { shape: cone, size: [0.05, 0.05, 0.02], offset: [-0.33, 1.68, -0.05], rotation: [0, 0, -90], color: "#3fb6ff", part: chromis }
+          - { shape: sphere, size: [0.12, 0.07, 0.05], offset: [-0.35, 1.62, -0.4], color: "#3fb6ff", finish: gloss, part: chromis }
+          - { shape: cone, size: [0.05, 0.05, 0.02], offset: [-0.43, 1.62, -0.4], rotation: [0, 0, -90], color: "#3fb6ff", part: chromis }
+          - { shape: sphere, size: [0.12, 0.07, 0.05], offset: [-0.1, 1.72, -0.3], color: "#5fd3ff", finish: gloss, part: chromis }
+          - { shape: cone, size: [0.05, 0.05, 0.02], offset: [-0.18, 1.72, -0.3], rotation: [0, 0, -90], color: "#5fd3ff", part: chromis }
+      behaviors:
+        - { type: sway, part: fan-a, speed: 0.2, amount: 0.5, axis: x }
+        - { type: sway, part: fan-b, speed: 0.24, amount: 0.5, axis: x }
+        - { type: sway, part: anemone, speed: 0.35, amount: 0.6 }
+        - { type: keyframes, part: clown, speed: 0.15, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.3, position: [0.12, 0.06, 0.1] }, { t: 0.6, position: [-0.05, 0.1, 0.05], rotation: [0, 160, 0] }, { t: 0.85, position: [-0.08, 0.02, -0.04], rotation: [0, 200, 0] }] }
+        - { type: keyframes, part: chromis, speed: 0.08, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.45, position: [1.3, 0.05, 0.2] }, { t: 0.5, position: [1.3, 0.05, 0.2], rotation: [0, 180, 0] }, { t: 0.95, position: [0, 0, 0], rotation: [0, 180, 0] }] }
+
+    # A round coral head standing on its own, fish circling it.
+    coral-bommie:
+      name: Coral head
+      title: Coral reef
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [1.5, 0.5, 1.5], offset: [0, 0.15, 0], color: "#b8a587" }
+          - { shape: capsule, size: [1.0, 1.15, 0.9], offset: [0, 0.72, 0], color: "#a8957a" }
+          - { shape: sphere, size: [0.8, 0.55, 0.75], offset: [0.1, 1.35, 0.05], color: "#e9b44c", finish: satin }
+          - { shape: torus, size: [0.55, 0.55, 0.55], offset: [0.1, 1.45, 0.05], rotation: [90, 0, 0], color: "#c9922e", finish: satin }
+          - { shape: cone, size: [0.22, 0.5, 0.22], offset: [-0.45, 1.2, 0.3], color: "#ff7f9f", finish: satin }
+          - { shape: cone, size: [0.18, 0.4, 0.18], offset: [-0.3, 1.25, 0.45], rotation: [0, 0, -20], color: "#ff7f9f", finish: satin }
+          - { shape: cylinder, size: [0.7, 0.05, 0.7], offset: [0.5, 1.05, -0.35], color: "#9ccf8a", finish: satin }
+          - { shape: cylinder, size: [0.08, 0.2, 0.08], offset: [0.5, 0.95, -0.35], color: "#7fb07a" }
+          - { shape: sphere, size: [0.34, 0.24, 0.3], offset: [0.55, 0.6, 0.45], color: "#5fd3b0", finish: satin }
+          - { shape: sphere, size: [0.3, 0.22, 0.26], offset: [-0.6, 0.55, -0.4], color: "#c57bff", finish: satin }
+          - { shape: cylinder, size: [0.14, 0.45, 0.14], offset: [-0.2, 1.5, -0.3], color: "#ff9a3c", finish: satin }
+          - { shape: cylinder, size: [0.11, 0.35, 0.11], offset: [-0.05, 1.45, -0.42], color: "#ffb35c", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.45, 1.1, 0.35], color: "#3a9156", part: weed }
+          - { shape: capsule, size: [0.05, 0.45, 0.05], offset: [0.45, 1.32, 0.35], color: "#3a9156", finish: satin, part: weed }
+          - { shape: capsule, size: [0.05, 0.38, 0.05], offset: [0.52, 1.28, 0.3], rotation: [0, 0, -12], color: "#45a463", finish: satin, part: weed }
+          # Yellow tangs and a moorish idol circling the head
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, 0], color: "#ffd23f", part: ring }
+          - { shape: sphere, size: [0.24, 0.22, 0.06], offset: [1.1, 1.1, 0], rotation: [0, 90, 0], color: "#ffd23f", finish: gloss, part: ring }
+          - { shape: cone, size: [0.09, 0.09, 0.03], offset: [1.1, 1.1, 0.14], rotation: [90, 0, 90], color: "#ffd23f", part: ring }
+          - { shape: sphere, size: [0.22, 0.2, 0.06], offset: [-1.05, 1.3, 0.3], rotation: [0, -90, 0], color: "#ffd23f", finish: gloss, part: ring }
+          - { shape: cone, size: [0.08, 0.08, 0.03], offset: [-1.05, 1.3, 0.16], rotation: [90, 0, 90], color: "#ffd23f", part: ring }
+          - { shape: sphere, size: [0.22, 0.24, 0.05], offset: [0.2, 1.6, -1.05], color: "#f2f2f2", finish: gloss, part: ring }
+          - { shape: box, size: [0.04, 0.24, 0.055], offset: [0.24, 1.6, -1.05], color: "#1b1b1f", part: ring }
+          - { shape: box, size: [0.04, 0.2, 0.055], offset: [0.14, 1.6, -1.05], color: "#ffd23f", part: ring }
+          - { shape: cone, size: [0.04, 0.3, 0.02], offset: [0.18, 1.82, -1.05], rotation: [0, 0, 20], color: "#f2f2f2", part: ring }
+          - { shape: sphere, size: [0.2, 0.2, 0.06], offset: [-0.3, 0.9, 1.1], rotation: [0, 180, 0], color: "#ffd23f", finish: gloss, part: ring }
+          - { shape: cone, size: [0.08, 0.08, 0.03], offset: [-0.44, 0.9, 1.1], rotation: [0, 0, -90], color: "#ffd23f", part: ring }
+      behaviors:
+        - { type: sway, part: weed, speed: 0.3, amount: 0.6 }
+        - { type: spin, part: ring, speed: 0.04 }
+
+    # Kelp: tall golden-green strands with their floats, swaying from the root.
+    kelp-forest:
+      name: Kelp
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [1.0, 0.24, 0.8], offset: [0, 0.06, 0], color: "#a8957a" }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [-0.2, 0.2, 0], color: "#6b8f2e", part: kelp-a }
+          - { shape: capsule, size: [0.07, 1.65, 0.07], offset: [-0.25, 1.0, 0.05], rotation: [0, 0, 4], color: "#8a9a2e", finish: satin, part: kelp-a }
+          - { shape: capsule, size: [0.07, 1.7, 0.07], offset: [-0.05, 1.02, -0.15], rotation: [5, 0, -3], color: "#6b8f2e", finish: satin, part: kelp-a }
+          - { shape: capsule, size: [0.07, 1.5, 0.07], offset: [-0.4, 0.92, -0.2], rotation: [-4, 0, 6], color: "#9aa83a", finish: satin, part: kelp-a }
+          - { shape: sphere, size: [0.32, 0.06, 0.14], offset: [-0.32, 1.25, 0.05], rotation: [0, 0, 35], color: "#a4b03e", finish: satin, part: kelp-a }
+          - { shape: sphere, size: [0.32, 0.06, 0.14], offset: [-0.12, 1.5, -0.15], rotation: [0, 40, -30], color: "#8a9a2e", finish: satin, part: kelp-a }
+          - { shape: sphere, size: [0.3, 0.06, 0.14], offset: [-0.46, 0.8, -0.2], rotation: [0, -30, 35], color: "#a4b03e", finish: satin, part: kelp-a }
+          - { shape: sphere, size: [0.07, 0.07, 0.07], offset: [-0.24, 1.72, 0.06], color: "#c9a23a", finish: gloss, part: kelp-a }
+          - { shape: sphere, size: [0.07, 0.07, 0.07], offset: [-0.06, 1.78, -0.15], color: "#c9a23a", finish: gloss, part: kelp-a }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [0.25, 0.2, 0.1], color: "#6b8f2e", part: kelp-b }
+          - { shape: capsule, size: [0.07, 1.6, 0.07], offset: [0.25, 0.98, 0.1], rotation: [0, 0, -5], color: "#7d9a30", finish: satin, part: kelp-b }
+          - { shape: capsule, size: [0.07, 1.75, 0.07], offset: [0.4, 1.05, -0.1], rotation: [-5, 0, 2], color: "#6b8f2e", finish: satin, part: kelp-b }
+          - { shape: capsule, size: [0.07, 1.4, 0.07], offset: [0.15, 0.88, 0.3], rotation: [6, 0, -6], color: "#9aa83a", finish: satin, part: kelp-b }
+          - { shape: sphere, size: [0.32, 0.06, 0.14], offset: [0.32, 1.3, 0.1], rotation: [0, 20, -35], color: "#a4b03e", finish: satin, part: kelp-b }
+          - { shape: sphere, size: [0.32, 0.06, 0.14], offset: [0.48, 1.6, -0.1], rotation: [0, -40, 30], color: "#8a9a2e", finish: satin, part: kelp-b }
+          - { shape: sphere, size: [0.3, 0.06, 0.14], offset: [0.08, 0.95, 0.3], rotation: [0, 60, 35], color: "#a4b03e", finish: satin, part: kelp-b }
+          - { shape: sphere, size: [0.07, 0.07, 0.07], offset: [0.27, 1.75, 0.1], color: "#c9a23a", finish: gloss, part: kelp-b }
+          - { shape: sphere, size: [0.07, 0.07, 0.07], offset: [0.41, 1.78, -0.1], color: "#c9a23a", finish: gloss, part: kelp-b }
+      behaviors:
+        - { type: sway, part: kelp-a, speed: 0.16, amount: 0.7, axis: x }
+        - { type: sway, part: kelp-b, speed: 0.13, amount: 0.7, axis: x }
+
+    # Sea grass and red algae on the sand.
+    seagrass-meadow:
+      name: Sea grass
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [2.2, 0.04, 1.6], offset: [0, 0.02, 0], color: "#c9b680" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.04, 0], color: "#3f9a4e", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.5, 0.02], offset: [-0.8, 0.25, -0.3], rotation: [0, 0, 8], color: "#3f9a4e", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.42, 0.02], offset: [-0.65, 0.21, -0.1], rotation: [0, 30, -6], color: "#4fae5a", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.55, 0.02], offset: [-0.5, 0.27, -0.45], rotation: [0, 60, 5], color: "#3f9a4e", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.46, 0.02], offset: [-0.35, 0.23, 0.15], rotation: [0, 10, -10], color: "#5bb86a", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.5, 0.02], offset: [-0.2, 0.25, -0.25], rotation: [0, 80, 6], color: "#3f9a4e", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.4, 0.02], offset: [-0.05, 0.2, 0.35], rotation: [0, 45, 8], color: "#4fae5a", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.52, 0.02], offset: [0.1, 0.26, -0.5], rotation: [0, 20, -5], color: "#3f9a4e", part: grass-a }
+          - { shape: capsule, size: [0.04, 0.44, 0.02], offset: [-0.6, 0.22, 0.4], rotation: [0, 70, -8], color: "#5bb86a", part: grass-a }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.3, 0.04, 0], color: "#3f9a4e", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.48, 0.02], offset: [0.25, 0.24, 0.1], rotation: [0, 15, 7], color: "#4fae5a", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.56, 0.02], offset: [0.4, 0.28, -0.2], rotation: [0, 50, -6], color: "#3f9a4e", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.42, 0.02], offset: [0.55, 0.21, 0.3], rotation: [0, 85, 8], color: "#5bb86a", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.5, 0.02], offset: [0.7, 0.25, -0.4], rotation: [0, 25, -7], color: "#3f9a4e", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.45, 0.02], offset: [0.85, 0.22, 0.05], rotation: [0, 65, 6], color: "#4fae5a", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.38, 0.02], offset: [0.6, 0.19, 0.55], rotation: [0, 35, -9], color: "#5bb86a", part: grass-b }
+          - { shape: capsule, size: [0.04, 0.5, 0.02], offset: [0.95, 0.25, -0.15], rotation: [0, 5, 9], color: "#3f9a4e", part: grass-b }
+          # Red and brown algae, sea lettuce, a few shells
+          - { shape: sphere, size: [0.36, 0.22, 0.3], offset: [-0.2, 0.12, 0.55], color: "#c2434f", finish: fabric }
+          - { shape: sphere, size: [0.26, 0.18, 0.24], offset: [-0.05, 0.1, 0.62], color: "#d9606a", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.06, 0.3], offset: [0.35, 0.05, 0.6], rotation: [0, 30, 10], color: "#7fd36b", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.28], offset: [-0.9, 0.1, 0.1], color: "#8f5a2e", finish: fabric }
+          - { shape: sphere, size: [0.1, 0.05, 0.08], offset: [0.1, 0.05, 0.1], color: "#f7e6d0", finish: gloss }
+          - { shape: sphere, size: [0.08, 0.04, 0.07], offset: [-0.4, 0.05, -0.6], color: "#f2c9a8", finish: gloss }
+      behaviors:
+        - { type: sway, part: grass-a, speed: 0.3, amount: 0.5, axis: x }
+        - { type: sway, part: grass-b, speed: 0.26, amount: 0.5, axis: x }
+
+    # A mixed school of reef fish that swims a long loop.
+    reef-fish:
+      name: Reef fish
+      title: Reef fish
+      category: dynamic
+      look:
+        parts:
+          # Yellow tangs
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.1, 0], color: "#ffd23f", part: tangs }
+          - { shape: sphere, size: [0.26, 0.24, 0.06], offset: [0, 1.1, 0], color: "#ffd23f", finish: gloss, part: tangs }
+          - { shape: cone, size: [0.1, 0.1, 0.03], offset: [-0.17, 1.1, 0], rotation: [0, 0, -90], color: "#ffd23f", part: tangs }
+          - { shape: sphere, size: [0.24, 0.22, 0.06], offset: [0.35, 1.22, 0.2], color: "#ffd23f", finish: gloss, part: tangs }
+          - { shape: cone, size: [0.09, 0.09, 0.03], offset: [0.2, 1.22, 0.2], rotation: [0, 0, -90], color: "#ffd23f", part: tangs }
+          - { shape: sphere, size: [0.24, 0.22, 0.06], offset: [0.25, 0.98, -0.25], color: "#ffd23f", finish: gloss, part: tangs }
+          - { shape: cone, size: [0.09, 0.09, 0.03], offset: [0.1, 0.98, -0.25], rotation: [0, 0, -90], color: "#ffd23f", part: tangs }
+          - { shape: sphere, size: [0.22, 0.2, 0.06], offset: [0.6, 1.08, -0.05], color: "#ffd23f", finish: gloss, part: tangs }
+          - { shape: cone, size: [0.08, 0.08, 0.03], offset: [0.46, 1.08, -0.05], rotation: [0, 0, -90], color: "#ffd23f", part: tangs }
+          # Blue tangs
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.6, 0.8, 0.5], color: "#2f6fe0", part: blues }
+          - { shape: sphere, size: [0.34, 0.2, 0.08], offset: [-0.6, 0.8, 0.5], color: "#2f6fe0", finish: gloss, part: blues }
+          - { shape: sphere, size: [0.22, 0.06, 0.085], offset: [-0.62, 0.85, 0.5], color: "#1b2a5c", part: blues }
+          - { shape: cone, size: [0.13, 0.13, 0.03], offset: [-0.82, 0.8, 0.5], rotation: [0, 0, -90], color: "#ffd23f", part: blues }
+          - { shape: sphere, size: [0.32, 0.19, 0.08], offset: [-0.2, 0.72, 0.75], color: "#2f6fe0", finish: gloss, part: blues }
+          - { shape: sphere, size: [0.2, 0.06, 0.085], offset: [-0.22, 0.77, 0.75], color: "#1b2a5c", part: blues }
+          - { shape: cone, size: [0.12, 0.12, 0.03], offset: [-0.41, 0.72, 0.75], rotation: [0, 0, -90], color: "#ffd23f", part: blues }
+          # A parrotfish
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.1, 0.6, -0.7], color: "#2fc4a0", part: parrot }
+          - { shape: sphere, size: [0.5, 0.24, 0.16], offset: [0.1, 0.6, -0.7], color: "#2fc4a0", finish: gloss, part: parrot }
+          - { shape: sphere, size: [0.2, 0.18, 0.15], offset: [0.3, 0.6, -0.7], color: "#ff8fb8", finish: gloss, part: parrot }
+          - { shape: cone, size: [0.18, 0.18, 0.04], offset: [-0.2, 0.6, -0.7], rotation: [0, 0, -90], color: "#5b6ee8", part: parrot }
+          - { shape: box, size: [0.3, 0.02, 0.1], offset: [0.08, 0.74, -0.7], color: "#5b6ee8", part: parrot }
+          - { shape: sphere, size: [0.04, 0.04, 0.17], offset: [0.27, 0.64, -0.7], color: "#14181f", finish: gloss, part: parrot }
+          # Butterflyfish pair
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.8, 1.35, 0.6], color: "#fff3b0", part: butterfly }
+          - { shape: sphere, size: [0.2, 0.2, 0.05], offset: [0.8, 1.35, 0.6], color: "#fff3b0", finish: gloss, part: butterfly }
+          - { shape: box, size: [0.025, 0.2, 0.055], offset: [0.86, 1.35, 0.6], color: "#1b1b1f", part: butterfly }
+          - { shape: cone, size: [0.08, 0.08, 0.02], offset: [0.68, 1.35, 0.6], rotation: [0, 0, -90], color: "#ffd23f", part: butterfly }
+          - { shape: sphere, size: [0.2, 0.2, 0.05], offset: [1.05, 1.42, 0.45], color: "#fff3b0", finish: gloss, part: butterfly }
+          - { shape: box, size: [0.025, 0.2, 0.055], offset: [1.11, 1.42, 0.45], color: "#1b1b1f", part: butterfly }
+          - { shape: cone, size: [0.08, 0.08, 0.02], offset: [0.93, 1.42, 0.45], rotation: [0, 0, -90], color: "#ffd23f", part: butterfly }
+      behaviors:
+        - { type: keyframes, part: tangs, speed: 0.04, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.24, position: [2.0, 0.1, 0.6] }, { t: 0.46, position: [4.0, -0.1, 0] }, { t: 0.5, position: [4.0, -0.1, 0], rotation: [0, 180, 0] }, { t: 0.74, position: [2.0, 0.15, -0.6], rotation: [0, 180, 0] }, { t: 0.96, position: [0, 0, 0], rotation: [0, 180, 0] }] }
+        - { type: keyframes, part: blues, speed: 0.035, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.46, position: [4.5, 0.2, -0.4] }, { t: 0.5, position: [4.5, 0.2, -0.4], rotation: [0, 180, 0] }, { t: 0.96, position: [0, 0, 0], rotation: [0, 180, 0] }] }
+        - { type: keyframes, part: parrot, speed: 0.025, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.46, position: [3.2, 0.05, 0.3] }, { t: 0.5, position: [3.2, 0.05, 0.3], rotation: [0, 180, 0] }, { t: 0.96, position: [0, 0, 0], rotation: [0, 180, 0] }] }
+        - { type: keyframes, part: butterfly, speed: 0.06, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.46, position: [2.4, -0.2, -0.5] }, { t: 0.5, position: [2.4, -0.2, -0.5], rotation: [0, 180, 0] }, { t: 0.96, position: [0, 0, 0], rotation: [0, 180, 0] }] }
+
+    # A bait ball of sardines turning round and round as it drifts.
+    sardine-ball:
+      name: Sardines
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.1, 0], color: "#cfe3ef", part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.5, 1.1, 0], rotation: [90, 0, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.35, 1.25, 0.35], rotation: [90, 45, 0], color: "#dbeaf3", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0, 1.0, 0.5], rotation: [90, 90, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.35, 1.2, 0.35], rotation: [90, 135, 0], color: "#b8d0e0", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.5, 1.05, 0], rotation: [90, 180, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.35, 1.3, -0.35], rotation: [90, 225, 0], color: "#dbeaf3", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0, 1.15, -0.5], rotation: [90, 270, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.35, 0.95, -0.35], rotation: [90, 315, 0], color: "#b8d0e0", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.3, 1.45, 0], rotation: [90, 20, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0, 1.5, 0.3], rotation: [90, 110, 0], color: "#dbeaf3", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.3, 1.45, 0], rotation: [90, 200, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0, 1.4, -0.3], rotation: [90, 290, 0], color: "#b8d0e0", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.3, 0.8, 0.1], rotation: [90, 60, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.1, 0.78, 0.3], rotation: [90, 150, 0], color: "#dbeaf3", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.28, 0.82, -0.15], rotation: [90, 240, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.1, 0.8, -0.3], rotation: [90, 330, 0], color: "#b8d0e0", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [0.62, 1.3, 0.2], rotation: [90, 30, 0], color: "#cfe3ef", finish: metal, part: ball }
+          - { shape: capsule, size: [0.05, 0.18, 0.05], offset: [-0.6, 0.95, -0.25], rotation: [90, 210, 0], color: "#dbeaf3", finish: metal, part: ball }
+      behaviors:
+        - { type: spin, part: ball, speed: 0.12 }
+        - { type: wander, speed: 0.15, amount: 3 }
+        - { type: bob, speed: 0.2, amount: 0.8 }
+
+    # A pod of two bottlenose dolphins. Now and then each leaps clear of the
+    # surface (keyframes on the dolphin, pivoting at its middle).
+    dolphins:
+      name: Dolphins
+      title: Dolphins
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.5, 1.2, 0], color: "#7d8fa0", part: dolphin-a }
+          - { shape: capsule, size: [0.38, 1.3, 0.34], offset: [-0.5, 1.2, 0], rotation: [90, 0, 0], color: "#7d8fa0", finish: gloss, part: dolphin-a }
+          - { shape: capsule, size: [0.28, 1.05, 0.2], offset: [-0.5, 1.12, -0.02], rotation: [90, 0, 0], color: "#e3e9ee", finish: gloss, part: dolphin-a }
+          - { shape: capsule, size: [0.1, 0.32, 0.1], offset: [-0.5, 1.16, -0.78], rotation: [90, 0, 0], color: "#8a9bab", finish: gloss, part: dolphin-a }
+          - { shape: cone, size: [0.05, 0.3, 0.24], offset: [-0.5, 1.46, 0.05], rotation: [-25, 0, 0], color: "#6b7d8e", finish: gloss, part: dolphin-a }
+          - { shape: capsule, size: [0.06, 0.3, 0.12], offset: [-0.72, 1.12, -0.2], rotation: [25, 0, 65], color: "#6b7d8e", part: dolphin-a }
+          - { shape: capsule, size: [0.06, 0.3, 0.12], offset: [-0.28, 1.12, -0.2], rotation: [25, 0, -65], color: "#6b7d8e", part: dolphin-a }
+          - { shape: sphere, size: [0.56, 0.05, 0.2], offset: [-0.5, 1.2, 0.72], color: "#6b7d8e", finish: gloss, part: dolphin-a }
+          - { shape: sphere, size: [0.05, 0.05, 0.04], offset: [-0.64, 1.26, -0.5], color: "#14181f", finish: gloss, part: dolphin-a }
+          - { shape: sphere, size: [0.05, 0.05, 0.04], offset: [-0.36, 1.26, -0.5], color: "#14181f", finish: gloss, part: dolphin-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.6, 1.0, 0.5], color: "#7d8fa0", part: dolphin-b }
+          - { shape: capsule, size: [0.34, 1.15, 0.3], offset: [0.6, 1.0, 0.5], rotation: [90, 0, 0], color: "#8597a8", finish: gloss, part: dolphin-b }
+          - { shape: capsule, size: [0.25, 0.92, 0.18], offset: [0.6, 0.93, 0.48], rotation: [90, 0, 0], color: "#e3e9ee", finish: gloss, part: dolphin-b }
+          - { shape: capsule, size: [0.09, 0.28, 0.09], offset: [0.6, 0.96, -0.2], rotation: [90, 0, 0], color: "#8a9bab", finish: gloss, part: dolphin-b }
+          - { shape: cone, size: [0.05, 0.26, 0.22], offset: [0.6, 1.24, 0.55], rotation: [-25, 0, 0], color: "#6b7d8e", finish: gloss, part: dolphin-b }
+          - { shape: capsule, size: [0.05, 0.26, 0.1], offset: [0.4, 0.93, 0.3], rotation: [25, 0, 65], color: "#6b7d8e", part: dolphin-b }
+          - { shape: capsule, size: [0.05, 0.26, 0.1], offset: [0.8, 0.93, 0.3], rotation: [25, 0, -65], color: "#6b7d8e", part: dolphin-b }
+          - { shape: sphere, size: [0.5, 0.05, 0.18], offset: [0.6, 1.0, 1.14], color: "#6b7d8e", finish: gloss, part: dolphin-b }
+          - { shape: sphere, size: [0.045, 0.045, 0.04], offset: [0.48, 1.05, 0.06], color: "#14181f", finish: gloss, part: dolphin-b }
+          - { shape: sphere, size: [0.045, 0.045, 0.04], offset: [0.72, 1.05, 0.06], color: "#14181f", finish: gloss, part: dolphin-b }
+      behaviors:
+        - { type: wander, speed: 0.16, amount: 5 }
+        - { type: keyframes, part: dolphin-a, speed: 0.08, keys: [{ t: 0, position: [0, -0.1, 0.5] }, { t: 0.35, position: [0, 0, 0] }, { t: 0.6, position: [0, 0, 0] }, { t: 0.68, position: [0, 0.8, -0.35], rotation: [40, 0, 0] }, { t: 0.76, position: [0, 1.1, -0.7] }, { t: 0.84, position: [0, 0.75, -1.0], rotation: [-40, 0, 0] }, { t: 0.92, position: [0, -0.15, -1.1], rotation: [-15, 0, 0] }] }
+        - { type: keyframes, part: dolphin-b, speed: 0.065, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.15, position: [0, 0.8, -0.35], rotation: [40, 0, 0] }, { t: 0.23, position: [0, 1.15, -0.7] }, { t: 0.31, position: [0, 0.75, -1.0], rotation: [-40, 0, 0] }, { t: 0.39, position: [0, -0.15, -1.1], rotation: [-15, 0, 0] }, { t: 0.8, position: [0, 0.05, -0.3] }] }
+      states:
+        - { id: swimming, name: Swimming }
+        - id: playing
+          name: Playing
+          behaviors:
+            - { type: wander, speed: 0.3, amount: 5 }
+            - { type: keyframes, part: dolphin-a, speed: 0.25, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.25, position: [0, 0.9, -0.4], rotation: [40, 0, 0] }, { t: 0.5, position: [0, 1.2, -0.7] }, { t: 0.75, position: [0, 0.6, -1.0], rotation: [-40, 0, 0] }] }
+            - { type: keyframes, part: dolphin-b, speed: 0.22, keys: [{ t: 0, position: [0, 0.6, -1.0], rotation: [-40, 0, 0] }, { t: 0.25, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.9, -0.4], rotation: [40, 0, 0] }, { t: 0.75, position: [0, 1.25, -0.7] }] }
+      actions:
+        - { id: play, name: Play with the dolphins, state: playing, seconds: 60, gesture: none }
+
+    # A whale shark: the slow giant of the lagoon, spotted, mouth open for plankton.
+    whale-shark:
+      name: Whale shark
+      title: Whale shark
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.9, 3.6, 0.7], offset: [0, 1.0, 0], rotation: [90, 0, 0], color: "#3d5a73", finish: satin }
+          - { shape: capsule, size: [0.7, 3.0, 0.4], offset: [0, 0.82, -0.05], rotation: [90, 0, 0], color: "#e8edf0", finish: satin }
+          - { shape: roundbox, size: [0.9, 0.12, 0.5], offset: [0, 0.98, -1.7], color: "#2e4458", finish: satin }
+          - { shape: roundbox, size: [0.7, 0.05, 0.12], offset: [0, 0.94, -1.92], color: "#1b2a38" }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.42, 1.05, -1.5], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0.42, 1.05, -1.5], color: "#14181f", finish: gloss }
+          - { shape: cone, size: [0.08, 0.6, 0.5], offset: [0, 1.6, 0.2], rotation: [-20, 0, 0], color: "#3d5a73", finish: satin }
+          - { shape: capsule, size: [0.12, 0.9, 0.36], offset: [-0.6, 0.85, -0.6], rotation: [25, 0, 70], color: "#3d5a73", finish: satin }
+          - { shape: capsule, size: [0.12, 0.9, 0.36], offset: [0.6, 0.85, -0.6], rotation: [25, 0, -70], color: "#3d5a73", finish: satin }
+          - { shape: box, size: [0.9, 0.03, 0.02], offset: [0, 1.36, -0.6], color: "#8aa2b5" }
+          - { shape: box, size: [0.86, 0.03, 0.02], offset: [0, 1.36, 0.1], color: "#8aa2b5" }
+          - { shape: box, size: [0.7, 0.03, 0.02], offset: [0, 1.32, 0.8], color: "#8aa2b5" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [-0.25, 1.35, -1.2], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [0.2, 1.36, -1.0], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [-0.05, 1.37, -0.85], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [-0.3, 1.33, -0.3], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [0.28, 1.34, -0.35], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [0.0, 1.36, -0.4], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [-0.22, 1.34, 0.35], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.09, 0.03, 0.09], offset: [0.22, 1.34, 0.4], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.08, 0.03, 0.08], offset: [0.0, 1.32, 0.6], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.08, 0.03, 0.08], offset: [-0.15, 1.28, 1.05], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.08, 0.03, 0.08], offset: [0.15, 1.28, 1.15], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.08, 0.03, 0.08], offset: [-0.38, 1.22, -0.7], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.08, 0.03, 0.08], offset: [0.38, 1.22, 0.0], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0, 1.0, 1.7], color: "#3d5a73", part: tail }
+          - { shape: cone, size: [0.08, 0.9, 0.5], offset: [0, 1.38, 2.0], rotation: [-35, 0, 0], color: "#3d5a73", finish: satin, part: tail }
+          - { shape: cone, size: [0.08, 0.6, 0.36], offset: [0, 0.72, 1.95], rotation: [-145, 0, 0], color: "#3d5a73", finish: satin, part: tail }
+          # Little remoras riding along underneath
+          - { shape: capsule, size: [0.06, 0.24, 0.05], offset: [-0.2, 0.55, -0.2], rotation: [90, 0, 0], color: "#5d6b77", finish: satin }
+          - { shape: capsule, size: [0.06, 0.22, 0.05], offset: [0.18, 0.56, 0.3], rotation: [90, 0, 0], color: "#5d6b77", finish: satin }
+      behaviors:
+        - { type: wander, speed: 0.06, amount: 5 }
+        - { type: bob, speed: 0.08, amount: 0.8 }
+        - { type: keyframes, part: tail, speed: 0.3, keys: [{ t: 0, rotation: [0, 14, 0] }, { t: 0.5, rotation: [0, -14, 0] }] }
+
+    green-turtle:
+      name: Green turtle
+      title: Sea turtle
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.72, 0.24, 0.88], offset: [0, 0.9, 0], color: "#4f6b34", finish: satin }
+          - { shape: sphere, size: [0.58, 0.22, 0.72], offset: [0, 0.94, 0.02], color: "#7a8f45", finish: satin }
+          - { shape: sphere, size: [0.2, 0.06, 0.2], offset: [0, 1.05, 0.05], color: "#9aa85a" }
+          - { shape: sphere, size: [0.14, 0.05, 0.16], offset: [0.16, 1.03, -0.15], color: "#9aa85a" }
+          - { shape: sphere, size: [0.14, 0.05, 0.16], offset: [-0.16, 1.03, 0.22], color: "#9aa85a" }
+          - { shape: sphere, size: [0.22, 0.18, 0.24], offset: [0, 0.9, -0.52], color: "#b6b07a", finish: satin }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.07, 0.94, -0.62], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [0.07, 0.94, -0.62], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.3, 0.88, -0.2], color: "#b6b07a", part: flip-l }
+          - { shape: capsule, size: [0.07, 0.52, 0.18], offset: [-0.53, 0.88, -0.24], rotation: [0, 25, 80], color: "#b6b07a", finish: satin, part: flip-l }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.3, 0.88, -0.2], color: "#b6b07a", part: flip-r }
+          - { shape: capsule, size: [0.07, 0.52, 0.18], offset: [0.53, 0.88, -0.24], rotation: [0, -25, -80], color: "#b6b07a", finish: satin, part: flip-r }
+          - { shape: capsule, size: [0.06, 0.22, 0.12], offset: [-0.24, 0.88, 0.4], rotation: [0, -30, 75], color: "#b6b07a", finish: satin }
+          - { shape: capsule, size: [0.06, 0.22, 0.12], offset: [0.24, 0.88, 0.4], rotation: [0, 30, -75], color: "#b6b07a", finish: satin }
+      behaviors:
+        - { type: wander, speed: 0.1, amount: 4 }
+        - { type: bob, speed: 0.12, amount: 1.5 }
+        - { type: keyframes, part: flip-l, speed: 0.3, keys: [{ t: 0, rotation: [0, 0, 18] }, { t: 0.5, rotation: [0, 0, -14] }] }
+        - { type: keyframes, part: flip-r, speed: 0.3, keys: [{ t: 0, rotation: [0, 0, -18] }, { t: 0.5, rotation: [0, 0, 14] }] }
+
+    reef-shark:
+      name: Reef shark
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.34, 1.5, 0.32], offset: [0, 0.9, 0], rotation: [90, 0, 0], color: "#8a8f80", finish: satin }
+          - { shape: capsule, size: [0.26, 1.3, 0.18], offset: [0, 0.83, -0.02], rotation: [90, 0, 0], color: "#ece9e0", finish: satin }
+          - { shape: cone, size: [0.05, 0.36, 0.26], offset: [0, 1.19, 0.02], rotation: [-15, 0, 0], color: "#8a8f80", finish: satin }
+          - { shape: cone, size: [0.03, 0.08, 0.05], offset: [0, 1.34, 0.06], rotation: [-15, 0, 0], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [-0.05, 1.01, -0.58], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [0.05, 1.01, -0.58], color: "#14181f", finish: gloss }
+          - { shape: capsule, size: [0.08, 0.42, 0.18], offset: [-0.28, 0.83, -0.15], rotation: [20, 0, 70], color: "#8a8f80", finish: satin }
+          - { shape: capsule, size: [0.08, 0.42, 0.18], offset: [0.28, 0.83, -0.15], rotation: [20, 0, -70], color: "#8a8f80", finish: satin }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0, 0.9, 0.7], color: "#8a8f80", part: tail }
+          - { shape: cone, size: [0.05, 0.42, 0.24], offset: [0, 1.05, 0.86], rotation: [-35, 0, 0], color: "#8a8f80", finish: satin, part: tail }
+          - { shape: cone, size: [0.05, 0.28, 0.18], offset: [0, 0.77, 0.84], rotation: [-145, 0, 0], color: "#8a8f80", finish: satin, part: tail }
+      behaviors:
+        - { type: wander, speed: 0.2, amount: 5 }
+        - { type: bob, speed: 0.15, amount: 1 }
+        - { type: keyframes, part: tail, speed: 0.7, keys: [{ t: 0, rotation: [0, 18, 0] }, { t: 0.5, rotation: [0, -18, 0] }] }
+
+    # A spotted eagle ray flying through the water.
+    eagle-ray:
+      name: Eagle ray
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.42, 0.14, 0.8], offset: [0, 0.75, 0], color: "#2b3540", finish: satin }
+          - { shape: sphere, size: [0.2, 0.12, 0.22], offset: [0, 0.75, -0.46], color: "#2b3540", finish: satin }
+          - { shape: capsule, size: [0.03, 0.9, 0.03], offset: [0, 0.75, 0.8], rotation: [90, 0, 0], color: "#2b3540" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.18, 0.75, 0], color: "#2b3540", part: wing-l }
+          - { shape: sphere, size: [0.9, 0.06, 0.55], offset: [-0.55, 0.75, 0.05], rotation: [0, -15, 0], color: "#2b3540", finish: satin, part: wing-l }
+          - { shape: sphere, size: [0.07, 0.02, 0.07], offset: [-0.45, 0.785, 0.0], color: "#f4f4f0", part: wing-l }
+          - { shape: sphere, size: [0.06, 0.02, 0.06], offset: [-0.7, 0.785, 0.12], color: "#f4f4f0", part: wing-l }
+          - { shape: sphere, size: [0.06, 0.02, 0.06], offset: [-0.35, 0.785, 0.2], color: "#f4f4f0", part: wing-l }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.18, 0.75, 0], color: "#2b3540", part: wing-r }
+          - { shape: sphere, size: [0.9, 0.06, 0.55], offset: [0.55, 0.75, 0.05], rotation: [0, 15, 0], color: "#2b3540", finish: satin, part: wing-r }
+          - { shape: sphere, size: [0.07, 0.02, 0.07], offset: [0.45, 0.785, 0.0], color: "#f4f4f0", part: wing-r }
+          - { shape: sphere, size: [0.06, 0.02, 0.06], offset: [0.7, 0.785, 0.12], color: "#f4f4f0", part: wing-r }
+          - { shape: sphere, size: [0.06, 0.02, 0.06], offset: [0.35, 0.785, 0.2], color: "#f4f4f0", part: wing-r }
+      behaviors:
+        - { type: wander, speed: 0.12, amount: 4 }
+        - { type: bob, speed: 0.1, amount: 1.5 }
+        - { type: keyframes, part: wing-l, speed: 0.28, keys: [{ t: 0, rotation: [0, 0, -18] }, { t: 0.5, rotation: [0, 0, 16] }] }
+        - { type: keyframes, part: wing-r, speed: 0.28, keys: [{ t: 0, rotation: [0, 0, 18] }, { t: 0.5, rotation: [0, 0, -16] }] }
+
+    # A stingray gliding low over the sand.
+    stingray:
+      name: Stingray
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.8, 0.08, 0.7], offset: [0, 0.12, 0], color: "#a6967c", finish: satin }
+          - { shape: sphere, size: [0.5, 0.1, 0.45], offset: [0, 0.14, -0.02], color: "#b8a88c", finish: satin }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [-0.07, 0.19, -0.18], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [0.07, 0.19, -0.18], color: "#14181f", finish: gloss }
+          - { shape: capsule, size: [0.025, 0.6, 0.025], offset: [0, 0.12, 0.6], rotation: [90, 0, 0], color: "#8a7a62", part: tail }
+      behaviors:
+        - { type: wander, speed: 0.08, amount: 2.5 }
+        - { type: sway, part: tail, speed: 0.4, amount: 0.6, axis: y }
+
+    # A moray eel in its rock, looking out and ducking back in.
+    moray-rock:
+      name: Moray eel
+      title: Moray eel
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [1.4, 0.9, 1.2], offset: [0, 0.4, 0], color: "#7d7268" }
+          - { shape: sphere, size: [0.9, 0.7, 0.8], offset: [0.4, 0.65, 0.1], color: "#8a7f74" }
+          - { shape: cylinder, size: [0.32, 0.1, 0.32], offset: [-0.1, 0.55, -0.5], rotation: [90, 0, 0], color: "#2b2620" }
+          - { shape: sphere, size: [0.3, 0.2, 0.26], offset: [0.4, 1.05, 0.2], color: "#e9b44c", finish: satin }
+          - { shape: cone, size: [0.16, 0.36, 0.16], offset: [-0.4, 0.9, 0.2], color: "#ff7f9f", finish: satin }
+          - { shape: sphere, size: [0.26, 0.18, 0.22], offset: [0.65, 0.45, -0.4], color: "#5fd3b0", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.1, 0.55, -0.45], color: "#6b8f2e", part: eel }
+          - { shape: capsule, size: [0.16, 0.5, 0.16], offset: [-0.1, 0.55, -0.62], rotation: [90, 0, 0], color: "#6b8f2e", finish: satin, part: eel }
+          - { shape: sphere, size: [0.18, 0.18, 0.24], offset: [-0.1, 0.58, -0.86], color: "#7da034", finish: satin, part: eel }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.17, 0.64, -0.92], color: "#ffd23f", emissive: "#a88400", finish: gloss, part: eel }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.03, 0.64, -0.92], color: "#ffd23f", emissive: "#a88400", finish: gloss, part: eel }
+          - { shape: box, size: [0.1, 0.02, 0.06], offset: [-0.1, 0.52, -0.96], color: "#3a2a20", part: eel }
+      behaviors:
+        - { type: keyframes, part: eel, speed: 0.07, keys: [{ t: 0, position: [0, 0, 0.35], scale: 0.6 }, { t: 0.3, position: [0, 0, 0.35], scale: 0.6 }, { t: 0.45, position: [0, 0.02, 0], rotation: [0, -12, 0] }, { t: 0.6, position: [0, 0.03, -0.05], rotation: [0, 14, 0] }, { t: 0.8, position: [0, 0.02, 0], rotation: [0, -6, 0] }, { t: 0.92, position: [0, 0, 0.35], scale: 0.6 }] }
+
+    # An octopus on its rock, arms curling.
+    octopus-rock:
+      name: Octopus
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [1.3, 0.6, 1.1], offset: [0, 0.25, 0], color: "#8f8478" }
+          - { shape: sphere, size: [0.36, 0.42, 0.36], offset: [0, 0.82, 0.05], color: "#d9623b", finish: satin, part: body }
+          - { shape: sphere, size: [0.07, 0.07, 0.05], offset: [-0.1, 0.78, -0.15], color: "#fff3d6", part: body }
+          - { shape: sphere, size: [0.07, 0.07, 0.05], offset: [0.1, 0.78, -0.15], color: "#fff3d6", part: body }
+          - { shape: sphere, size: [0.035, 0.035, 0.03], offset: [-0.1, 0.78, -0.18], color: "#14181f", finish: gloss, part: body }
+          - { shape: sphere, size: [0.035, 0.035, 0.03], offset: [0.1, 0.78, -0.18], color: "#14181f", finish: gloss, part: body }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.6, 0], color: "#c4532f", part: arms-a }
+          - { shape: capsule, size: [0.07, 0.5, 0.07], offset: [-0.3, 0.55, -0.15], rotation: [20, 0, 60], color: "#c4532f", finish: satin, part: arms-a }
+          - { shape: capsule, size: [0.07, 0.5, 0.07], offset: [0.3, 0.55, -0.15], rotation: [20, 0, -60], color: "#c4532f", finish: satin, part: arms-a }
+          - { shape: capsule, size: [0.07, 0.5, 0.07], offset: [0, 0.55, 0.32], rotation: [-60, 0, 0], color: "#c4532f", finish: satin, part: arms-a }
+          - { shape: capsule, size: [0.07, 0.46, 0.07], offset: [-0.24, 0.55, 0.24], rotation: [-40, 0, 45], color: "#c4532f", finish: satin, part: arms-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.6, 0], color: "#c4532f", part: arms-b }
+          - { shape: capsule, size: [0.07, 0.5, 0.07], offset: [0.24, 0.55, 0.24], rotation: [-40, 0, -45], color: "#c4532f", finish: satin, part: arms-b }
+          - { shape: capsule, size: [0.07, 0.5, 0.07], offset: [0, 0.55, -0.32], rotation: [60, 0, 0], color: "#c4532f", finish: satin, part: arms-b }
+          - { shape: capsule, size: [0.07, 0.46, 0.07], offset: [-0.34, 0.56, 0.05], rotation: [0, 0, 75], color: "#c4532f", finish: satin, part: arms-b }
+          - { shape: capsule, size: [0.07, 0.46, 0.07], offset: [0.34, 0.56, 0.05], rotation: [0, 0, -75], color: "#c4532f", finish: satin, part: arms-b }
+      behaviors:
+        - { type: pulse, part: body, speed: 0.3, amount: 0.6 }
+        - { type: sway, part: arms-a, speed: 0.25, amount: 0.5, axis: y }
+        - { type: sway, part: arms-b, speed: 0.2, amount: 0.5 }
+
+    # Moon jellies drifting near the surface.
+    jelly-drift:
+      name: Moon jellies
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.4, 0], color: "#e6f4ff", part: jelly-a }
+          - { shape: sphere, size: [0.34, 0.18, 0.34], offset: [0, 1.4, 0], color: "#e6f4ff", emissive: "#9fd8ff", finish: gloss, opacity: 0.7, part: jelly-a }
+          - { shape: torus, size: [0.12, 0.12, 0.12], offset: [0, 1.43, 0], rotation: [90, 0, 0], color: "#ffb8e0", emissive: "#ff8fdc", part: jelly-a }
+          - { shape: capsule, size: [0.02, 0.3, 0.02], offset: [-0.06, 1.2, 0], color: "#e6f4ff", opacity: 0.7, part: jelly-a }
+          - { shape: capsule, size: [0.02, 0.34, 0.02], offset: [0.05, 1.18, 0.04], color: "#e6f4ff", opacity: 0.7, part: jelly-a }
+          - { shape: capsule, size: [0.02, 0.28, 0.02], offset: [0.02, 1.21, -0.06], color: "#e6f4ff", opacity: 0.7, part: jelly-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.6, 1.1, 0.4], color: "#e6f4ff", part: jelly-b }
+          - { shape: sphere, size: [0.28, 0.15, 0.28], offset: [0.6, 1.1, 0.4], color: "#e6f4ff", emissive: "#9fd8ff", finish: gloss, opacity: 0.7, part: jelly-b }
+          - { shape: torus, size: [0.1, 0.1, 0.1], offset: [0.6, 1.13, 0.4], rotation: [90, 0, 0], color: "#ffb8e0", emissive: "#ff8fdc", part: jelly-b }
+          - { shape: capsule, size: [0.02, 0.26, 0.02], offset: [0.56, 0.93, 0.4], color: "#e6f4ff", opacity: 0.7, part: jelly-b }
+          - { shape: capsule, size: [0.02, 0.28, 0.02], offset: [0.64, 0.92, 0.42], color: "#e6f4ff", opacity: 0.7, part: jelly-b }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.5, 1.25, 0.5], color: "#e6f4ff", part: jelly-c }
+          - { shape: sphere, size: [0.24, 0.13, 0.24], offset: [-0.5, 1.25, 0.5], color: "#e6f4ff", emissive: "#9fd8ff", finish: gloss, opacity: 0.7, part: jelly-c }
+          - { shape: torus, size: [0.09, 0.09, 0.09], offset: [-0.5, 1.28, 0.5], rotation: [90, 0, 0], color: "#ffb8e0", emissive: "#ff8fdc", part: jelly-c }
+          - { shape: capsule, size: [0.02, 0.24, 0.02], offset: [-0.5, 1.09, 0.5], color: "#e6f4ff", opacity: 0.7, part: jelly-c }
+      behaviors:
+        - { type: wander, speed: 0.05, amount: 2 }
+        - { type: keyframes, part: jelly-a, speed: 0.1, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.3, position: [0.03, 0.18, 0], scale: 0.9 }, { t: 0.65, position: [-0.02, 0.08, 0.03], scale: 1.06 }] }
+        - { type: keyframes, part: jelly-b, speed: 0.12, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.35, position: [0.04, 0.22, 0.02], scale: 0.88 }, { t: 0.7, position: [0, 0.1, -0.03], scale: 1.06 }] }
+        - { type: keyframes, part: jelly-c, speed: 0.14, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.4, position: [-0.03, 0.2, 0], scale: 0.9 }, { t: 0.75, position: [0.02, 0.08, 0.02], scale: 1.08 }] }
+
+    # Two seahorses holding on in the sea grass.
+    seahorses:
+      name: Seahorses
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.15, 0.3, 0], color: "#ffb347", part: horse-a }
+          - { shape: capsule, size: [0.1, 0.26, 0.1], offset: [-0.15, 0.52, 0], rotation: [0, 0, 8], color: "#ffb347", finish: satin, part: horse-a }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.13, 0.7, 0], color: "#ffb347", finish: satin, part: horse-a }
+          - { shape: capsule, size: [0.04, 0.12, 0.04], offset: [-0.06, 0.69, 0], rotation: [0, 0, 70], color: "#ffb347", part: horse-a }
+          - { shape: torus, size: [0.1, 0.1, 0.1], offset: [-0.2, 0.36, 0], rotation: [0, 90, 0], color: "#ffb347", finish: satin, part: horse-a }
+          - { shape: cone, size: [0.08, 0.1, 0.02], offset: [-0.2, 0.55, 0.02], rotation: [0, 0, 90], color: "#ffd88a", part: horse-a }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [-0.11, 0.72, -0.05], color: "#14181f", part: horse-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.2, 0.28, 0.1], color: "#ffd166", part: horse-b }
+          - { shape: capsule, size: [0.09, 0.23, 0.09], offset: [0.2, 0.48, 0.1], rotation: [0, 0, -8], color: "#ffd166", finish: satin, part: horse-b }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0.18, 0.64, 0.1], color: "#ffd166", finish: satin, part: horse-b }
+          - { shape: capsule, size: [0.035, 0.11, 0.035], offset: [0.11, 0.63, 0.1], rotation: [0, 0, -70], color: "#ffd166", part: horse-b }
+          - { shape: torus, size: [0.09, 0.09, 0.09], offset: [0.25, 0.33, 0.1], rotation: [0, 90, 0], color: "#ffd166", finish: satin, part: horse-b }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0.16, 0.66, 0.05], color: "#14181f", part: horse-b }
+      behaviors:
+        - { type: sway, part: horse-a, speed: 0.3, amount: 0.4 }
+        - { type: sway, part: horse-b, speed: 0.34, amount: 0.4 }
+        - { type: bob, speed: 0.2, amount: 0.4 }
+
+    crab:
+      name: Crab
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.3, 0.12, 0.22], offset: [0, 0.1, 0], color: "#e8503a", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.06, 0.04], offset: [-0.05, 0.19, -0.08], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.06, 0.04], offset: [0.05, 0.19, -0.08], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.14, 0.1, -0.08], color: "#e8503a", part: claw-l }
+          - { shape: sphere, size: [0.1, 0.07, 0.08], offset: [-0.2, 0.11, -0.16], color: "#e8503a", finish: gloss, part: claw-l }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.14, 0.1, -0.08], color: "#e8503a", part: claw-r }
+          - { shape: sphere, size: [0.1, 0.07, 0.08], offset: [0.2, 0.11, -0.16], color: "#e8503a", finish: gloss, part: claw-r }
+          - { shape: capsule, size: [0.025, 0.16, 0.025], offset: [-0.17, 0.06, 0.02], rotation: [0, 0, 60], color: "#c43a28" }
+          - { shape: capsule, size: [0.025, 0.16, 0.025], offset: [-0.17, 0.06, 0.08], rotation: [0, 0, 60], color: "#c43a28" }
+          - { shape: capsule, size: [0.025, 0.16, 0.025], offset: [0.17, 0.06, 0.02], rotation: [0, 0, -60], color: "#c43a28" }
+          - { shape: capsule, size: [0.025, 0.16, 0.025], offset: [0.17, 0.06, 0.08], rotation: [0, 0, -60], color: "#c43a28" }
+      behaviors:
+        - { type: wander, speed: 0.3, amount: 1.5 }
+        - { type: keyframes, part: claw-l, speed: 0.6, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.5, rotation: [0, 0, 25] }] }
+        - { type: keyframes, part: claw-r, speed: 0.6, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.5, rotation: [0, 0, -25] }] }
+
+    # Starfish, urchins, a giant clam and shells on the sand.
+    seabed-life:
+      name: Sea floor
+      category: dynamic
+      look:
+        parts:
+          - { shape: extrude, size: [0.32, 0.32, 0.03], offset: [-0.6, 0.03, 0.2], rotation: [-90, 0, 10], color: "#ff8a3c", finish: satin, points: [[0, 1], [-0.235, 0.324], [-0.951, 0.309], [-0.38, -0.124], [-0.588, -0.809], [0, -0.4], [0.588, -0.809], [0.38, -0.124], [0.951, 0.309], [0.235, 0.324]] }
+          - { shape: extrude, size: [0.26, 0.26, 0.03], offset: [0.5, 0.03, -0.3], rotation: [-90, 0, 50], color: "#3d6fd9", finish: satin, points: [[0, 1], [-0.235, 0.324], [-0.951, 0.309], [-0.38, -0.124], [-0.588, -0.809], [0, -0.4], [0.588, -0.809], [0.38, -0.124], [0.951, 0.309], [0.235, 0.324]] }
+          - { shape: extrude, size: [0.22, 0.22, 0.03], offset: [0.1, 0.03, 0.55], rotation: [-90, 0, 80], color: "#e8506a", finish: satin, points: [[0, 1], [-0.235, 0.324], [-0.951, 0.309], [-0.38, -0.124], [-0.588, -0.809], [0, -0.4], [0.588, -0.809], [0.38, -0.124], [0.951, 0.309], [0.235, 0.324]] }
+          - { shape: sphere, size: [0.18, 0.12, 0.18], offset: [-0.2, 0.06, -0.4], color: "#3b1f4a", finish: satin }
+          - { shape: cone, size: [0.02, 0.14, 0.02], offset: [-0.2, 0.14, -0.4], color: "#3b1f4a" }
+          - { shape: cone, size: [0.02, 0.12, 0.02], offset: [-0.25, 0.12, -0.36], rotation: [0, 0, 40], color: "#3b1f4a" }
+          - { shape: cone, size: [0.02, 0.12, 0.02], offset: [-0.15, 0.12, -0.44], rotation: [0, 0, -40], color: "#3b1f4a" }
+          - { shape: sphere, size: [0.14, 0.1, 0.14], offset: [0.75, 0.05, 0.25], color: "#3b1f4a", finish: satin }
+          - { shape: cone, size: [0.02, 0.12, 0.02], offset: [0.75, 0.12, 0.25], color: "#3b1f4a" }
+          # Giant clam, opening and closing
+          - { shape: sphere, size: [0.5, 0.16, 0.34], offset: [0, 0.08, 0], color: "#c9bfa8", finish: satin }
+          - { shape: sphere, size: [0.42, 0.06, 0.26], offset: [0, 0.15, 0], color: "#3fc4c4", emissive: "#1a8a8a", finish: gloss, part: mantle }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.14, 0.15], color: "#c9bfa8", part: shell }
+          - { shape: sphere, size: [0.5, 0.12, 0.34], offset: [0, 0.2, 0.02], color: "#d8cfb8", finish: satin, part: shell }
+          - { shape: sphere, size: [0.1, 0.05, 0.08], offset: [-0.45, 0.03, -0.15], color: "#f7e6d0", finish: gloss }
+          - { shape: sphere, size: [0.08, 0.04, 0.07], offset: [0.35, 0.03, 0.45], color: "#f2c9a8", finish: gloss }
+          - { shape: cone, size: [0.08, 0.12, 0.08], offset: [-0.7, 0.04, -0.3], rotation: [0, 0, 80], color: "#f2d4b0", finish: gloss }
+      behaviors:
+        - { type: keyframes, part: shell, speed: 0.06, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.4, rotation: [-28, 0, 0] }, { t: 0.8, rotation: [-28, 0, 0] }] }
+        - { type: blink, part: mantle, speed: 0.1, amount: 0.5 }
+
+    # The coral nursery: frames where coral fragments grow before they are
+    # planted back on the reef (project coral restoration).
+    coral-nursery:
+      name: Coral nursery
+      title: Coral nursery
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.06, 1.4, 0.06], offset: [0, 0.7, 0], color: "#f4f6f8", finish: satin }
+          - { shape: cylinder, size: [0.05, 1.6, 0.05], offset: [0, 0.6, 0], rotation: [0, 0, 90], color: "#f4f6f8", finish: satin }
+          - { shape: cylinder, size: [0.05, 1.6, 0.05], offset: [0, 1.1, 0], rotation: [0, 0, 90], color: "#f4f6f8", finish: satin }
+          - { shape: cylinder, size: [0.05, 1.2, 0.05], offset: [0, 0.85, 0], rotation: [90, 0, 0], color: "#f4f6f8", finish: satin }
+          - { shape: roundbox, size: [0.6, 0.12, 0.6], offset: [0, 0.06, 0], color: "#9aa3ad", finish: satin }
+          - { shape: capsule, size: [0.015, 0.4, 0.015], offset: [0, 1.6, 0], color: "#e8d6a4" }
+          - { shape: sphere, size: [0.2, 0.2, 0.2], offset: [0, 1.82, 0], color: "#ff9a3c", finish: gloss, part: float }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.6, 0], color: "#f4f6f8", part: frags }
+          - { shape: capsule, size: [0.06, 0.18, 0.06], offset: [-0.6, 0.48, 0], color: "#f2a7c3", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [-0.3, 0.49, 0], color: "#ffd166", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.18, 0.06], offset: [0.3, 0.48, 0], color: "#c57bff", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [0.6, 0.49, 0], color: "#f2a7c3", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.18, 0.06], offset: [-0.6, 0.98, 0], color: "#5fd3b0", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [-0.3, 0.99, 0], color: "#f2a7c3", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.18, 0.06], offset: [0.3, 0.98, 0], color: "#ffd166", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [0.6, 0.99, 0], color: "#5fd3b0", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [0, 0.73, -0.45], color: "#c57bff", finish: satin, part: frags }
+          - { shape: capsule, size: [0.06, 0.16, 0.06], offset: [0, 0.73, 0.45], color: "#ffd166", finish: satin, part: frags }
+          - { shape: box, size: [0.3, 0.2, 0.02], offset: [0, 0.3, 0.32], color: "#1f9bb5", finish: satin }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [0, 0.3, 0.335], color: "#3fe08a", emissive: "#3fe08a", part: tag }
+      behaviors:
+        - { type: sway, part: frags, speed: 0.2, amount: 0.25 }
+        - { type: bob, part: float, speed: 0.3, amount: 0.4 }
+        - { type: blink, part: tag, speed: 0.3, amount: 0.6 }
+      states:
+        - { id: growing, name: Growing }
+        - { id: checking, name: Being checked, glow: 2, behaviors: [{ type: blink, part: tag, speed: 2, amount: 1 }, { type: sway, part: frags, speed: 0.4, amount: 0.4 }] }
+      actions:
+        - { id: check, name: Check the fragments, state: checking, seconds: 60, gesture: use }
+
+    # An old rowboat on the bottom, overgrown, with a chest that opens now and then.
+    old-wreck:
+      name: Old wreck
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 0.36, 2.4], offset: [0, 0.2, 0], rotation: [0, 0, 18], color: "#5a4632", finish: satin }
+          - { shape: roundbox, size: [0.86, 0.3, 2.2], offset: [0.03, 0.32, 0], rotation: [0, 0, 18], color: "#3a2c20", finish: satin }
+          - { shape: box, size: [0.95, 0.05, 0.1], offset: [0.02, 0.4, -0.5], rotation: [0, 0, 18], color: "#6b5440" }
+          - { shape: box, size: [0.95, 0.05, 0.1], offset: [0.02, 0.4, 0.4], rotation: [0, 0, 18], color: "#6b5440" }
+          - { shape: cylinder, size: [0.05, 0.9, 0.05], offset: [0.1, 0.65, -1.3], rotation: [40, 0, 0], color: "#6b5440" }
+          - { shape: sphere, size: [0.4, 0.18, 0.5], offset: [-0.4, 0.42, 0.7], color: "#4fae5a", finish: fabric }
+          - { shape: sphere, size: [0.3, 0.14, 0.3], offset: [0.35, 0.5, -0.8], color: "#c2434f", finish: fabric }
+          - { shape: sphere, size: [0.26, 0.2, 0.24], offset: [0.4, 0.55, 0.9], color: "#e9b44c", finish: satin }
+          - { shape: cone, size: [0.14, 0.3, 0.14], offset: [-0.35, 0.6, -0.4], color: "#ff7f9f", finish: satin }
+          # Anchor
+          - { shape: cylinder, size: [0.05, 0.6, 0.05], offset: [1.0, 0.1, 1.0], rotation: [0, 0, 80], color: "#5d6b77", finish: metal }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [1.25, 0.05, 1.0], rotation: [90, 0, 0], color: "#5d6b77", finish: metal }
+          # The chest
+          - { shape: roundbox, size: [0.44, 0.24, 0.3], offset: [-0.9, 0.12, -0.7], rotation: [0, 20, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [0.46, 0.04, 0.32], offset: [-0.9, 0.2, -0.7], rotation: [0, 20, 0], color: "#c9a227", finish: metal }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.9, 0.24, -0.84], color: "#8a5a2e", part: lid }
+          - { shape: roundbox, size: [0.44, 0.1, 0.3], offset: [-0.9, 0.29, -0.7], rotation: [0, 20, 0], color: "#9a6a3a", finish: satin, part: lid }
+          - { shape: sphere, size: [0.2, 0.06, 0.14], offset: [-0.9, 0.25, -0.7], color: "#ffd23f", emissive: "#c99a00", finish: metal, part: gold }
+      behaviors:
+        - { type: keyframes, part: lid, speed: 0.05, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.7, rotation: [0, 0, 0] }, { t: 0.8, rotation: [-40, 0, 0] }, { t: 0.92, rotation: [-40, 0, 0] }] }
+        - { type: blink, part: gold, speed: 0.2, amount: 0.8 }
+
+    # The research boat floating on the surface; it goes out to survey the reef.
+    research-boat:
+      name: Research boat
+      title: Research boat
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.2, 0.4, 2.6], offset: [0, 1.85, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: box, size: [1.22, 0.08, 2.5], offset: [0, 1.82, 0], color: "#1f9bb5", finish: satin }
+          - { shape: cone, size: [1.2, 0.6, 0.4], offset: [0, 1.85, -1.45], rotation: [-90, 0, 0], color: "#f4f6f8", finish: gloss }
+          - { shape: roundbox, size: [1.0, 0.05, 2.2], offset: [0, 2.06, 0.05], color: "#c49a6c", finish: satin }
+          - { shape: roundbox, size: [0.7, 0.6, 0.6], offset: [0, 2.38, 0.1], color: "#e9f4f7", finish: satin }
+          - { shape: box, size: [0.6, 0.22, 0.02], offset: [0, 2.5, -0.21], color: "#1b2a3a", finish: glass }
+          - { shape: roundbox, size: [0.8, 0.06, 0.7], offset: [0, 2.71, 0.1], color: "#1f9bb5", finish: satin }
+          - { shape: cylinder, size: [0.04, 0.5, 0.04], offset: [0.25, 2.98, 0.3], color: "#9aa3ad", finish: metal }
+          - { shape: sphere, size: [0.07, 0.07, 0.07], offset: [0.25, 3.25, 0.3], color: "#ffd166", emissive: "#ffb703", part: light }
+          - { shape: box, size: [0.24, 0.16, 0.01], offset: [0.37, 3.1, 0.3], color: "#e8734a", part: flag }
+          - { shape: roundbox, size: [0.24, 0.4, 0.22], offset: [0, 2.05, 1.38], color: "#2b2f36", finish: satin }
+          - { shape: cylinder, size: [0.05, 0.5, 0.05], offset: [0, 1.65, 1.42], color: "#2b2f36", finish: metal }
+          - { shape: box, size: [0.26, 0.04, 0.03], offset: [0, 1.42, 1.44], color: "#9aa3ad", finish: metal, part: prop }
+          - { shape: torus, size: [0.3, 0.3, 0.3], offset: [0.55, 2.1, 0.6], rotation: [0, 90, 0], color: "#ff5a3c", finish: satin }
+          - { shape: roundbox, size: [0.3, 0.2, 0.25], offset: [-0.3, 2.18, 0.85], color: "#ffd166", finish: satin }
+          - { shape: capsule, size: [0.1, 0.4, 0.1], offset: [-0.32, 2.2, -0.6], rotation: [0, 0, 70], color: "#ffd23f", finish: gloss }
+      behaviors:
+        - { type: rock, speed: 0.2, amount: 0.5, axis: z }
+        - { type: bob, speed: 0.25, amount: 0.6 }
+        - { type: sway, part: flag, speed: 0.8, amount: 0.8, axis: y }
+        - { type: blink, part: light, speed: 0.5, amount: 1 }
+      states:
+        - { id: moored, name: Moored }
+        - { id: surveying, name: Surveying the reef, behaviors: [{ type: wander, speed: 0.3, amount: 4 }, { type: rock, speed: 0.4, amount: 0.8, axis: z }, { type: spin, part: prop, axis: z, speed: 4 }, { type: blink, part: light, speed: 1.5, amount: 1 }] }
+      actions:
+        - { id: survey, name: Survey the reef, state: surveying, seconds: 120, gesture: none }
+
+    buoy:
+      name: Marker buoy
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.03, 1.6, 0.03], offset: [0, 0.8, 0], color: "#c9ced6" }
+          - { shape: sphere, size: [0.5, 0.4, 0.5], offset: [0, 1.85, 0], color: "#e8503a", finish: gloss }
+          - { shape: cylinder, size: [0.5, 0.1, 0.5], offset: [0, 1.88, 0], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.05, 0.5, 0.05], offset: [0, 2.25, 0], color: "#2b2f36", finish: metal }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0, 2.52, 0], color: "#fff3b0", emissive: "#ffd166", part: lamp }
+          - { shape: roundbox, size: [0.3, 0.2, 0.3], offset: [0, 0.1, 0], color: "#5d6b77", finish: satin }
+      behaviors:
+        - { type: bob, speed: 0.3, amount: 0.8 }
+        - { type: rock, speed: 0.25, amount: 0.6 }
+        - { type: blink, part: lamp, speed: 0.4, amount: 1 }
+
+    # ---- Sea deck (1E)
+    sea-viewer:
+      name: Sea viewer
+      title: Sea viewer
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.36, 0.06, 0.36], offset: [0, 0.03, 0], color: "#2b3a44", finish: metal }
+          - { shape: cylinder, size: [0.1, 1.1, 0.1], offset: [0, 0.6, 0], color: "#1f9bb5", finish: satin }
+          - { shape: roundbox, size: [0.36, 0.3, 0.34], offset: [0, 1.25, 0], color: "#1f9bb5", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.22, 0.1], offset: [-0.08, 1.3, -0.25], rotation: [90, 0, 0], color: "#2b2f36", finish: metal }
+          - { shape: cylinder, size: [0.1, 0.22, 0.1], offset: [0.08, 1.3, -0.25], rotation: [90, 0, 0], color: "#2b2f36", finish: metal }
+          - { shape: cylinder, size: [0.08, 0.01, 0.08], offset: [-0.08, 1.3, -0.36], rotation: [90, 0, 0], color: "#4f7cff", finish: glass }
+          - { shape: cylinder, size: [0.08, 0.01, 0.08], offset: [0.08, 1.3, -0.36], rotation: [90, 0, 0], color: "#4f7cff", finish: glass }
+          - { shape: roundbox, size: [0.3, 0.08, 0.1], offset: [0, 1.3, 0.2], color: "#2b2f36", finish: satin }
+          - { shape: box, size: [0.12, 0.03, 0.01], offset: [0, 1.12, 0.175], color: "#ffd166" }
+    life-ring:
+      name: Life ring
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.08, 1.4, 0.08], offset: [0, 0.7, 0], color: "#7a5a3a", finish: satin }
+          - { shape: box, size: [0.5, 0.5, 0.04], offset: [0, 1.1, 0.06], color: "#f2ece0", finish: satin }
+          - { shape: torus, size: [0.44, 0.44, 0.44], offset: [0, 1.1, 0.1], color: "#ff5a3c", finish: satin }
+          - { shape: box, size: [0.08, 0.12, 0.12], offset: [0, 1.3, 0.1], color: "#ffffff" }
+          - { shape: box, size: [0.08, 0.12, 0.12], offset: [0, 0.9, 0.1], color: "#ffffff" }
+    lagoon-sign:
+      name: Lagoon guide
+      title: Lagoon guide
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.06, 1.1, 0.06], offset: [-0.5, 0.55, 0], color: "#7a5a3a" }
+          - { shape: cylinder, size: [0.06, 1.1, 0.06], offset: [0.5, 0.55, 0], color: "#7a5a3a" }
+          - { shape: roundbox, size: [1.2, 0.8, 0.05], offset: [0, 1.3, 0], rotation: [-15, 0, 0], color: "#1f5d7a", finish: satin }
+          - { shape: box, size: [1.1, 0.7, 0.01], offset: [0, 1.3, 0.03], rotation: [-15, 0, 0], color: "#9fd8e8" }
+          - { shape: sphere, size: [0.4, 0.12, 0.01], offset: [-0.2, 1.35, 0.04], rotation: [-15, 0, 0], color: "#e9b44c" }
+          - { shape: sphere, size: [0.25, 0.1, 0.01], offset: [0.25, 1.15, 0.045], rotation: [-15, 0, 0], color: "#ff7f9f" }
+          - { shape: sphere, size: [0.18, 0.08, 0.01], offset: [0.3, 1.5, 0.04], rotation: [-15, 0, 0], color: "#7d8fa0" }
+          - { shape: box, size: [0.6, 0.05, 0.01], offset: [0, 1.6, 0.03], rotation: [-15, 0, 0], color: "#ffffff" }
+
     # ---- The cleaning robot (a little yellow submarine) and the trash can it empties into.
     cleaning-robot:
       name: Cleaning robot
@@ -1671,6 +2455,71 @@ world:
     - { kind: sink-counter, room: 2d, at: [1.4, 6.6], rotationY: 180 }
     - { kind: fish-buckets, room: 2d, at: [5.2, 6.3] }
     - { kind: porthole, room: 2d, at: [0.08, 3.4], rotationY: 90 }
+    # 1E sea deck
+    - { kind: benches, room: 1e, at: [1.0, 3.2], rotationY: 90 }
+    - { kind: benches, room: 1e, at: [1.0, 11.6], rotationY: 90 }
+    - { id: viewer-north, kind: sea-viewer, room: 1e, at: [3.5, 2.0], rotationY: -90 }
+    - { id: viewer-mid, kind: sea-viewer, room: 1e, at: [3.5, 8.8], rotationY: -90 }
+    - { id: viewer-south, kind: sea-viewer, room: 1e, at: [3.5, 16.2], rotationY: -90 }
+    - { kind: life-ring, room: 1e, at: [3.75, 6.6], rotationY: -90 }
+    - { id: lagoon-sign, kind: lagoon-sign, room: 1e, at: [3.4, 12.4], rotationY: -90 }
+    - { kind: plant, room: 1e, at: [0.5, 0.6] }
+    - { kind: plant, room: 1e, at: [0.5, 17.4] }
+    - { kind: visitor-kid, room: 1e, at: [2.2, 9.6], label: Rosa }
+    - { kind: visitor-blue, room: 1e, at: [2.0, 15.0], label: Omar }
+    # 1F coral lagoon
+    - { id: lagoon-water, kind: sea-water, room: 1f, at: [10, 10], label: Coral lagoon }
+    - { kind: reef-ridge, room: 1f, at: [5.2, 5.0] }
+    - { kind: reef-ridge, room: 1f, at: [14.2, 4.0], rotationY: 35, scale: 1.2 }
+    - { kind: reef-ridge, room: 1f, at: [8.4, 14.2], rotationY: 120 }
+    - { kind: reef-ridge, room: 1f, at: [15.6, 15.0], rotationY: 200, scale: 0.9 }
+    - { kind: coral-bommie, room: 1f, at: [10.5, 8.5] }
+    - { kind: coral-bommie, room: 1f, at: [3.4, 17.0], scale: 0.8 }
+    - { kind: coral-bommie, room: 1f, at: [17.8, 9.6], scale: 1.1 }
+    - { kind: kelp-forest, room: 1f, at: [1.6, 2.2] }
+    - { kind: kelp-forest, room: 1f, at: [18.3, 1.8], rotationY: 60 }
+    - { kind: kelp-forest, room: 1f, at: [1.4, 10.4], rotationY: 140 }
+    - { kind: kelp-forest, room: 1f, at: [12.2, 18.4], rotationY: 220 }
+    - { kind: kelp-forest, room: 1f, at: [18.6, 18.4], rotationY: 300 }
+    - { kind: seagrass-meadow, room: 1f, at: [4.4, 10.0] }
+    - { kind: seagrass-meadow, room: 1f, at: [13.2, 12.0], rotationY: 70 }
+    - { kind: seagrass-meadow, room: 1f, at: [6.6, 18.4], rotationY: 15 }
+    - { kind: seagrass-meadow, room: 1f, at: [17.0, 6.8], rotationY: 110 }
+    - { kind: seabed-life, room: 1f, at: [9.0, 11.6] }
+    - { kind: seabed-life, room: 1f, at: [11.6, 1.4], rotationY: 90 }
+    - { kind: seabed-life, room: 1f, at: [17.4, 12.6], rotationY: 200 }
+    - { kind: reef-fish, room: 1f, at: [4.0, 7.6] }
+    - { kind: reef-fish, room: 1f, at: [12.0, 9.8], rotationY: 30 }
+    - { kind: reef-fish, room: 1f, at: [8.0, 16.6], rotationY: -20 }
+    - { kind: sardine-ball, room: 1f, at: [12.0, 6.0] }
+    - { id: lagoon-dolphins, kind: dolphins, room: 1f, at: [10.0, 11.0], label: Echo & Splash }
+    - { id: lagoon-turtle, kind: green-turtle, room: 1f, at: [7.0, 11.0], label: Nami }
+    - { kind: reef-shark, room: 1f, at: [14.0, 13.0], label: Fin }
+    - { kind: eagle-ray, room: 1f, at: [5.0, 13.0] }
+    - { kind: stingray, room: 1f, at: [11.4, 16.8] }
+    - { id: lagoon-moray, kind: moray-rock, room: 1f, at: [2.4, 6.8], rotationY: 60, label: Morris }
+    - { kind: octopus-rock, room: 1f, at: [18.0, 12.8] }
+    - { kind: jelly-drift, room: 1f, at: [15.0, 17.0] }
+    - { kind: seahorses, room: 1f, at: [4.0, 9.4] }
+    - { kind: crab, room: 1f, at: [9.0, 3.0] }
+    - { kind: crab, room: 1f, at: [16.2, 10.8] }
+    - { id: coral-nursery, kind: coral-nursery, room: 1f, at: [7.6, 2.4] }
+    - { kind: old-wreck, room: 1f, at: [3.4, 13.6], rotationY: 25 }
+    - { id: research-boat, kind: research-boat, room: 1f, at: [15.6, 10.8], rotationY: 30, label: Tern }
+    - { id: lagoon-whale-shark, kind: whale-shark, room: 1f, at: [10.0, 5.0], rotationY: 70, label: Big Dot }
+    - { kind: green-turtle, room: 1f, at: [16.0, 7.6], label: Koa }
+    - { kind: reef-fish, room: 1f, at: [15.4, 2.2], rotationY: 160 }
+    - { kind: reef-fish, room: 1f, at: [2.0, 15.2], rotationY: 80 }
+    - { kind: sardine-ball, room: 1f, at: [6.0, 9.0] }
+    - { kind: coral-bommie, room: 1f, at: [12.6, 15.2], scale: 0.7 }
+    - { kind: coral-bommie, room: 1f, at: [7.0, 7.4], scale: 0.6, rotationY: 90 }
+    - { kind: coral-bed, room: 1f, at: [17.6, 4.4], rotationY: 30 }
+    - { kind: coral-bed, room: 1f, at: [10.6, 12.6], rotationY: 140 }
+    - { kind: coral-bed, room: 1f, at: [1.8, 18.4] }
+    - { kind: seabed-life, room: 1f, at: [5.6, 15.8], rotationY: 300 }
+    - { kind: seabed-life, room: 1f, at: [14.6, 18.4], rotationY: 40 }
+    - { kind: buoy, room: 1f, at: [1.0, 1.0] }
+    - { kind: buoy, room: 1f, at: [19.0, 19.0] }
 
     # The cleaning robot and its trash can
     - { id: cleaning-robot, kind: cleaning-robot, room: 1a, at: [8.5, 8.8], label: Bubbles }
