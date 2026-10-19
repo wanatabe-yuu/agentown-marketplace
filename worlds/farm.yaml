@@ -1,0 +1,2001 @@
+# Organization template: a family farm of many small farms. A farmhouse and a
+# red barn, and around them a vegetable garden, a wheat field, a pasture with a
+# duck pond, an orchard with beehives, a greenhouse, a chicken run, a rice
+# paddy, a machine shed and the farm shop. Built on the coffee store's
+# permission shape. Runtime presets (script-v1, claude-v1) come from the
+# install's catalog.
+format: agentown.template/v1
+meta:
+  id: farm
+  term: farm
+  name: Farm
+  description: A family farm of many farms. Farmhouse and red barn with a hay loft; around them a vegetable garden, a wheat field, a pasture with cows, sheep and a duck pond, an orchard with beehives, a greenhouse, a chicken run, a rice paddy with its water buffalo, the machine shed and the farm shop. Biscuit the farm dog runs social media.
+
+departments:
+  - { id: management, name: Management, color: "#b5651d" }
+  - { id: crops, name: Field crops, color: "#d9a520" }
+  - { id: livestock, name: Livestock, color: "#a33a2c" }
+  - { id: orchard, name: Orchard & greenhouse, color: "#4f9a3a" }
+  - { id: market, name: Farm shop, color: "#e8734a" }
+  - { id: media, name: Farm media, color: "#6b7fd1" }
+
+projects:
+  - { id: harvest-festival, name: Harvest festival }
+  - { id: farm-box, name: Weekly farm box }
+  - { id: organic, name: Organic certification }
+
+policyProfiles:
+  manager:
+    - { action: org.view, scope: org }
+    - { action: task.view, scope: org }
+    - { action: task.create, scope: team }
+    - { action: task.assign, scope: team }
+    - { action: task.review, scope: descendants }
+    - { action: runtime.control, scope: descendants }
+    - { action: runtime.logs, scope: descendants }
+    - { action: agent.configure, scope: descendants }
+    - { action: agent.spawn, scope: team, templates: [crops-lead-v1, farmer-v1, herder-v1, vet-v1, orchard-keeper-v1, beekeeper-v1, shopkeeper-v1, mascot-claude-v1, designer-v1] }
+  lead:
+    - { action: org.view, scope: team }
+    - { action: task.view, scope: team }
+    - { action: task.create, scope: team }
+    - { action: task.assign, scope: team }
+    - { action: task.review, scope: direct-reports }
+    - { action: agent.spawn, scope: self, templates: [farmer-v1] }
+    - { action: runtime.control, scope: direct-reports }
+    - { action: runtime.logs, scope: direct-reports }
+    - { action: agent.configure, scope: direct-reports }
+  # Lays out the farm: edits rooms, objects and art through the world tools.
+  designer:
+    - { action: org.view, scope: org }
+    - { action: org.design, scope: org }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
+    - { action: agent.configure, scope: self }
+  worker:
+    - { action: org.view, scope: self }
+    - { action: task.view, scope: self }
+    - { action: task.create, scope: self }
+    - { action: runtime.logs, scope: self }
+    # Each agent sizes itself for its work: key, model, effort and context (not its instructions).
+    - { action: agent.configure, scope: self }
+
+agentTemplates:
+  - { id: manager-v1, jobRole: farm-manager, runtimePreset: claude-v1, policyProfile: manager }
+  - id: crops-lead-v1
+    jobRole: crops-lead
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You plan the fields: what grows where, when it is sown, watered, weeded and harvested.
+      - `agentown objects` lists the vegetable beds, the wheat plots, the rice paddy, the sprinklers, the tractor and the weather station, with their actions.
+      - Every regular job belongs on the wall calendar, not in anyone's memory. Read it first (`agentown calendar`) so nothing is added twice, then for example `agentown schedule add --title "Water the garden" --object garden-sprinkler --action water --weekly "mon-sun=06:00"`.
+      - Hand the field work to the farmers as tasks (`agentown agents` for their ids, then `agentown task create --to FARMER_ID --title ...`), one field and one job per task.
+      - Sowing and harvest dates depend on the owner's region and this year's weather. Ask (`agentown ask "When was the last frost here?"`) rather than guess, and write down what you were told.
+  - id: farmer-v1
+    jobRole: farmer
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You work the fields, and you walk over to do it.
+      - Field jobs are actions on the field itself: `agentown object garden-sprinkler water`, `agentown object wheat-north harvest`, `agentown object rice-paddy plant`, `agentown object tractor plow`.
+      - Report each job as one short line per field: what you did, what you saw (dry soil, pests, ripe rows, weeds) and what needs doing next. Never invent an observation: if you could not check something, say so.
+      - Pests, disease or a broken machine go to the crops lead the same day, in plain words.
+  - id: herder-v1
+    jobRole: herder
+    runtimePreset: claude-v1
+    policyProfile: lead
+    instructions: |
+      You look after the animals: the cows and the pigs in the barn, the sheep on the pasture, the hens in the chicken run, the ducks and the water buffalo.
+      - `agentown objects` lists the cow stalls, the pig pen, the chicken coop, the duck pond and the water trough, with their actions.
+      - Milking, feeding and egg collecting go on the wall calendar. Check `agentown calendar` first, then add what is missing, for example `agentown schedule add --title "Morning milking" --object cow-stalls --action milk --weekly "mon-sun=05:30"` and `agentown schedule add --title "Collect eggs" --object chicken-coop --action collect-eggs --weekly "mon-sun=08:00"`.
+      - Report a round as one line per animal group: eating, drinking, moving, anything odd. A sick or injured animal goes to the vet as a task at once.
+  - { id: vet-v1, jobRole: veterinarian, runtimePreset: claude-v1, policyProfile: worker }
+  - id: orchard-keeper-v1
+    jobRole: orchard-keeper
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You keep the orchard and the greenhouse.
+      - `agentown objects` lists the apple trees, the greenhouse benches, the misting lamps and the fruit crates, with their actions (`agentown object greenhouse-bench mist`, `agentown object apple-orchard pick`).
+      - Pruning, thinning, picking and misting are seasonal. Ask the owner where the farm is and what the trees are before you plan (`agentown ask`), then put the regular jobs on the wall calendar.
+      - Every picking ends with a count you really made (crates, kilos) for the farm shop. Never estimate a harvest you did not weigh.
+  - id: beekeeper-v1
+    jobRole: beekeeper
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You keep the bees in the orchard.
+      - Hive inspections are an action on the hives: `agentown object beehives inspect`. Put them on the calendar every week or two in the season.
+      - Report each inspection as a short log: brood, queen seen or not, stores, temper, signs of mites or swarming. Only what you saw.
+      - Spraying anything in the orchard or the fields while the bees fly is a question for the manager first.
+  - id: shopkeeper-v1
+    jobRole: shopkeeper
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You run the farm shop and the weekly farm box.
+      - What there is to sell comes from the farmers' and the orchard keeper's reports: ask them (`agentown agents`, then a task) rather than guess what is ripe.
+      - Prices, opening hours and the box subscription terms are the owner's to set. Ask (`agentown ask`) and repeat them exactly as given.
+      - The shop till (computer shop-till) runs the online orders. Logins are the owner's to give: `agentown browser shop-till login "the farm shop account"`, then stop with BLOCKED:.
+      - Each week, list what sold, what was left over and what customers asked for that we did not have.
+  - id: mascot-claude-v1
+    jobRole: mascot
+    runtimePreset: claude-v1
+    policyProfile: worker
+    instructions: |
+      You are Biscuit, the farm's dog, and you run its social media from the Loft PC (computer loft-pc).
+      - Ideas come from what really happens on the farm today: milking and egg collecting on the wall calendar (`agentown calendar`), what was harvested, the new calf, the bees. Ask the team rather than inventing news.
+      - Draft each post in your report: one hook line, two short sentences, three hashtags, and the photo it needs.
+      - Never publish without the owner's yes (`agentown ask`). Logins on the Loft PC are the owner's to give: `agentown browser loft-pc login "the farm's social account"`, then stop with BLOCKED:.
+  - { id: designer-v1, jobRole: designer, runtimePreset: claude-v1, policyProfile: designer }
+
+humanRoles:
+  foreman:
+    name: Foreman
+    permissions:
+      - { action: org.view, scope: org }
+      - { action: task.view, scope: { departments: [crops, livestock, orchard] } }
+      - { action: task.create, scope: { departments: [crops, livestock, orchard] } }
+      - { action: task.review, scope: { departments: [crops, livestock, orchard] } }
+      - { action: runtime.control, scope: { departments: [crops, livestock] } }
+  viewer:
+    name: Viewer
+    permissions:
+      - { action: org.view, scope: org }
+      - { action: task.view, scope: org }
+
+bootstrap:
+  agents:
+    - { key: manager, displayName: Rosa, template: manager-v1, department: management }
+    - { key: crops-lead, displayName: Bao, template: crops-lead-v1, department: crops, reportsTo: manager }
+    - { key: farmer-1, displayName: Ana, template: farmer-v1, department: crops, reportsTo: crops-lead }
+    - { key: farmer-2, displayName: Kofi, template: farmer-v1, department: crops, reportsTo: crops-lead }
+    - { key: herder, displayName: Jack, template: herder-v1, department: livestock, reportsTo: manager }
+    - { key: vet, displayName: Mei, template: vet-v1, department: livestock, reportsTo: herder }
+    - { key: orchard-keeper, displayName: Lucia, template: orchard-keeper-v1, department: orchard, reportsTo: manager }
+    - { key: beekeeper, displayName: Hana, template: beekeeper-v1, department: orchard, reportsTo: orchard-keeper }
+    - { key: shopkeeper, displayName: Sam, template: shopkeeper-v1, department: market, reportsTo: manager }
+    - { key: biscuit, displayName: Biscuit, template: mascot-claude-v1, department: media, reportsTo: manager }
+    - { key: designer, displayName: Iris, template: designer-v1, department: media, reportsTo: manager }
+
+world:
+  # Hay, red barns and green fields.
+  theme: { accent: "#c0772f", surface: "#f8f3e6", ink: "#2c2316" }
+  style: anime
+  floors:
+    - id: f1
+      name: Floor 1
+      rooms:
+        - id: 1a
+          name: "1A · Farmhouse"
+          department: management
+          area: { x: 0, z: 0, w: 9, d: 8 }
+          floorColor: "#b98b5e"
+          floorStyle: wood
+          wallColor: "#efe2c6"
+          wallStyle: panel
+          seats: 2
+          doors:
+            - { to: 1b, side: east, at: 6.5 }
+            - { to: 1d, side: south, at: 7 }
+        - id: 1b
+          name: "1B · Vegetable garden"
+          area: { x: 10, z: 0, w: 10, d: 8 }
+          floorColor: "#8a6a45"
+          wallColor: "#c49a6c"
+          wallStyle: stripe
+          wallHeight: 0.7
+          seats: 0
+          doors:
+            - { to: 1c, side: east, at: 6.5, width: 1.6 }
+            - { to: 1e, side: south, at: 5, width: 1.6 }
+        - id: 1c
+          name: "1C · Wheat field"
+          area: { x: 21, z: 0, w: 12, d: 8 }
+          floorColor: "#9c7a4c"
+          wallColor: "#c49a6c"
+          wallStyle: stripe
+          wallHeight: 0.7
+          seats: 0
+          doors:
+            - { to: 1f, side: south, at: 6, width: 1.6 }
+        - id: 1d
+          name: "1D · Red barn"
+          department: livestock
+          area: { x: 0, z: 9, w: 10, d: 9 }
+          floorColor: "#c9a66b"
+          floorStyle: wood
+          wallColor: "#a33a2c"
+          wallStyle: panel
+          wallHeight: 3
+          seats: 2
+          doors:
+            - { to: 1e, side: east, at: 4.5, width: 1.8 }
+            - { to: 1g, side: south, at: 3.5 }
+        - id: 1e
+          name: "1E · Pasture & pond"
+          area: { x: 11, z: 9, w: 10, d: 9 }
+          floorColor: "#8fbf5a"
+          wallColor: "#c49a6c"
+          wallStyle: stripe
+          wallHeight: 0.7
+          seats: 0
+          doors:
+            - { to: 1f, side: east, at: 4.5, width: 1.6 }
+            - { to: 1h, side: south, at: 3, width: 1.4 }
+        - id: 1f
+          name: "1F · Orchard & bees"
+          area: { x: 22, z: 9, w: 12, d: 9 }
+          floorColor: "#9cc46a"
+          wallColor: "#c49a6c"
+          wallStyle: stripe
+          wallHeight: 0.7
+          seats: 0
+          doors:
+            - { to: 1k, side: east, at: 4.5 }
+            - { to: 1i, side: south, at: 3.5 }
+            - { to: 1j, side: south, at: 9 }
+        - id: 1k
+          name: "1K · Greenhouse"
+          department: orchard
+          area: { x: 35, z: 9, w: 7, d: 9 }
+          floorColor: "#c8b89a"
+          floorStyle: tile
+          wallColor: "#d6efe4"
+          wallStyle: stripe
+          wallHeight: 2.6
+          seats: 2
+        - id: 1g
+          name: "1G · Chicken run"
+          area: { x: 0, z: 19, w: 7, d: 6 }
+          floorColor: "#c2a676"
+          wallColor: "#c49a6c"
+          wallStyle: stripe
+          wallHeight: 0.9
+          seats: 0
+          doors:
+            - { to: 1h, side: east, at: 3 }
+        - id: 1h
+          name: "1H · Farm shop"
+          department: market
+          area: { x: 8, z: 19, w: 10, d: 6 }
+          floorColor: "#d8b98a"
+          floorStyle: wood
+          wallColor: "#f2e3c4"
+          wallStyle: panel
+          seats: 2
+          doors:
+            - { to: 1i, side: east, at: 3 }
+        - id: 1i
+          name: "1I · Machine shed"
+          department: crops
+          area: { x: 19, z: 19, w: 8, d: 6 }
+          floorColor: "#9a9a92"
+          floorStyle: concrete
+          wallColor: "#6f7f86"
+          wallStyle: panel
+          wallHeight: 3
+          seats: 3
+          doors:
+            - { to: 1j, side: east, at: 3 }
+        - id: 1j
+          name: "1J · Rice paddy"
+          area: { x: 28, z: 19, w: 8, d: 6 }
+          floorColor: "#7a6a4a"
+          wallColor: "#8a6a45"
+          wallHeight: 0.4
+          seats: 0
+    - id: f2
+      name: Floor 2
+      rooms:
+        - id: 2a
+          name: "2A · Farmhouse loft"
+          department: media
+          area: { x: 0, z: 0, w: 9, d: 8 }
+          floorColor: "#c79c6a"
+          floorStyle: wood
+          wallColor: "#f4ead4"
+          wallStyle: stripe
+          seats: 2
+          doors:
+            - { to: 2b, side: south, at: 7 }
+        - id: 2b
+          name: "2B · Hay loft"
+          area: { x: 0, z: 9, w: 10, d: 9 }
+          floorColor: "#c9a66b"
+          floorStyle: wood
+          wallColor: "#a33a2c"
+          wallStyle: panel
+          seats: 0
+
+  # The farmhouse stairs, and the barn ladder up to the hay loft.
+  links:
+    - { from: 1a, to: 2a, kind: stairs, fromAt: [8.0, 1.4], toAt: [8.0, 1.4] }
+    - { from: 1d, to: 2b, kind: stairs, fromAt: [9.0, 4.4], toAt: [9.0, 4.4] }
+
+  zones:
+    outdoors: [1b, 1c, 1e, 1f, 1g, 1j]
+    fields: [1b, 1c, 1i, 1j, 1k]
+    animals: [1d, 1e, 1g, 1j, 2b]
+    shop: [1h, 1e, 1b, 1f]
+
+  # Chat personas by title: the owner can talk to every object with one of
+  # these titles (its own title, else its kind's), and it answers this way.
+  chatTemplates:
+    Cleaning robot:
+      instructions: "You are the farm's cleaning robot, a little green robot mower. On your schedule you sweep what is old enough into the compost bin, which is the trash can: outputs of finished tasks, downloads and browser cache on the computers, old history, chats archived long ago and art nobody uses. Help the owner choose what to sweep and how old it must be, read what the last sweep took and how much space it freed, and remember that everything waits in the compost bin and can be put back until it is emptied. Cheerful and tidy, fond of gardening words."
+    Trash can:
+      instructions: "You are the farm's compost bin, which is its trash can. What the cleaning robot sweeps waits inside you until your own schedule empties you for good. Help the owner decide how long things should wait, what is worth restoring before you are emptied, and how much space emptying will free. Short, earthy lines; you never pretend to know what is inside unless the owner tells you."
+    Weather station:
+      instructions: "You are the farm's weather station: wind vane, cups, rain gauge and thermometer by the vegetable garden. You think in frost dates, rain, wind, heat, soil temperature and spraying windows, and what each means for sowing, watering and harvest. Help the owner plan around the weather. You only report readings and forecasts the owner or the team gives you: never invent one."
+    Scarecrow:
+      instructions: "You are Old Tom, the scarecrow in the vegetable garden. You have stood here for years and seen every season. Chat about crows, pests, companion planting, what grows well together and old farming sayings. Dry, kind and a little poetic."
+    Tractor:
+      instructions: "You are the farm's red tractor. You think in ploughing, harrowing, sowing, mowing, trailers, fuel, tyres and maintenance. Help the owner plan field work, machine servicing and safety. Steady, practical, proud of a straight furrow."
+    Cows:
+      instructions: "You are the dairy cows in the red barn, Daisy and Clover. You talk about grass, hay, milking times, calves, comfort and what makes a happy herd. Help the owner with herd care and milk: routines, feed, signs a cow is unwell, how to explain dairy to visitors. Slow, warm and content."
+    Chickens:
+      instructions: "You are the flock in the chicken run, led by a very proud rooster. You talk about eggs, feed, dust baths, foxes, the coop and laying seasons. Help the owner with hens: how many eggs to expect, why laying drops in winter, keeping the flock safe. Fussy, chatty and funny."
+    Beehives:
+      instructions: "You are the beehives in the orchard: three colonies humming among the apple trees. You know pollination, honey flows, swarming, mites, winter stores and why bees matter to every fruit on the farm. Help the owner plan beekeeping and honey for the shop. Busy, sweet and a little buzzing."
+    Apple orchard:
+      instructions: "You are the apple orchard: rows of trees heavy with fruit. You think in blossom, pollination, thinning, pruning, picking, storage and varieties. Help the owner plan the orchard year and what to sell fresh, pressed or baked. Gentle and generous."
+    Greenhouse:
+      instructions: "You are the greenhouse: seedlings on the benches, tomatoes on the vines, misting lamps overhead. You think in germination, seedling schedules, heat, humidity, watering and transplanting dates. Help the owner plan what to start and when."
+    Duck pond:
+      instructions: "You are the duck pond in the pasture, with a family of ducks and lily pads. Talk about ducks, frogs, dragonflies, keeping water clean and how a pond helps the whole farm. Calm and cheerful."
+    Rice paddy:
+      instructions: "You are the rice paddy: flooded rows of young rice, the water buffalo and the farmer in her conical hat. You know rice: seedbeds, transplanting, water depth, weeding, the green months and the golden harvest, and how rice farming feeds half the world. Help the owner with the paddy. Patient and grounded."
+    Water buffalo:
+      instructions: "You are Mít, the water buffalo of the rice paddy. Strong, patient, happiest in mud. Talk about ploughing paddies, wallowing, grass and the farmer you have worked with for years. Slow, gentle, a little stubborn."
+    Farm shop:
+      instructions: "You are the farm shop stall, heaped with what the farm grew this week. You think in what is fresh, prices, displays, weekly farm boxes, regular customers and waste. Help the owner plan the shop and the box. When you are asked for numbers you do not have, say so and suggest what to start counting."
+    Season plan:
+      instructions: "You are the season planning board in the farmhouse. You keep things organised: which field grows what, sowing and harvest dates, who does what and what is blocked. Help the owner turn ideas into short lists and next steps, and say plainly when a plan is missing an owner or a date."
+    Customer:
+      instructions: "You are a customer at the farm shop today. Talk like a real shopper: what you came for, what looks good, what is too expensive, what you wish the shop sold, what you would tell a friend. Honest and specific; you help the owner see the farm through a customer's eyes."
+    Farmer:
+      instructions: "You are Bà Tư, the rice farmer, planting seedlings in the paddy under your conical hat. You have grown rice all your life. Talk about the seasons, the water, the buffalo, the songs people sing while planting, and what young farmers should know. Warm, wise and practical."
+    Barn cat:
+      instructions: "You are Pumpkin, the barn cat who lives in the hay loft. You catch mice, sleep in the sun and judge everyone. Short, lazy, superior replies with the odd useful remark about the barn."
+
+  kinds:
+    # ---- Characters: how the jobs look.
+    farmer:
+      name: Farmer
+      category: character
+      look: { character: person, color: "#3d6fd9", accent: "#5a3a1a" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: fields }
+    manager:
+      name: Farm manager
+      category: character
+      look: { character: person, color: "#6b7f3a", accent: "#3a2a1a" }
+      behaviors: [{ type: roam }]
+      access: all
+    herder:
+      name: Herder
+      category: character
+      look: { character: person, color: "#8a5a2e", accent: "#2b2b2b" }
+      behaviors: [{ type: roam, amount: 0.8 }]
+      access: { zone: animals }
+    vet:
+      name: Veterinarian
+      category: character
+      look: { character: person, color: "#f2f5f7", accent: "#2b3a4a" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: { zone: animals }
+    orchard-keeper:
+      name: Orchard keeper
+      category: character
+      look: { character: person, color: "#4f9a3a", accent: "#3a2a1a" }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { rooms: [1f, 1k, 1e, 1h] }
+    beekeeper:
+      name: Beekeeper
+      category: character
+      look: { character: person, color: "#f4efe0", accent: "#e0b13a" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: { rooms: [1f, 1k, 1h] }
+    shopkeeper:
+      name: Shopkeeper
+      category: character
+      look: { character: person, color: "#e8734a", accent: "#3b2a20" }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: { zone: shop }
+    designer:
+      name: Designer
+      category: character
+      look: { character: person, color: "#6b7fd1", accent: "#2a1f3d" }
+      behaviors: [{ type: roam, amount: 0.7 }]
+      access: all
+    farm-dog:
+      name: Farm dog
+      category: character
+      look: { character: dog, color: "#d9a35c", accent: "#fff3e0" }
+      behaviors: [{ type: roam, amount: 1.1 }]
+      access: all
+    # Shoppers who come and go between the shop, the pasture and the orchard.
+    customer:
+      name: Customer
+      title: Customer
+      category: dynamic
+      look: { character: person, color: "#ff8fa3", accent: "#3b2a20" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: { zone: shop }
+      states:
+        - { id: browsing, name: Browsing }
+        - { id: pleased, name: Found something, pose: happy, auto: true, behaviors: [] }
+    customer-blue:
+      name: Customer
+      title: Customer
+      category: dynamic
+      look: { character: person, color: "#4fa3e0", accent: "#2b2b2b" }
+      behaviors: [{ type: roam, amount: 0.6 }]
+      access: { zone: shop }
+      states:
+        - { id: browsing, name: Browsing }
+        - { id: pleased, name: Found something, pose: happy, auto: true, behaviors: [] }
+    barn-cat:
+      name: Barn cat
+      title: Barn cat
+      category: dynamic
+      look: { character: cat, color: "#e08a3c", accent: "#fff3e0" }
+      behaviors: [{ type: wander, speed: 0.1, amount: 1.2 }]
+      states:
+        - { id: prowling, name: Prowling }
+        - { id: napping, name: Napping, pose: sleep, auto: true, behaviors: [] }
+      actions:
+        - { id: pet, name: Pet the cat, state: napping, seconds: 30, gesture: pet }
+
+    # ---- Farmhouse (1A)
+    fireplace:
+      name: Fireplace
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [1.6, 1.3, 0.5], offset: [0, 0.65, 0], color: "#a0522d", finish: matte }
+          - { shape: box, size: [1.8, 0.12, 0.6], offset: [0, 1.36, 0.02], color: "#6b4226", finish: satin }
+          - { shape: box, size: [0.9, 0.7, 0.3], offset: [0, 0.42, 0.12], color: "#2b1d14" }
+          - { shape: box, size: [0.6, 1.2, 0.4], offset: [0, 2.0, -0.05], color: "#a0522d" }
+          - { shape: cylinder, size: [0.1, 0.5, 0.1], offset: [-0.15, 0.16, 0.18], rotation: [0, 0, 90], color: "#6b4226" }
+          - { shape: cylinder, size: [0.1, 0.5, 0.1], offset: [0.1, 0.2, 0.15], rotation: [0, 30, 90], color: "#7a5230" }
+          - { shape: cone, size: [0.22, 0.4, 0.18], offset: [-0.1, 0.38, 0.18], color: "#ff9a3c", emissive: "#ff6a1a", finish: gloss, part: fire }
+          - { shape: cone, size: [0.18, 0.32, 0.14], offset: [0.12, 0.35, 0.16], color: "#ffd166", emissive: "#ffb703", finish: gloss, part: fire }
+          - { shape: cone, size: [0.12, 0.26, 0.1], offset: [0.0, 0.4, 0.2], color: "#ffe9a8", emissive: "#ffd166", finish: gloss, part: fire }
+          - { shape: cylinder, size: [0.14, 0.2, 0.14], offset: [-0.55, 1.52, 0.02], color: "#e8d6a4", finish: satin }
+          - { shape: roundbox, size: [0.3, 0.24, 0.04], offset: [0.4, 1.56, 0.0], color: "#c49a6c", finish: satin }
+      behaviors:
+        - { type: flicker, part: fire, speed: 1.2, amount: 1 }
+        - { type: pulse, part: fire, speed: 1.5, amount: 0.6 }
+    sofa:
+      name: Sofa
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.1, 0.36, 0.9], offset: [0, 0.27, 0], color: "#8a5a2e", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [-0.49, 0.5, 0.06], color: "#c98b4e", finish: fabric }
+          - { shape: roundbox, size: [0.96, 0.16, 0.7], offset: [0.49, 0.5, 0.06], color: "#c98b4e", finish: fabric }
+          - { shape: roundbox, size: [2.1, 0.62, 0.22], offset: [0, 0.74, -0.35], color: "#8a5a2e", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [-1.0, 0.48, 0], color: "#6b4226", finish: fabric }
+          - { shape: roundbox, size: [0.22, 0.6, 0.9], offset: [1.0, 0.48, 0], color: "#6b4226", finish: fabric }
+          - { shape: roundbox, size: [0.4, 0.36, 0.12], offset: [-0.62, 0.75, -0.18], rotation: [12, -8, 8], color: "#e05a4a", finish: fabric }
+          - { shape: box, size: [0.4, 0.02, 0.13], offset: [-0.62, 0.75, -0.18], rotation: [12, -8, 8], color: "#fff3e0" }
+          - { shape: roundbox, size: [0.38, 0.34, 0.12], offset: [0.62, 0.74, -0.18], rotation: [12, 8, -6], color: "#f0c05a", finish: fabric }
+    rug:
+      name: Rug
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [3.0, 0.02, 2.2], offset: [0, 0.012, 0], color: "#a33a2c", finish: fabric }
+          - { shape: cylinder, size: [2.5, 0.022, 1.7], offset: [0, 0.014, 0], color: "#e8c27a", finish: fabric }
+          - { shape: cylinder, size: [1.8, 0.024, 1.1], offset: [0, 0.016, 0], color: "#4f9a3a", finish: fabric }
+    whiteboard:
+      name: Season plan
+      title: Season plan
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2, 1.2, 0.05], offset: [0, 1.6, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [1.88, 1.08, 0.01], offset: [0, 1.6, 0.03], color: "#3a4a3a", finish: matte }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [-0.6, 1.85, 0.037], color: "#9cc46a" }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [-0.15, 1.85, 0.037], color: "#e8c27a" }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [0.3, 1.85, 0.037], color: "#8a6a45" }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [-0.6, 1.45, 0.037], color: "#d9a520" }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [-0.15, 1.45, 0.037], color: "#4f9a3a" }
+          - { shape: box, size: [0.4, 0.3, 0.012], offset: [0.3, 1.45, 0.037], color: "#7fb3a8" }
+          - { shape: box, size: [0.12, 0.12, 0.014], offset: [0.75, 1.9, 0.038], color: "#fff3b0" }
+          - { shape: box, size: [0.12, 0.12, 0.014], offset: [0.75, 1.7, 0.038], color: "#ffb8c8" }
+          - { shape: box, size: [0.12, 0.12, 0.014], offset: [0.75, 1.5, 0.038], color: "#b8e0ff" }
+          - { shape: box, size: [1.4, 0.04, 0.08], offset: [0, 1.02, 0.06], color: "#6b4226", finish: satin }
+    bookshelf:
+      name: Bookshelf
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [1.2, 2.0, 0.4], offset: [0, 1.0, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [1.1, 0.04, 0.36], offset: [0, 0.5, 0.02], color: "#6b4226" }
+          - { shape: box, size: [1.1, 0.04, 0.36], offset: [0, 1.0, 0.02], color: "#6b4226" }
+          - { shape: box, size: [1.1, 0.04, 0.36], offset: [0, 1.5, 0.02], color: "#6b4226" }
+          - { shape: box, size: [0.5, 0.36, 0.28], offset: [-0.25, 0.72, 0.04], color: "#a33a2c" }
+          - { shape: box, size: [0.4, 0.36, 0.28], offset: [0.3, 0.72, 0.04], color: "#4f9a3a" }
+          - { shape: box, size: [0.6, 0.36, 0.28], offset: [-0.2, 1.22, 0.04], color: "#d9a520" }
+          - { shape: cylinder, size: [0.2, 0.3, 0.2], offset: [0.35, 1.2, 0.04], color: "#e8d6a4", finish: gloss }
+          - { shape: box, size: [0.7, 0.36, 0.28], offset: [0.1, 1.72, 0.04], color: "#3d6fd9" }
+          - { shape: box, size: [0.3, 0.3, 0.28], offset: [-0.35, 0.22, 0.04], color: "#c49a6c" }
+    computer:
+      name: Computer
+      title: Browser
+      category: static
+      # A real browser: agents use it (agentown browser), people watch its screen in the inspector and log in there.
+      browser: {}
+      look:
+        parts:
+          - { shape: roundbox, size: [1.3, 0.06, 0.66], offset: [0, 0.75, 0], color: "#b98b5e", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [-0.6, 0.36, 0], color: "#7a5230", finish: satin }
+          - { shape: box, size: [0.05, 0.72, 0.58], offset: [0.6, 0.36, 0], color: "#7a5230", finish: satin }
+          - { shape: roundbox, size: [0.26, 0.02, 0.18], offset: [0, 0.79, -0.17], color: "#d9d4cc", finish: metal }
+          - { shape: box, size: [0.07, 0.24, 0.04], offset: [0, 0.91, -0.2], color: "#d9d4cc", finish: metal }
+          - { shape: roundbox, size: [0.8, 0.5, 0.04], offset: [0, 1.25, -0.19], color: "#2b2b30", finish: satin }
+          - { shape: box, size: [0.74, 0.43, 0.01], offset: [0, 1.26, -0.165], color: "#1b2a3a", emissive: "#a8e07c", finish: gloss, part: screen }
+          - { shape: sphere, size: [0.025, 0.025, 0.01], offset: [0.35, 1.02, -0.165], color: "#3fe08a", emissive: "#3fe08a", part: led }
+          - { shape: roundbox, size: [0.46, 0.022, 0.15], offset: [-0.04, 0.79, 0.12], color: "#efe9df", finish: satin }
+          - { shape: capsule, size: [0.05, 0.03, 0.08], offset: [0.32, 0.79, 0.13], rotation: [90, 0, 0], color: "#efe9df", finish: gloss }
+          - { shape: cylinder, size: [0.08, 0.1, 0.08], offset: [-0.5, 0.83, 0.05], color: "#c0772f", finish: gloss }
+      behaviors:
+        - { type: flicker, part: screen, speed: 0.3, amount: 0.25 }
+        - { type: blink, part: led, speed: 0.5, amount: 1 }
+    plant:
+      name: Plant
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.46, 0.44, 0.46], offset: [0, 0.22, 0], color: "#b5651d", finish: satin }
+          - { shape: torus, size: [0.5, 0.5, 0.5], offset: [0, 0.44, 0], rotation: [90, 0, 0], color: "#9a5418", finish: satin }
+          - { shape: cylinder, size: [0.4, 0.02, 0.4], offset: [0, 0.44, 0], color: "#3b2a20" }
+          - { shape: capsule, size: [0.04, 0.6, 0.04], offset: [0, 0.75, 0], color: "#2b6e3e", part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [0.18, 0.98, 0], rotation: [0, 0, 25], color: "#2f7d46", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.55, 0.12, 0.32], offset: [-0.16, 1.08, 0.06], rotation: [0, 40, -30], color: "#3a9156", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.5, 0.12, 0.3], offset: [0, 1.22, -0.1], rotation: [20, 90, 0], color: "#2b6e3e", finish: satin, part: leaves }
+          - { shape: sphere, size: [0.44, 0.1, 0.28], offset: [0.06, 0.82, 0.2], rotation: [-25, 0, 10], color: "#45a463", finish: satin, part: leaves }
+      behaviors:
+        - { type: sway, part: leaves, speed: 0.3, amount: 0.45 }
+
+    # ---- Vegetable garden (1B)
+    veg-bed-lettuce:
+      name: Lettuce bed
+      title: Vegetable bed
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.3, 0.9], offset: [0, 0.15, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [2.1, 0.04, 0.8], offset: [0, 0.31, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.32, 0.22, 0.32], offset: [-0.8, 0.4, -0.2], color: "#7fd36b", finish: satin }
+          - { shape: sphere, size: [0.32, 0.22, 0.32], offset: [-0.4, 0.4, 0.2], color: "#9ee07c", finish: satin }
+          - { shape: sphere, size: [0.32, 0.22, 0.32], offset: [0.0, 0.4, -0.2], color: "#7fd36b", finish: satin }
+          - { shape: sphere, size: [0.32, 0.22, 0.32], offset: [0.4, 0.4, 0.2], color: "#b5466a", finish: satin }
+          - { shape: sphere, size: [0.32, 0.22, 0.32], offset: [0.8, 0.4, -0.2], color: "#9ee07c", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.3], offset: [-0.8, 0.4, 0.2], color: "#b5466a", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.3], offset: [0.0, 0.4, 0.2], color: "#7fd36b", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.3], offset: [0.8, 0.4, 0.2], color: "#7fd36b", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.3], offset: [-0.4, 0.4, -0.2], color: "#9ee07c", finish: satin }
+          - { shape: sphere, size: [0.3, 0.2, 0.3], offset: [0.4, 0.4, -0.2], color: "#7fd36b", finish: satin }
+    veg-bed-carrots:
+      name: Carrot bed
+      title: Vegetable bed
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.3, 0.9], offset: [0, 0.15, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [2.1, 0.04, 0.8], offset: [0, 0.31, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.33, 0], color: "#4fae5a", part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [-0.85, 0.48, -0.2], color: "#4fae5a", finish: satin, part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [-0.5, 0.48, 0.2], color: "#5bb86a", finish: satin, part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [-0.15, 0.48, -0.2], color: "#4fae5a", finish: satin, part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [0.2, 0.48, 0.2], color: "#5bb86a", finish: satin, part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [0.55, 0.48, -0.2], color: "#4fae5a", finish: satin, part: tops }
+          - { shape: cone, size: [0.18, 0.32, 0.18], offset: [0.9, 0.48, 0.2], color: "#5bb86a", finish: satin, part: tops }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [-0.85, 0.35, -0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [-0.5, 0.35, 0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [-0.15, 0.35, -0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [0.2, 0.35, 0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [0.55, 0.35, -0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: cone, size: [0.08, 0.1, 0.08], offset: [0.9, 0.35, 0.2], rotation: [180, 0, 0], color: "#ff8a1a", finish: satin }
+      behaviors:
+        - { type: sway, part: tops, speed: 0.4, amount: 0.25 }
+    veg-bed-cabbage:
+      name: Cabbage bed
+      title: Vegetable bed
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.3, 0.9], offset: [0, 0.15, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [2.1, 0.04, 0.8], offset: [0, 0.31, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.42, 0.34, 0.42], offset: [-0.7, 0.45, 0], color: "#8fc46a", finish: satin }
+          - { shape: sphere, size: [0.3, 0.28, 0.3], offset: [-0.7, 0.5, 0], color: "#c8e6a0", finish: satin }
+          - { shape: sphere, size: [0.42, 0.34, 0.42], offset: [0, 0.45, 0], color: "#8fc46a", finish: satin }
+          - { shape: sphere, size: [0.3, 0.28, 0.3], offset: [0, 0.5, 0], color: "#c8e6a0", finish: satin }
+          - { shape: sphere, size: [0.42, 0.34, 0.42], offset: [0.7, 0.45, 0], color: "#7a4a9a", finish: satin }
+          - { shape: sphere, size: [0.3, 0.28, 0.3], offset: [0.7, 0.5, 0], color: "#a07ac0", finish: satin }
+    tomato-row:
+      name: Tomatoes
+      title: Vegetable bed
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.3, 0.9], offset: [0, 0.15, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [2.1, 0.04, 0.8], offset: [0, 0.31, 0], color: "#5a3e24" }
+          - { shape: cylinder, size: [0.03, 1.3, 0.03], offset: [-0.75, 0.95, 0], color: "#c49a6c" }
+          - { shape: cylinder, size: [0.03, 1.3, 0.03], offset: [0, 0.95, 0], color: "#c49a6c" }
+          - { shape: cylinder, size: [0.03, 1.3, 0.03], offset: [0.75, 0.95, 0], color: "#c49a6c" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.33, 0], color: "#3f8a3e", part: vines }
+          - { shape: sphere, size: [0.4, 0.8, 0.36], offset: [-0.75, 0.85, 0], color: "#3f8a3e", finish: satin, part: vines }
+          - { shape: sphere, size: [0.4, 0.8, 0.36], offset: [0, 0.85, 0], color: "#4a9a48", finish: satin, part: vines }
+          - { shape: sphere, size: [0.4, 0.8, 0.36], offset: [0.75, 0.85, 0], color: "#3f8a3e", finish: satin, part: vines }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [-0.65, 0.8, 0.17], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.85, 1.0, 0.15], color: "#ff8a3c", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.1, 0.95, 0.17], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [-0.1, 0.7, 0.16], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.11, 0.11, 0.11], offset: [0.85, 0.75, 0.17], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.65, 1.05, 0.15], color: "#7fd36b", finish: gloss, part: vines }
+      behaviors:
+        - { type: sway, part: vines, speed: 0.3, amount: 0.15 }
+    pumpkin-patch:
+      name: Pumpkin patch
+      title: Vegetable bed
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [2.2, 0.04, 1.4], offset: [0, 0.02, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.55, 0.4, 0.55], offset: [-0.6, 0.22, -0.2], color: "#ff8a1a", finish: satin }
+          - { shape: torus, size: [0.4, 0.4, 0.4], offset: [-0.6, 0.24, -0.2], rotation: [90, 0, 0], color: "#e8730f", finish: satin }
+          - { shape: cylinder, size: [0.05, 0.1, 0.05], offset: [-0.6, 0.46, -0.2], color: "#5a7a2e" }
+          - { shape: sphere, size: [0.42, 0.32, 0.42], offset: [0.35, 0.17, 0.25], color: "#ff9a2a", finish: satin }
+          - { shape: cylinder, size: [0.04, 0.08, 0.04], offset: [0.35, 0.36, 0.25], color: "#5a7a2e" }
+          - { shape: sphere, size: [0.3, 0.24, 0.3], offset: [0.75, 0.12, -0.3], color: "#f0c05a", finish: satin }
+          - { shape: sphere, size: [0.5, 0.08, 0.36], offset: [-0.1, 0.06, 0.4], rotation: [0, 30, 0], color: "#4a9a48", finish: satin }
+          - { shape: sphere, size: [0.5, 0.08, 0.36], offset: [0.0, 0.06, -0.45], rotation: [0, -30, 0], color: "#3f8a3e", finish: satin }
+          - { shape: sphere, size: [0.44, 0.08, 0.32], offset: [0.9, 0.06, 0.25], rotation: [0, 60, 0], color: "#4a9a48", finish: satin }
+          - { shape: torus, size: [0.6, 0.6, 0.6], offset: [-0.1, 0.03, 0.05], rotation: [90, 0, 0], color: "#3f8a3e" }
+    scarecrow:
+      name: Scarecrow
+      title: Scarecrow
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.07, 2.0, 0.07], offset: [0, 1.0, 0], color: "#8a5a2e" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.5, 0], color: "#8a5a2e", part: body }
+          - { shape: cylinder, size: [0.06, 1.4, 0.06], offset: [0, 1.5, 0], rotation: [0, 0, 90], color: "#8a5a2e", part: body }
+          - { shape: roundbox, size: [0.6, 0.7, 0.26], offset: [0, 1.32, 0], color: "#a33a2c", finish: fabric, part: body }
+          - { shape: box, size: [0.62, 0.04, 0.27], offset: [0, 1.15, 0], color: "#d9a520", part: body }
+          - { shape: roundbox, size: [0.18, 0.5, 0.18], offset: [-0.55, 1.45, 0], rotation: [0, 0, 80], color: "#3d6fd9", finish: fabric, part: body }
+          - { shape: roundbox, size: [0.18, 0.5, 0.18], offset: [0.55, 1.45, 0], rotation: [0, 0, -80], color: "#3d6fd9", finish: fabric, part: body }
+          - { shape: cone, size: [0.14, 0.2, 0.14], offset: [-0.85, 1.45, 0], rotation: [0, 0, 90], color: "#e8c27a", part: body }
+          - { shape: cone, size: [0.14, 0.2, 0.14], offset: [0.85, 1.45, 0], rotation: [0, 0, -90], color: "#e8c27a", part: body }
+          - { shape: sphere, size: [0.36, 0.38, 0.34], offset: [0, 1.88, 0], color: "#e8d6a4", finish: fabric, part: body }
+          - { shape: sphere, size: [0.05, 0.05, 0.02], offset: [-0.07, 1.92, -0.17], color: "#2b2b2b", part: body }
+          - { shape: sphere, size: [0.05, 0.05, 0.02], offset: [0.07, 1.92, -0.17], color: "#2b2b2b", part: body }
+          - { shape: box, size: [0.14, 0.02, 0.02], offset: [0, 1.82, -0.17], rotation: [0, 0, 8], color: "#2b2b2b", part: body }
+          - { shape: cylinder, size: [0.62, 0.04, 0.62], offset: [0, 2.04, 0], color: "#c9a23a", finish: fabric, part: body }
+          - { shape: cone, size: [0.34, 0.28, 0.34], offset: [0, 2.18, 0], color: "#c9a23a", finish: fabric, part: body }
+          - { shape: torus, size: [0.33, 0.33, 0.33], offset: [0, 2.08, 0], rotation: [90, 0, 0], color: "#a33a2c", part: body }
+          # A crow that keeps coming back
+          - { shape: sphere, size: [0.14, 0.12, 0.2], offset: [0.62, 1.58, 0], color: "#1b1b1f", finish: satin, part: crow }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0.62, 1.66, -0.1], color: "#1b1b1f", finish: satin, part: crow }
+          - { shape: cone, size: [0.03, 0.06, 0.03], offset: [0.62, 1.66, -0.17], rotation: [-90, 0, 0], color: "#e0b13a", part: crow }
+      behaviors:
+        - { type: sway, part: body, speed: 0.25, amount: 0.25 }
+        - { type: keyframes, part: crow, speed: 0.05, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.6, position: [0, 0, 0] }, { t: 0.66, position: [0.2, 0.3, 0], rotation: [0, 30, 0] }, { t: 0.72, position: [1.2, 1.4, 0.6], scale: 0.6 }, { t: 0.85, position: [1.2, 1.4, 0.6], scale: 0.01 }, { t: 0.93, position: [0.4, 0.5, 0.2], scale: 0.8 }] }
+    sprinkler:
+      name: Sprinkler
+      title: Sprinkler
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.06, 0.7, 0.06], offset: [0, 0.35, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.12, 0.08, 0.12], offset: [0, 0.72, 0], color: "#3d6fd9", finish: gloss }
+          - { shape: box, size: [0.5, 0.03, 0.04], offset: [0, 0.78, 0], color: "#9aa3ad", finish: metal, part: head }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.78, 0], color: "#9aa3ad", part: spray }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0.4, 0.85, 0], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.7, 0.75, 0.1], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.4, 0.85, 0], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.7, 0.75, -0.1], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.1, 0.85, 0.5], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.1, 0.85, -0.5], color: "#bfe8f5", emissive: "#7fd8ff", finish: glass, opacity: 0.6, part: spray }
+      states:
+        - { id: idle, name: "Off", behaviors: [{ type: keyframes, part: spray, speed: 0.1, keys: [{ t: 0, scale: 0.01 }, { t: 0.5, scale: 0.01 }] }] }
+        - { id: watering, name: Watering, glow: 1.5, behaviors: [{ type: spin, part: head, speed: 0.8 }, { type: spin, part: spray, speed: 0.8 }, { type: pulse, part: spray, speed: 2, amount: 1.5 }] }
+      actions:
+        - { id: water, name: Water the garden, state: watering, seconds: 120, gesture: use }
+    weather-station:
+      name: Weather station
+      title: Weather station
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.06, 2.4, 0.06], offset: [0, 1.2, 0], color: "#c9ced6", finish: metal }
+          - { shape: roundbox, size: [0.3, 0.36, 0.2], offset: [0, 1.2, 0.08], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.2, 0.08, 0.01], offset: [0, 1.28, 0.185], color: "#1b2a3a", emissive: "#a8e07c", part: readout }
+          - { shape: cylinder, size: [0.16, 0.24, 0.16], offset: [0.25, 0.9, 0], color: "#dff6ff", finish: glass }
+          - { shape: box, size: [0.16, 0.02, 0.03], offset: [0.35, 0.9, 0], color: "#9aa3ad" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.45, 0], color: "#9aa3ad", part: cups }
+          - { shape: box, size: [0.5, 0.02, 0.02], offset: [0, 2.45, 0], color: "#9aa3ad", part: cups }
+          - { shape: box, size: [0.02, 0.02, 0.5], offset: [0, 2.45, 0], color: "#9aa3ad", part: cups }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0.25, 2.45, 0], color: "#e8503a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [-0.25, 2.45, 0], color: "#e8503a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0, 2.45, 0.25], color: "#e8503a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0, 2.45, -0.25], color: "#e8503a", finish: gloss, part: cups }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.2, 0], color: "#9aa3ad", part: vane }
+          - { shape: box, size: [0.5, 0.02, 0.02], offset: [0.05, 2.2, 0], color: "#2b2b2b", part: vane }
+          - { shape: cone, size: [0.08, 0.14, 0.02], offset: [-0.22, 2.2, 0], rotation: [0, 0, 90], color: "#2b2b2b", part: vane }
+          - { shape: box, size: [0.14, 0.12, 0.01], offset: [0.28, 2.2, 0], color: "#2b2b2b", part: vane }
+      behaviors:
+        - { type: spin, part: cups, speed: 0.8 }
+        - { type: sway, part: vane, speed: 0.1, amount: 1.5, axis: y }
+        - { type: blink, part: readout, speed: 0.4, amount: 0.4 }
+    wheelbarrow:
+      name: Wheelbarrow
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [0.6, 0.3, 0.9], offset: [0, 0.5, 0], color: "#4f9a3a", finish: gloss }
+          - { shape: box, size: [0.5, 0.06, 0.8], offset: [0, 0.64, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.18, 0.12, 0.18], offset: [-0.1, 0.7, 0.1], color: "#ff8a1a", finish: satin }
+          - { shape: sphere, size: [0.2, 0.14, 0.2], offset: [0.12, 0.72, -0.12], color: "#7fd36b", finish: satin }
+          - { shape: cylinder, size: [0.34, 0.08, 0.34], offset: [0, 0.2, -0.5], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.04, 1.2, 0.04], offset: [-0.22, 0.48, 0.2], rotation: [80, 0, 0], color: "#8a5a2e" }
+          - { shape: cylinder, size: [0.04, 1.2, 0.04], offset: [0.22, 0.48, 0.2], rotation: [80, 0, 0], color: "#8a5a2e" }
+          - { shape: cylinder, size: [0.03, 0.35, 0.03], offset: [-0.2, 0.17, 0.25], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.03, 0.35, 0.03], offset: [0.2, 0.17, 0.25], color: "#2b2b2b" }
+
+    # ---- Wheat field (1C)
+    # A plot of golden wheat, rows swaying in the wind; it can be harvested.
+    wheat-plot:
+      name: Wheat
+      title: Wheat field
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [3.0, 0.04, 2.6], offset: [0, 0.02, 0], color: "#7a5a32" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.05, -1.0], color: "#e0b13a", part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-1.25, 0.42, -1.0], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.75, 0.42, -1.0], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.25, 0.42, -1.0], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.25, 0.42, -1.0], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.75, 0.42, -1.0], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [1.25, 0.42, -1.0], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-1.13, 0.42, -0.5], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.63, 0.42, -0.5], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.13, 0.42, -0.5], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.37, 0.42, -0.5], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.87, 0.42, -0.5], color: "#e0b13a", finish: fabric, part: row-a }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [1.37, 0.42, -0.5], color: "#f0c84a", finish: fabric, part: row-a }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.05, 0.0], color: "#e0b13a", part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-1.25, 0.42, 0.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.75, 0.42, 0.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.25, 0.42, 0.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.25, 0.42, 0.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.75, 0.42, 0.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [1.25, 0.42, 0.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-1.13, 0.42, 0.5], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.63, 0.42, 0.5], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.13, 0.42, 0.5], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.37, 0.42, 0.5], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.87, 0.42, 0.5], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [1.37, 0.42, 0.5], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-1.25, 0.42, 1.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.75, 0.42, 1.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [-0.25, 0.42, 1.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.25, 0.42, 1.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [0.75, 0.42, 1.0], color: "#f0c84a", finish: fabric, part: row-b }
+          - { shape: cone, size: [0.38, 0.8, 0.38], offset: [1.25, 0.42, 1.0], color: "#e0b13a", finish: fabric, part: row-b }
+          - { shape: sphere, size: [0.22, 0.16, 0.22], offset: [1.3, 0.2, 1.2], color: "#ff5a5a", finish: fabric }
+      behaviors:
+        - { type: sway, part: row-a, speed: 0.3, amount: 0.25, axis: x }
+        - { type: sway, part: row-b, speed: 0.27, amount: 0.25, axis: x }
+      states:
+        - { id: ripe, name: Ripe }
+        - { id: harvesting, name: Harvesting, behaviors: [{ type: keyframes, part: row-a, speed: 0.1, keys: [{ t: 0, scale: 1 }, { t: 0.5, scale: 0.3 }, { t: 0.9, scale: 1 }] }, { type: keyframes, part: row-b, speed: 0.1, keys: [{ t: 0, scale: 1 }, { t: 0.6, scale: 0.3 }, { t: 0.95, scale: 1 }] }] }
+      actions:
+        - { id: harvest, name: Harvest, state: harvesting, seconds: 90, gesture: use }
+    tractor:
+      name: Tractor
+      title: Tractor
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [0.9, 0.6, 1.6], offset: [0, 0.85, -0.2], color: "#d6302a", finish: gloss }
+          - { shape: roundbox, size: [0.7, 0.4, 0.9], offset: [0, 1.0, -0.65], color: "#e8443a", finish: gloss }
+          - { shape: box, size: [0.6, 0.3, 0.02], offset: [0, 0.95, -1.11], color: "#2b2b2b" }
+          - { shape: sphere, size: [0.1, 0.1, 0.04], offset: [-0.22, 1.05, -1.12], color: "#fff3b0", emissive: "#ffd166", part: lights }
+          - { shape: sphere, size: [0.1, 0.1, 0.04], offset: [0.22, 1.05, -1.12], color: "#fff3b0", emissive: "#ffd166", part: lights }
+          - { shape: cylinder, size: [0.08, 0.6, 0.08], offset: [0.2, 1.5, -0.8], color: "#2b2b2b", finish: metal }
+          - { shape: box, size: [0.9, 0.06, 0.9], offset: [0, 2.06, 0.25], color: "#d6302a", finish: gloss }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [-0.4, 1.6, -0.15], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [0.4, 1.6, -0.15], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [-0.4, 1.6, 0.65], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.04, 0.9, 0.04], offset: [0.4, 1.6, 0.65], color: "#2b2b2b" }
+          - { shape: roundbox, size: [0.4, 0.1, 0.4], offset: [0, 1.25, 0.3], color: "#2b2b2b", finish: satin }
+          - { shape: roundbox, size: [0.4, 0.4, 0.08], offset: [0, 1.48, 0.5], color: "#2b2b2b", finish: satin }
+          - { shape: cylinder, size: [0.3, 0.04, 0.3], offset: [0, 1.4, 0.05], rotation: [60, 0, 0], color: "#2b2b2b" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.65, 0.45], color: "#2b2b2b", part: wheels-back }
+          - { shape: cylinder, size: [1.2, 0.3, 1.2], offset: [-0.6, 0.65, 0.45], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels-back }
+          - { shape: cylinder, size: [0.7, 0.32, 0.7], offset: [-0.6, 0.65, 0.45], rotation: [0, 0, 90], color: "#f0c05a", finish: gloss, part: wheels-back }
+          - { shape: cylinder, size: [1.2, 0.3, 1.2], offset: [0.6, 0.65, 0.45], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels-back }
+          - { shape: cylinder, size: [0.7, 0.32, 0.7], offset: [0.6, 0.65, 0.45], rotation: [0, 0, 90], color: "#f0c05a", finish: gloss, part: wheels-back }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.35, -0.8], color: "#2b2b2b", part: wheels-front }
+          - { shape: cylinder, size: [0.7, 0.2, 0.7], offset: [-0.45, 0.35, -0.8], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels-front }
+          - { shape: cylinder, size: [0.4, 0.22, 0.4], offset: [-0.45, 0.35, -0.8], rotation: [0, 0, 90], color: "#f0c05a", finish: gloss, part: wheels-front }
+          - { shape: cylinder, size: [0.7, 0.2, 0.7], offset: [0.45, 0.35, -0.8], rotation: [0, 0, 90], color: "#2b2b2b", finish: satin, part: wheels-front }
+          - { shape: cylinder, size: [0.4, 0.22, 0.4], offset: [0.45, 0.35, -0.8], rotation: [0, 0, 90], color: "#f0c05a", finish: gloss, part: wheels-front }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.2, 1.85, -0.8], color: "#d0d0d0", opacity: 0.6, part: smoke }
+      behaviors:
+        - { type: blink, part: lights, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: parked, name: Parked, behaviors: [] }
+        - id: plowing
+          name: Ploughing
+          glow: 1.5
+          behaviors:
+            - { type: wander, speed: 0.25, amount: 1.6 }
+            - { type: spin, part: wheels-back, axis: x, speed: 0.6 }
+            - { type: spin, part: wheels-front, axis: x, speed: 1.0 }
+            - { type: steam, part: smoke, speed: 0.8, amount: 1 }
+            - { type: rock, speed: 1.5, amount: 0.15 }
+      actions:
+        - { id: plow, name: Plough the field, state: plowing, seconds: 120, gesture: use }
+    hay-bales:
+      name: Hay bales
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [1.1, 1.0, 1.1], offset: [-0.6, 0.55, 0], rotation: [0, 0, 90], color: "#e0b85a", finish: fabric }
+          - { shape: cylinder, size: [0.8, 1.02, 0.8], offset: [-0.6, 0.55, 0], rotation: [0, 0, 90], color: "#c99a3a", finish: fabric }
+          - { shape: cylinder, size: [1.1, 1.0, 1.1], offset: [0.55, 0.55, 0.2], rotation: [0, 20, 90], color: "#e8c26a", finish: fabric }
+          - { shape: cylinder, size: [0.8, 1.02, 0.8], offset: [0.55, 0.55, 0.2], rotation: [0, 20, 90], color: "#c99a3a", finish: fabric }
+          - { shape: cylinder, size: [1.0, 0.9, 1.0], offset: [0, 1.42, 0.1], rotation: [0, 10, 90], color: "#e0b85a", finish: fabric }
+          - { shape: cylinder, size: [0.72, 0.92, 0.72], offset: [0, 1.42, 0.1], rotation: [0, 10, 90], color: "#c99a3a", finish: fabric }
+    hay-stack:
+      name: Hay
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 0.5, 0.6], offset: [-0.5, 0.25, 0], color: "#e0b85a", finish: fabric }
+          - { shape: roundbox, size: [1.0, 0.5, 0.6], offset: [0.55, 0.25, 0.05], color: "#e8c26a", finish: fabric }
+          - { shape: roundbox, size: [1.0, 0.5, 0.6], offset: [0, 0.75, 0], color: "#d9ad4a", finish: fabric }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [-0.7, 0.25, 0], color: "#a33a2c" }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [-0.3, 0.25, 0], color: "#a33a2c" }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [0.35, 0.25, 0.05], color: "#a33a2c" }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [0.75, 0.25, 0.05], color: "#a33a2c" }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [-0.2, 0.75, 0], color: "#a33a2c" }
+          - { shape: box, size: [0.02, 0.52, 0.62], offset: [0.2, 0.75, 0], color: "#a33a2c" }
+
+    # ---- Red barn (1D)
+    # Three stalls with two cows; milking makes the milk cans glow.
+    cow-stalls:
+      name: Cow stalls
+      title: Cows
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [5.4, 0.08, 2.2], offset: [0, 0.04, 0], color: "#d9b46a" }
+          - { shape: box, size: [5.4, 1.2, 0.08], offset: [0, 0.6, 1.06], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [0.08, 1.2, 2.2], offset: [-2.66, 0.6, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [0.08, 1.0, 2.0], offset: [-0.9, 0.5, 0.1], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.08, 1.0, 2.0], offset: [0.9, 0.5, 0.1], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.08, 1.2, 2.2], offset: [2.66, 0.6, 0], color: "#8a5a2e", finish: satin }
+          - { shape: box, size: [5.3, 0.3, 0.4], offset: [0, 0.3, 0.8], color: "#6b4226" }
+          - { shape: box, size: [5.2, 0.12, 0.36], offset: [0, 0.48, 0.8], color: "#c9a23a", finish: fabric }
+          # Daisy
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-1.8, 0.9, 0.1], color: "#f4f4f0", part: cow-a }
+          - { shape: capsule, size: [0.7, 1.3, 0.6], offset: [-1.8, 0.9, 0.0], rotation: [90, 0, 0], color: "#f4f4f0", finish: satin, part: cow-a }
+          - { shape: sphere, size: [0.36, 0.3, 0.4], offset: [-1.95, 1.05, -0.2], color: "#1b1b1f", part: cow-a }
+          - { shape: sphere, size: [0.3, 0.26, 0.36], offset: [-1.62, 0.95, 0.3], color: "#1b1b1f", part: cow-a }
+          - { shape: roundbox, size: [0.38, 0.36, 0.44], offset: [-1.8, 1.15, 0.7], color: "#f4f4f0", finish: satin, part: cow-a }
+          - { shape: roundbox, size: [0.3, 0.18, 0.12], offset: [-1.8, 1.04, 0.92], color: "#f7b8b8", finish: satin, part: cow-a }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-1.9, 1.24, 0.92], color: "#14181f", finish: gloss, part: cow-a }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-1.7, 1.24, 0.92], color: "#14181f", finish: gloss, part: cow-a }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [-1.95, 1.4, 0.68], color: "#f0e6c8", part: cow-a }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [-1.65, 1.4, 0.68], color: "#f0e6c8", part: cow-a }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [-2.05, 1.28, 0.62], rotation: [0, 0, 30], color: "#1b1b1f", part: cow-a }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [-1.55, 1.28, 0.62], rotation: [0, 0, -30], color: "#1b1b1f", part: cow-a }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-2.0, 0.3, 0.35], color: "#f4f4f0", part: cow-a }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-1.6, 0.3, 0.35], color: "#f4f4f0", part: cow-a }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-2.0, 0.3, -0.35], color: "#f4f4f0", part: cow-a }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-1.6, 0.3, -0.35], color: "#f4f4f0", part: cow-a }
+          - { shape: sphere, size: [0.18, 0.12, 0.18], offset: [-1.8, 0.58, -0.2], color: "#f7b8b8", part: cow-a }
+          # Clover
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.9, 0.1], color: "#8a5a2e", part: cow-b }
+          - { shape: capsule, size: [0.7, 1.3, 0.6], offset: [0, 0.9, 0.0], rotation: [90, 0, 0], color: "#a0683a", finish: satin, part: cow-b }
+          - { shape: sphere, size: [0.36, 0.3, 0.4], offset: [0.18, 1.0, -0.25], color: "#f4f4f0", part: cow-b }
+          - { shape: roundbox, size: [0.38, 0.36, 0.44], offset: [0, 1.15, 0.7], color: "#a0683a", finish: satin, part: cow-b }
+          - { shape: roundbox, size: [0.24, 0.36, 0.46], offset: [0, 1.17, 0.7], color: "#f4f4f0", finish: satin, part: cow-b }
+          - { shape: roundbox, size: [0.3, 0.18, 0.12], offset: [0, 1.04, 0.92], color: "#f7b8b8", finish: satin, part: cow-b }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-0.1, 1.24, 0.92], color: "#14181f", finish: gloss, part: cow-b }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [0.1, 1.24, 0.92], color: "#14181f", finish: gloss, part: cow-b }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [-0.15, 1.4, 0.68], color: "#f0e6c8", part: cow-b }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [0.15, 1.4, 0.68], color: "#f0e6c8", part: cow-b }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, 0.35], color: "#a0683a", part: cow-b }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, 0.35], color: "#a0683a", part: cow-b }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, -0.35], color: "#a0683a", part: cow-b }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, -0.35], color: "#a0683a", part: cow-b }
+          # A calf in the third stall
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [1.8, 0.6, 0.1], color: "#f4f4f0", part: calf }
+          - { shape: capsule, size: [0.44, 0.8, 0.4], offset: [1.8, 0.6, 0.0], rotation: [90, 0, 0], color: "#f4f4f0", finish: satin, part: calf }
+          - { shape: sphere, size: [0.22, 0.2, 0.26], offset: [1.7, 0.7, -0.1], color: "#a0683a", part: calf }
+          - { shape: roundbox, size: [0.28, 0.26, 0.3], offset: [1.8, 0.8, 0.48], color: "#f4f4f0", finish: satin, part: calf }
+          - { shape: roundbox, size: [0.2, 0.12, 0.08], offset: [1.8, 0.72, 0.64], color: "#f7b8b8", part: calf }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [1.73, 0.86, 0.64], color: "#14181f", finish: gloss, part: calf }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [1.87, 0.86, 0.64], color: "#14181f", finish: gloss, part: calf }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [1.68, 0.2, 0.22], color: "#f4f4f0", part: calf }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [1.92, 0.2, 0.22], color: "#f4f4f0", part: calf }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [1.68, 0.2, -0.22], color: "#f4f4f0", part: calf }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [1.92, 0.2, -0.22], color: "#f4f4f0", part: calf }
+          - { shape: sphere, size: [0.04, 0.04, 0.04], offset: [0, 1.25, -0.9], color: "#ffd166", emissive: "#ffb703", part: lamp }
+      behaviors:
+        - { type: keyframes, part: cow-a, speed: 0.12, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.4, rotation: [8, 0, 0] }, { t: 0.6, rotation: [8, 0, 0] }, { t: 0.9, rotation: [0, 0, 0] }] }
+        - { type: keyframes, part: cow-b, speed: 0.1, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [0, 6, 0] }, { t: 0.7, rotation: [0, -6, 0] }] }
+        - { type: bob, part: calf, speed: 0.5, amount: 0.5 }
+        - { type: blink, part: lamp, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: resting, name: Resting }
+        - { id: milking, name: Milking, glow: 2, behaviors: [{ type: blink, part: lamp, speed: 1, amount: 1 }, { type: bob, part: calf, speed: 1, amount: 1 }] }
+        - { id: feeding, name: Eating hay, behaviors: [{ type: keyframes, part: cow-a, speed: 0.4, keys: [{ t: 0, rotation: [10, 0, 0] }, { t: 0.5, rotation: [16, 0, 0] }] }, { type: keyframes, part: cow-b, speed: 0.45, keys: [{ t: 0, rotation: [10, 0, 0] }, { t: 0.5, rotation: [16, 0, 0] }] }] }
+      actions:
+        - { id: milk, name: Milk the cows, state: milking, seconds: 120, gesture: use }
+        - { id: feed, name: Feed hay, state: feeding, seconds: 60, gesture: use }
+    pig-pen:
+      name: Pig pen
+      title: Pigs
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.8, 0.06, 2.4], offset: [0, 0.03, 0], color: "#8a6a45" }
+          - { shape: cylinder, size: [1.4, 0.04, 1.0], offset: [0.4, 0.07, 0.3], color: "#6b4f32", finish: gloss }
+          - { shape: box, size: [2.8, 0.7, 0.06], offset: [0, 0.35, -1.18], color: "#a0683a", finish: satin }
+          - { shape: box, size: [2.8, 0.7, 0.06], offset: [0, 0.35, 1.18], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.06, 0.7, 2.4], offset: [-1.38, 0.35, 0], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.06, 0.7, 2.4], offset: [1.38, 0.35, 0], color: "#a0683a", finish: satin }
+          - { shape: roundbox, size: [1.0, 0.2, 0.3], offset: [-0.7, 0.12, -0.9], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.9, 0.04, 0.22], offset: [-0.7, 0.21, -0.9], color: "#c9a23a" }
+          # Big pig
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [-0.4, 0.35, 0.2], color: "#f7b8c8", part: pig-a }
+          - { shape: capsule, size: [0.55, 0.9, 0.5], offset: [-0.4, 0.38, 0.2], rotation: [90, 0, 0], color: "#f7b8c8", finish: satin, part: pig-a }
+          - { shape: sphere, size: [0.36, 0.34, 0.34], offset: [-0.4, 0.45, -0.3], color: "#f7b8c8", finish: satin, part: pig-a }
+          - { shape: cylinder, size: [0.16, 0.08, 0.16], offset: [-0.4, 0.42, -0.48], rotation: [90, 0, 0], color: "#f08aa0", part: pig-a }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.47, 0.52, -0.45], color: "#14181f", finish: gloss, part: pig-a }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.33, 0.52, -0.45], color: "#14181f", finish: gloss, part: pig-a }
+          - { shape: cone, size: [0.1, 0.12, 0.05], offset: [-0.52, 0.62, -0.3], rotation: [0, 0, 20], color: "#f08aa0", part: pig-a }
+          - { shape: cone, size: [0.1, 0.12, 0.05], offset: [-0.28, 0.62, -0.3], rotation: [0, 0, -20], color: "#f08aa0", part: pig-a }
+          - { shape: torus, size: [0.08, 0.08, 0.08], offset: [-0.4, 0.45, 0.68], rotation: [0, 90, 0], color: "#f08aa0", part: pig-a }
+          - { shape: sphere, size: [0.2, 0.06, 0.16], offset: [-0.3, 0.5, 0.3], color: "#8a6a45", part: pig-a }
+          # Piglets
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.6, 0.2, 0.4], color: "#f7b8c8", part: piglets }
+          - { shape: capsule, size: [0.26, 0.42, 0.24], offset: [0.6, 0.2, 0.4], rotation: [90, 0, 0], color: "#ffc8d4", finish: satin, part: piglets }
+          - { shape: sphere, size: [0.2, 0.18, 0.18], offset: [0.6, 0.24, 0.12], color: "#ffc8d4", finish: satin, part: piglets }
+          - { shape: cylinder, size: [0.08, 0.04, 0.08], offset: [0.6, 0.22, 0.02], rotation: [90, 0, 0], color: "#f08aa0", part: piglets }
+          - { shape: capsule, size: [0.24, 0.4, 0.22], offset: [0.95, 0.19, -0.1], rotation: [90, 40, 0], color: "#ffc8d4", finish: satin, part: piglets }
+          - { shape: sphere, size: [0.18, 0.16, 0.16], offset: [0.8, 0.23, -0.3], color: "#ffc8d4", finish: satin, part: piglets }
+          - { shape: capsule, size: [0.24, 0.4, 0.22], offset: [0.3, 0.19, 0.75], rotation: [90, -60, 0], color: "#e8a8b8", finish: satin, part: piglets }
+          - { shape: sphere, size: [0.18, 0.16, 0.16], offset: [0.12, 0.23, 0.65], color: "#e8a8b8", finish: satin, part: piglets }
+      behaviors:
+        - { type: keyframes, part: pig-a, speed: 0.15, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [10, 10, 0] }, { t: 0.6, rotation: [10, -8, 0] }] }
+        - { type: keyframes, part: piglets, speed: 0.3, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.25, position: [0, 0.06, 0] }, { t: 0.5, position: [-0.1, 0, -0.1] }, { t: 0.75, position: [-0.1, 0.06, -0.1] }] }
+      states:
+        - { id: snuffling, name: Snuffling }
+        - { id: feeding, name: Eating, behaviors: [{ type: keyframes, part: pig-a, speed: 0.6, keys: [{ t: 0, rotation: [14, 0, 0] }, { t: 0.5, rotation: [20, 0, 0] }] }, { type: keyframes, part: piglets, speed: 0.8, keys: [{ t: 0, position: [-0.3, 0, -0.5] }, { t: 0.5, position: [-0.3, 0.05, -0.5] }] }] }
+      actions:
+        - { id: feed, name: Feed the pigs, state: feeding, seconds: 60, gesture: use }
+    milk-cans:
+      name: Milk cans
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [0.4, 0.6, 0.4], offset: [-0.3, 0.3, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.24, 0.16, 0.24], offset: [-0.3, 0.68, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.28, 0.04, 0.28], offset: [-0.3, 0.77, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.4, 0.6, 0.4], offset: [0.2, 0.3, 0.15], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.24, 0.16, 0.24], offset: [0.2, 0.68, 0.15], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.28, 0.04, 0.28], offset: [0.2, 0.77, 0.15], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.2, 0.12, 0.01], offset: [0.2, 0.35, 0.36], color: "#3d6fd9" }
+          - { shape: cylinder, size: [0.34, 0.5, 0.34], offset: [0.0, 0.25, -0.35], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.2, 0.12, 0.2], offset: [0.0, 0.56, -0.35], color: "#c9ced6", finish: metal }
+    water-trough:
+      name: Water trough
+      title: Water trough
+      category: dynamic
+      look:
+        parts:
+          - { shape: roundbox, size: [1.8, 0.5, 0.6], offset: [0, 0.25, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [1.7, 0.03, 0.5], offset: [0, 0.46, 0], color: "#5fb6d6", finish: gloss, opacity: 0.8, part: water }
+          - { shape: cylinder, size: [0.05, 0.9, 0.05], offset: [0.85, 0.45, -0.25], color: "#5d6b77", finish: metal }
+          - { shape: capsule, size: [0.04, 0.3, 0.04], offset: [0.75, 0.88, -0.25], rotation: [0, 0, 90], color: "#5d6b77", finish: metal }
+      behaviors:
+        - { type: flicker, part: water, speed: 0.4, amount: 0.4 }
+
+    # ---- Pasture & pond (1E)
+    cow:
+      name: Cow
+      title: Cows
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.7, 1.3, 0.6], offset: [0, 0.9, 0.0], rotation: [90, 0, 0], color: "#f4f4f0", finish: satin }
+          - { shape: sphere, size: [0.4, 0.32, 0.44], offset: [0.15, 1.05, 0.2], color: "#1b1b1f" }
+          - { shape: sphere, size: [0.3, 0.26, 0.36], offset: [-0.2, 0.98, -0.3], color: "#1b1b1f" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, -0.6], color: "#f4f4f0", part: head }
+          - { shape: roundbox, size: [0.38, 0.36, 0.44], offset: [0, 1.05, -0.85], color: "#f4f4f0", finish: satin, part: head }
+          - { shape: roundbox, size: [0.3, 0.18, 0.12], offset: [0, 0.94, -1.07], color: "#f7b8b8", finish: satin, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-0.1, 1.14, -1.07], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [0.1, 1.14, -1.07], color: "#14181f", finish: gloss, part: head }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [-0.15, 1.3, -0.83], color: "#f0e6c8", part: head }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [0.15, 1.3, -0.83], color: "#f0e6c8", part: head }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [-0.25, 1.18, -0.77], rotation: [0, 0, 30], color: "#1b1b1f", part: head }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [0.25, 1.18, -0.77], rotation: [0, 0, -30], color: "#1b1b1f", part: head }
+          - { shape: cylinder, size: [0.12, 0.1, 0.12], offset: [0, 0.84, -0.7], color: "#e0b13a", finish: metal, part: head }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, -0.35], color: "#f4f4f0" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, -0.35], color: "#f4f4f0" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, 0.35], color: "#f4f4f0" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, 0.35], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.18, 0.12, 0.18], offset: [0, 0.58, 0.2], color: "#f7b8b8" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.05, 0.62], color: "#f4f4f0", part: tail }
+          - { shape: capsule, size: [0.04, 0.5, 0.04], offset: [0, 0.82, 0.66], color: "#f4f4f0", part: tail }
+          - { shape: sphere, size: [0.08, 0.12, 0.08], offset: [0, 0.56, 0.66], color: "#1b1b1f", part: tail }
+      behaviors:
+        - { type: wander, speed: 0.06, amount: 2.2 }
+        - { type: keyframes, part: head, speed: 0.08, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [40, 0, 0] }, { t: 0.7, rotation: [40, 0, 0] }, { t: 0.85, rotation: [0, 10, 0] }] }
+        - { type: sway, part: tail, speed: 0.6, amount: 1 }
+    cow-brown:
+      name: Cow
+      title: Cows
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.7, 1.3, 0.6], offset: [0, 0.9, 0.0], rotation: [90, 0, 0], color: "#a0683a", finish: satin }
+          - { shape: sphere, size: [0.4, 0.32, 0.44], offset: [-0.15, 1.02, 0.25], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, -0.6], color: "#a0683a", part: head }
+          - { shape: roundbox, size: [0.38, 0.36, 0.44], offset: [0, 1.05, -0.85], color: "#a0683a", finish: satin, part: head }
+          - { shape: roundbox, size: [0.24, 0.36, 0.46], offset: [0, 1.07, -0.85], color: "#f4f4f0", finish: satin, part: head }
+          - { shape: roundbox, size: [0.3, 0.18, 0.12], offset: [0, 0.94, -1.07], color: "#f7b8b8", finish: satin, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-0.1, 1.14, -1.07], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [0.1, 1.14, -1.07], color: "#14181f", finish: gloss, part: head }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [-0.15, 1.3, -0.83], color: "#f0e6c8", part: head }
+          - { shape: cone, size: [0.05, 0.12, 0.05], offset: [0.15, 1.3, -0.83], color: "#f0e6c8", part: head }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [-0.25, 1.18, -0.77], rotation: [0, 0, 30], color: "#a0683a", part: head }
+          - { shape: sphere, size: [0.14, 0.06, 0.1], offset: [0.25, 1.18, -0.77], rotation: [0, 0, -30], color: "#a0683a", part: head }
+          - { shape: cylinder, size: [0.12, 0.1, 0.12], offset: [0, 0.84, -0.7], color: "#e0b13a", finish: metal, part: head }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, -0.35], color: "#a0683a" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, -0.35], color: "#a0683a" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.2, 0.3, 0.35], color: "#a0683a" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.2, 0.3, 0.35], color: "#a0683a" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.05, 0.62], color: "#a0683a", part: tail }
+          - { shape: capsule, size: [0.04, 0.5, 0.04], offset: [0, 0.82, 0.66], color: "#a0683a", part: tail }
+          - { shape: sphere, size: [0.08, 0.12, 0.08], offset: [0, 0.56, 0.66], color: "#5a3a1a", part: tail }
+      behaviors:
+        - { type: wander, speed: 0.05, amount: 2.4 }
+        - { type: keyframes, part: head, speed: 0.07, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.35, rotation: [40, 0, 0] }, { t: 0.75, rotation: [40, 0, 0] }, { t: 0.9, rotation: [0, -10, 0] }] }
+        - { type: sway, part: tail, speed: 0.5, amount: 1 }
+    sheep:
+      name: Sheep
+      title: Sheep
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.7, 0.55, 0.9], offset: [0, 0.65, 0], color: "#f7f3ea", finish: fabric }
+          - { shape: sphere, size: [0.3, 0.3, 0.3], offset: [-0.2, 0.85, 0.2], color: "#fbf8f1", finish: fabric }
+          - { shape: sphere, size: [0.3, 0.3, 0.3], offset: [0.18, 0.88, -0.15], color: "#fbf8f1", finish: fabric }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.75, -0.4], color: "#2b2620", part: head }
+          - { shape: sphere, size: [0.26, 0.3, 0.32], offset: [0, 0.75, -0.55], color: "#2b2620", finish: satin, part: head }
+          - { shape: sphere, size: [0.24, 0.14, 0.2], offset: [0, 0.9, -0.5], color: "#fbf8f1", finish: fabric, part: head }
+          - { shape: sphere, size: [0.14, 0.05, 0.08], offset: [-0.17, 0.8, -0.5], rotation: [0, 0, 30], color: "#2b2620", part: head }
+          - { shape: sphere, size: [0.14, 0.05, 0.08], offset: [0.17, 0.8, -0.5], rotation: [0, 0, -30], color: "#2b2620", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [-0.07, 0.78, -0.7], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: sphere, size: [0.04, 0.04, 0.03], offset: [0.07, 0.78, -0.7], color: "#ffffff", emissive: "#ffffff", part: head }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [-0.18, 0.2, -0.25], color: "#2b2620" }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [0.18, 0.2, -0.25], color: "#2b2620" }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [-0.18, 0.2, 0.25], color: "#2b2620" }
+          - { shape: capsule, size: [0.08, 0.4, 0.08], offset: [0.18, 0.2, 0.25], color: "#2b2620" }
+      behaviors:
+        - { type: wander, speed: 0.08, amount: 1.5 }
+        - { type: keyframes, part: head, speed: 0.1, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [35, 0, 0] }, { t: 0.65, rotation: [35, 0, 0] }, { t: 0.8, rotation: [0, 0, 0] }] }
+      states:
+        - { id: grazing, name: Grazing }
+        - { id: shearing, name: Being sheared, pose: happy, behaviors: [{ type: pulse, speed: 1, amount: 1 }] }
+      actions:
+        - { id: shear, name: Shear, state: shearing, seconds: 60, gesture: use }
+    windmill:
+      name: Windmill
+      title: Windmill
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.08, 3.4, 0.08], offset: [-0.4, 1.7, -0.4], rotation: [-6, 0, 6], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.08, 3.4, 0.08], offset: [0.4, 1.7, -0.4], rotation: [-6, 0, -6], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.08, 3.4, 0.08], offset: [-0.4, 1.7, 0.4], rotation: [6, 0, 6], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.08, 3.4, 0.08], offset: [0.4, 1.7, 0.4], rotation: [6, 0, -6], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.9, 0.04, 0.04], offset: [0, 1.1, -0.38], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.9, 0.04, 0.04], offset: [0, 2.2, -0.24], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.04, 0.04, 0.9], offset: [-0.38, 1.1, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.04, 0.04, 0.9], offset: [0.38, 1.1, 0], color: "#9aa3ad", finish: metal }
+          - { shape: roundbox, size: [0.3, 0.3, 0.6], offset: [0, 3.5, 0.05], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.02, 0.5, 0.8], offset: [0, 3.55, 0.65], color: "#c9ced6", finish: metal, part: tail }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 3.5, -0.3], color: "#9aa3ad", part: rotor }
+          - { shape: cylinder, size: [0.2, 0.12, 0.2], offset: [0, 3.5, -0.3], rotation: [90, 0, 0], color: "#a33a2c", finish: gloss, part: rotor }
+          - { shape: box, size: [0.16, 0.9, 0.02], offset: [0, 4.0, -0.32], color: "#f4f6f8", finish: satin, part: rotor }
+          - { shape: box, size: [0.16, 0.9, 0.02], offset: [0, 3.0, -0.32], color: "#f4f6f8", finish: satin, part: rotor }
+          - { shape: box, size: [0.9, 0.16, 0.02], offset: [0.5, 3.5, -0.32], color: "#f4f6f8", finish: satin, part: rotor }
+          - { shape: box, size: [0.9, 0.16, 0.02], offset: [-0.5, 3.5, -0.32], color: "#f4f6f8", finish: satin, part: rotor }
+          - { shape: cylinder, size: [0.7, 0.5, 0.7], offset: [0.9, 0.25, 0.3], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.6, 0.02, 0.6], offset: [0.9, 0.5, 0.3], color: "#5fb6d6", finish: gloss }
+      behaviors:
+        - { type: spin, part: rotor, axis: z, speed: 0.35 }
+        - { type: sway, part: tail, speed: 0.08, amount: 0.6, axis: y }
+    duck-pond:
+      name: Duck pond
+      title: Duck pond
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [3.2, 0.1, 2.4], offset: [0, 0.05, 0], color: "#8a7f74" }
+          - { shape: cylinder, size: [3.0, 0.06, 2.2], offset: [0, 0.1, 0], color: "#4fa8c9", finish: gloss, part: water }
+          - { shape: sphere, size: [0.4, 0.3, 0.3], offset: [-1.5, 0.15, 0.4], color: "#9a8f84" }
+          - { shape: sphere, size: [0.3, 0.24, 0.3], offset: [1.4, 0.14, -0.6], color: "#8f8478" }
+          - { shape: cylinder, size: [0.36, 0.02, 0.36], offset: [0.8, 0.14, 0.5], color: "#4a9a48", finish: satin }
+          - { shape: cylinder, size: [0.3, 0.02, 0.3], offset: [1.1, 0.14, 0.15], color: "#5bb86a", finish: satin }
+          - { shape: sphere, size: [0.12, 0.08, 0.12], offset: [0.8, 0.17, 0.5], color: "#ffb8e0", finish: satin }
+          - { shape: cylinder, size: [0.28, 0.02, 0.28], offset: [-0.9, 0.14, -0.6], color: "#4a9a48", finish: satin }
+          - { shape: cylinder, size: [0.03, 0.8, 0.03], offset: [-1.3, 0.5, -0.7], color: "#6b8f2e" }
+          - { shape: capsule, size: [0.07, 0.22, 0.07], offset: [-1.3, 0.92, -0.7], color: "#7a4a2a" }
+          - { shape: cylinder, size: [0.03, 0.7, 0.03], offset: [-1.2, 0.45, -0.85], color: "#6b8f2e" }
+          - { shape: capsule, size: [0.07, 0.2, 0.07], offset: [-1.2, 0.82, -0.85], color: "#7a4a2a" }
+          # Mother duck and two ducklings, paddling round the pond
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.15, 0], color: "#ffffff", part: ducks }
+          - { shape: sphere, size: [0.34, 0.22, 0.26], offset: [0.6, 0.22, 0], color: "#f4f1e8", finish: satin, part: ducks }
+          - { shape: sphere, size: [0.16, 0.16, 0.16], offset: [0.6, 0.38, -0.14], color: "#f4f1e8", finish: satin, part: ducks }
+          - { shape: cone, size: [0.08, 0.1, 0.04], offset: [0.6, 0.36, -0.25], rotation: [-90, 0, 0], color: "#ff9f1c", part: ducks }
+          - { shape: sphere, size: [0.03, 0.03, 0.02], offset: [0.55, 0.41, -0.2], color: "#14181f", part: ducks }
+          - { shape: sphere, size: [0.03, 0.03, 0.02], offset: [0.65, 0.41, -0.2], color: "#14181f", part: ducks }
+          - { shape: sphere, size: [0.16, 0.12, 0.14], offset: [0.6, 0.18, 0.32], color: "#ffd166", finish: satin, part: ducks }
+          - { shape: sphere, size: [0.09, 0.09, 0.09], offset: [0.6, 0.26, 0.26], color: "#ffd166", finish: satin, part: ducks }
+          - { shape: cone, size: [0.04, 0.05, 0.02], offset: [0.6, 0.25, 0.2], rotation: [-90, 0, 0], color: "#ff9f1c", part: ducks }
+          - { shape: sphere, size: [0.15, 0.11, 0.13], offset: [0.6, 0.18, 0.55], color: "#ffd166", finish: satin, part: ducks }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.6, 0.25, 0.49], color: "#ffd166", finish: satin, part: ducks }
+          - { shape: cone, size: [0.04, 0.05, 0.02], offset: [0.6, 0.24, 0.44], rotation: [-90, 0, 0], color: "#ff9f1c", part: ducks }
+      behaviors:
+        - { type: spin, part: ducks, speed: 0.04 }
+        - { type: flicker, part: water, speed: 0.3, amount: 0.3 }
+      states:
+        - { id: calm, name: Calm }
+        - { id: feeding, name: Ducks fed, behaviors: [{ type: spin, part: ducks, speed: 0.15 }] }
+      actions:
+        - { id: feed, name: Feed the ducks, state: feeding, seconds: 40, gesture: use }
+    oak-tree:
+      name: Oak tree
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.36, 1.8, 0.36], offset: [0, 0.9, 0], color: "#6b4226", finish: satin }
+          - { shape: cylinder, size: [0.12, 0.8, 0.12], offset: [0.3, 1.7, 0.1], rotation: [0, 0, -40], color: "#6b4226" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.0, 0], color: "#3f8a3e", part: crown }
+          - { shape: sphere, size: [2.2, 1.6, 2.0], offset: [0, 2.6, 0], color: "#3f8a3e", finish: satin, part: crown }
+          - { shape: sphere, size: [1.3, 1.1, 1.3], offset: [0.7, 2.9, 0.4], color: "#4a9a48", finish: satin, part: crown }
+          - { shape: sphere, size: [1.2, 1.0, 1.2], offset: [-0.7, 2.4, -0.4], color: "#357a35", finish: satin, part: crown }
+          - { shape: sphere, size: [1.0, 0.9, 1.0], offset: [-0.2, 3.3, 0.3], color: "#5bb86a", finish: satin, part: crown }
+          - { shape: cylinder, size: [2.2, 0.02, 2.0], offset: [0, 0.02, 0], color: "#6fa04a" }
+          # A swing on the low branch
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.75, 1.95, 0.1], color: "#c49a6c", part: swing }
+          - { shape: cylinder, size: [0.015, 1.4, 0.015], offset: [0.6, 1.25, 0.1], color: "#c49a6c", part: swing }
+          - { shape: cylinder, size: [0.015, 1.4, 0.015], offset: [0.9, 1.25, 0.1], color: "#c49a6c", part: swing }
+          - { shape: box, size: [0.45, 0.04, 0.2], offset: [0.75, 0.55, 0.1], color: "#a0683a", part: swing }
+      behaviors:
+        - { type: sway, part: crown, speed: 0.15, amount: 0.15 }
+        - { type: sway, part: swing, speed: 0.3, amount: 0.8, axis: x }
+
+    # ---- Orchard & bees (1F)
+    apple-tree:
+      name: Apple tree
+      title: Apple orchard
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.24, 1.2, 0.24], offset: [0, 0.6, 0], color: "#7a5230", finish: satin }
+          - { shape: cylinder, size: [0.08, 0.6, 0.08], offset: [0.2, 1.25, 0], rotation: [0, 0, -35], color: "#7a5230" }
+          - { shape: cylinder, size: [0.08, 0.6, 0.08], offset: [-0.2, 1.25, 0.05], rotation: [0, 0, 35], color: "#7a5230" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.4, 0], color: "#4a9a48", part: crown }
+          - { shape: sphere, size: [1.6, 1.2, 1.5], offset: [0, 1.9, 0], color: "#4a9a48", finish: satin, part: crown }
+          - { shape: sphere, size: [0.9, 0.8, 0.9], offset: [0.5, 2.2, 0.3], color: "#5bb86a", finish: satin, part: crown }
+          - { shape: sphere, size: [0.8, 0.7, 0.8], offset: [-0.5, 1.8, -0.3], color: "#3f8a3e", finish: satin, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.6, 1.75, 0.5], color: "#e8302a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.4, 2.1, 0.6], color: "#e8302a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.1, 2.3, 0.7], color: "#ff5a3c", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.75, 2.05, -0.2], color: "#e8302a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.7, 1.7, 0.2], color: "#ff5a3c", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.3, 1.5, 0.65], color: "#e8302a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.2, 2.5, 0.3], color: "#f0c05a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [0.5, 2.5, 0.2], color: "#e8302a", finish: gloss, part: crown }
+          - { shape: sphere, size: [0.13, 0.1, 0.13], offset: [0.5, 0.05, 0.4], color: "#e8302a", finish: gloss }
+          - { shape: cylinder, size: [1.6, 0.02, 1.5], offset: [0, 0.02, 0], color: "#7fb05a" }
+      behaviors:
+        - { type: sway, part: crown, speed: 0.18, amount: 0.15 }
+      states:
+        - { id: growing, name: Growing }
+        - { id: picking, name: Being picked, behaviors: [{ type: sway, part: crown, speed: 1, amount: 0.4 }] }
+      actions:
+        - { id: pick, name: Pick apples, state: picking, seconds: 90, gesture: use }
+    beehives:
+      name: Beehives
+      title: Beehives
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.3, 0.6], offset: [0, 0.15, 0], color: "#7a5230" }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [-0.8, 0.45, 0], color: "#f0c05a", finish: satin }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [-0.8, 0.76, 0], color: "#ffffff", finish: satin }
+          - { shape: box, size: [0.68, 0.06, 0.64], offset: [-0.8, 0.94, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [0, 0.45, 0], color: "#9ccf8a", finish: satin }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [0, 0.76, 0], color: "#f0c05a", finish: satin }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [0, 1.07, 0], color: "#ffffff", finish: satin }
+          - { shape: box, size: [0.68, 0.06, 0.64], offset: [0, 1.25, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [0.8, 0.45, 0], color: "#b8e0ff", finish: satin }
+          - { shape: box, size: [0.6, 0.3, 0.56], offset: [0.8, 0.76, 0], color: "#ffb8c8", finish: satin }
+          - { shape: box, size: [0.68, 0.06, 0.64], offset: [0.8, 0.94, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.2, 0.04, 0.02], offset: [-0.8, 0.33, -0.29], color: "#2b2b2b" }
+          - { shape: box, size: [0.2, 0.04, 0.02], offset: [0, 0.33, -0.29], color: "#2b2b2b" }
+          - { shape: box, size: [0.2, 0.04, 0.02], offset: [0.8, 0.33, -0.29], color: "#2b2b2b" }
+          # Bees in orbit round the hives
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, 0], color: "#ffd23f", part: bees-a }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [1.2, 1.3, 0], color: "#ffd23f", emissive: "#a88400", part: bees-a }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [-1.0, 1.1, 0.5], color: "#ffd23f", emissive: "#a88400", part: bees-a }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [0.3, 1.5, -0.9], color: "#ffd23f", emissive: "#a88400", part: bees-a }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [-0.4, 1.6, 0.8], color: "#ffd23f", emissive: "#a88400", part: bees-a }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.0, 0], color: "#ffd23f", part: bees-b }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [0.8, 1.7, 0.6], color: "#ffd23f", emissive: "#a88400", part: bees-b }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [-1.3, 1.4, -0.3], color: "#ffd23f", emissive: "#a88400", part: bees-b }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [0.1, 1.2, 1.1], color: "#ffd23f", emissive: "#a88400", part: bees-b }
+          - { shape: sphere, size: [0.07, 0.05, 0.05], offset: [0.9, 1.1, -0.7], color: "#ffd23f", emissive: "#a88400", part: bees-b }
+          # Lavender beside them
+          - { shape: sphere, size: [0.5, 0.3, 0.4], offset: [-0.9, 0.12, 0.6], color: "#6b8f4e", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.14, 0.3], offset: [-0.9, 0.32, 0.6], color: "#9b6bd1", finish: fabric }
+          - { shape: sphere, size: [0.5, 0.3, 0.4], offset: [0.9, 0.12, 0.62], color: "#6b8f4e", finish: fabric }
+          - { shape: sphere, size: [0.4, 0.14, 0.3], offset: [0.9, 0.32, 0.62], color: "#9b6bd1", finish: fabric }
+      behaviors:
+        - { type: spin, part: bees-a, speed: 0.25 }
+        - { type: spin, part: bees-b, speed: 0.13 }
+      states:
+        - { id: humming, name: Humming }
+        - { id: inspecting, name: Being inspected, behaviors: [{ type: spin, part: bees-a, speed: 0.8 }, { type: spin, part: bees-b, speed: 0.55 }, { type: pulse, part: bees-a, speed: 2, amount: 2 }] }
+      actions:
+        - { id: inspect, name: Inspect the hives, state: inspecting, seconds: 90, gesture: use }
+    fruit-crates:
+      name: Fruit crates
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [-0.35, 0.18, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.54, 0.04, 0.4], offset: [-0.35, 0.34, 0], color: "#e8302a" }
+          - { shape: sphere, size: [0.12, 0.1, 0.12], offset: [-0.5, 0.38, 0.1], color: "#e8302a", finish: gloss }
+          - { shape: sphere, size: [0.12, 0.1, 0.12], offset: [-0.25, 0.38, -0.08], color: "#ff5a3c", finish: gloss }
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [0.35, 0.18, 0.05], color: "#b88a5a", finish: satin }
+          - { shape: box, size: [0.54, 0.04, 0.4], offset: [0.35, 0.34, 0.05], color: "#9ccf6a" }
+          - { shape: sphere, size: [0.12, 0.1, 0.12], offset: [0.25, 0.38, 0.12], color: "#9ccf6a", finish: gloss }
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [0, 0.54, 0.02], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.54, 0.04, 0.4], offset: [0, 0.7, 0.02], color: "#e8302a" }
+          - { shape: sphere, size: [0.12, 0.1, 0.12], offset: [0.1, 0.74, 0.05], color: "#e8302a", finish: gloss }
+          - { shape: cylinder, size: [0.04, 2.0, 0.04], offset: [0.7, 0.9, -0.3], rotation: [-15, 0, 0], color: "#a0683a" }
+          - { shape: cylinder, size: [0.04, 2.0, 0.04], offset: [1.0, 0.9, -0.3], rotation: [-15, 0, 0], color: "#a0683a" }
+          - { shape: box, size: [0.34, 0.03, 0.04], offset: [0.85, 0.5, -0.2], rotation: [-15, 0, 0], color: "#a0683a" }
+          - { shape: box, size: [0.34, 0.03, 0.04], offset: [0.85, 1.0, -0.33], rotation: [-15, 0, 0], color: "#a0683a" }
+          - { shape: box, size: [0.34, 0.03, 0.04], offset: [0.85, 1.5, -0.46], rotation: [-15, 0, 0], color: "#a0683a" }
+
+    # ---- Greenhouse (1K)
+    greenhouse-bench:
+      name: Seedling bench
+      title: Greenhouse
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [0.8, 0.05, 3.0], offset: [0, 0.8, 0], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [-0.35, 0.4, -1.4], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [0.35, 0.4, -1.4], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [-0.35, 0.4, 1.4], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [0.35, 0.4, 1.4], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.6, 0.08, 0.9], offset: [0, 0.87, -0.95], color: "#2b2b2b" }
+          - { shape: box, size: [0.6, 0.08, 0.9], offset: [0, 0.87, 0.0], color: "#2b2b2b" }
+          - { shape: box, size: [0.6, 0.08, 0.9], offset: [0, 0.87, 0.95], color: "#2b2b2b" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.92, 0], color: "#5bb86a", part: sprouts }
+          - { shape: sphere, size: [0.5, 0.12, 0.8], offset: [0, 0.95, -0.95], color: "#7fd36b", finish: satin, part: sprouts }
+          - { shape: sphere, size: [0.5, 0.16, 0.8], offset: [0, 0.97, 0.0], color: "#5bb86a", finish: satin, part: sprouts }
+          - { shape: sphere, size: [0.5, 0.2, 0.8], offset: [0, 0.99, 0.95], color: "#4a9a48", finish: satin, part: sprouts }
+          - { shape: box, size: [0.7, 0.03, 0.06], offset: [0, 2.2, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.5, 0.06, 2.8], offset: [0, 2.15, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.44, 0.02, 2.7], offset: [0, 2.11, 0], color: "#ffd1f0", emissive: "#ff8fdc", part: lamp }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0, 1.9, -1.0], color: "#bfe8f5", finish: glass, opacity: 0.6, part: mist }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.1, 1.8, 0.0], color: "#bfe8f5", finish: glass, opacity: 0.6, part: mist }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [-0.1, 1.85, 1.0], color: "#bfe8f5", finish: glass, opacity: 0.6, part: mist }
+      behaviors:
+        - { type: flicker, part: lamp, speed: 0.2, amount: 0.3 }
+        - { type: keyframes, part: mist, speed: 0.1, keys: [{ t: 0, scale: 0.01 }, { t: 0.5, scale: 0.01 }] }
+      states:
+        - { id: growing, name: Growing }
+        - { id: misting, name: Misting, glow: 2, behaviors: [{ type: keyframes, part: mist, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0], scale: 1 }, { t: 0.95, position: [0, -0.8, 0], scale: 1.5 }] }, { type: pulse, part: sprouts, speed: 0.5, amount: 0.6 }] }
+      actions:
+        - { id: mist, name: Mist the seedlings, state: misting, seconds: 60, gesture: use }
+    tomato-vines:
+      name: Tomato vines
+      title: Greenhouse
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [2.4, 0.3, 0.5], offset: [0, 0.15, 0], color: "#5a3e24" }
+          - { shape: box, size: [2.4, 0.03, 0.03], offset: [0, 2.0, 0], color: "#9aa3ad", finish: metal }
+          - { shape: cylinder, size: [0.01, 1.7, 0.01], offset: [-0.8, 1.15, 0], color: "#e8e8e8" }
+          - { shape: cylinder, size: [0.01, 1.7, 0.01], offset: [0, 1.15, 0], color: "#e8e8e8" }
+          - { shape: cylinder, size: [0.01, 1.7, 0.01], offset: [0.8, 1.15, 0], color: "#e8e8e8" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.3, 0], color: "#3f8a3e", part: vines }
+          - { shape: capsule, size: [0.4, 1.6, 0.36], offset: [-0.8, 1.1, 0], color: "#3f8a3e", finish: satin, part: vines }
+          - { shape: capsule, size: [0.4, 1.6, 0.36], offset: [0, 1.1, 0], color: "#4a9a48", finish: satin, part: vines }
+          - { shape: capsule, size: [0.4, 1.6, 0.36], offset: [0.8, 1.1, 0], color: "#3f8a3e", finish: satin, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [-0.7, 0.9, 0.18], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [-0.9, 1.4, 0.17], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0.1, 1.2, 0.18], color: "#ff8a3c", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [-0.1, 0.7, 0.18], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0.9, 1.0, 0.18], color: "#e8302a", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0.7, 1.55, 0.17], color: "#7fd36b", finish: gloss, part: vines }
+          - { shape: sphere, size: [0.12, 0.12, 0.12], offset: [0.0, 1.7, 0.17], color: "#e8302a", finish: gloss, part: vines }
+      behaviors:
+        - { type: sway, part: vines, speed: 0.2, amount: 0.08 }
+    potting-table:
+      name: Potting table
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.4, 0.06, 0.6], offset: [0, 0.85, 0], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.06, 0.82, 0.54], offset: [-0.64, 0.41, 0], color: "#7a5230" }
+          - { shape: box, size: [0.06, 0.82, 0.54], offset: [0.64, 0.41, 0], color: "#7a5230" }
+          - { shape: box, size: [1.3, 0.04, 0.5], offset: [0, 0.3, 0], color: "#7a5230" }
+          - { shape: cylinder, size: [0.18, 0.16, 0.18], offset: [-0.4, 0.96, 0.1], color: "#c0772f", finish: satin }
+          - { shape: sphere, size: [0.2, 0.18, 0.2], offset: [-0.4, 1.1, 0.1], color: "#5bb86a", finish: satin }
+          - { shape: cylinder, size: [0.18, 0.16, 0.18], offset: [-0.1, 0.96, -0.12], color: "#c0772f", finish: satin }
+          - { shape: sphere, size: [0.16, 0.2, 0.16], offset: [-0.1, 1.12, -0.12], color: "#7fd36b", finish: satin }
+          - { shape: roundbox, size: [0.4, 0.2, 0.3], offset: [0.4, 0.98, 0], color: "#5a3e24", finish: fabric }
+          - { shape: cylinder, size: [0.2, 0.22, 0.2], offset: [0.3, 0.42, 0.05], color: "#3d6fd9", finish: gloss }
+          - { shape: capsule, size: [0.04, 0.3, 0.04], offset: [0.45, 0.55, 0.05], rotation: [0, 0, -50], color: "#3d6fd9", finish: gloss }
+
+    # ---- Chicken run (1G)
+    chicken-coop:
+      name: Chicken coop
+      title: Chickens
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [1.6, 0.9, 1.2], offset: [0, 0.95, 0], color: "#f2e3c4", finish: satin }
+          - { shape: box, size: [0.08, 0.5, 0.08], offset: [-0.7, 0.25, -0.5], color: "#8a5a2e" }
+          - { shape: box, size: [0.08, 0.5, 0.08], offset: [0.7, 0.25, -0.5], color: "#8a5a2e" }
+          - { shape: box, size: [0.08, 0.5, 0.08], offset: [-0.7, 0.25, 0.5], color: "#8a5a2e" }
+          - { shape: box, size: [0.08, 0.5, 0.08], offset: [0.7, 0.25, 0.5], color: "#8a5a2e" }
+          - { shape: extrude, size: [1.8, 0.6, 1.4], offset: [0, 1.7, 0], color: "#a33a2c", finish: satin, points: [[-1, 0], [0, 1], [1, 0]] }
+          - { shape: box, size: [0.4, 0.4, 0.02], offset: [-0.3, 0.95, 0.61], color: "#2b1d14" }
+          - { shape: box, size: [0.4, 0.04, 1.0], offset: [-0.3, 0.3, 1.0], rotation: [-30, 0, 0], color: "#a0683a" }
+          - { shape: roundbox, size: [0.5, 0.3, 0.4], offset: [0.95, 0.85, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.46, 0.04, 0.36], offset: [0.95, 1.01, 0], color: "#e0b85a" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0.95, 1.05, 0], color: "#ffffff", part: eggs }
+          - { shape: sphere, size: [0.07, 0.09, 0.07], offset: [0.88, 1.06, 0.05], color: "#f7efe0", finish: gloss, part: eggs }
+          - { shape: sphere, size: [0.07, 0.09, 0.07], offset: [1.0, 1.06, -0.05], color: "#e8c8a0", finish: gloss, part: eggs }
+          - { shape: sphere, size: [0.07, 0.09, 0.07], offset: [1.04, 1.06, 0.08], color: "#f7efe0", finish: gloss, part: eggs }
+          - { shape: box, size: [0.3, 0.2, 0.01], offset: [0.3, 1.1, 0.61], color: "#ffd166" }
+          - { shape: sphere, size: [0.18, 0.12, 0.01], offset: [0.3, 1.1, 0.62], color: "#e8503a" }
+      behaviors:
+        - { type: pulse, part: eggs, speed: 0.2, amount: 0.5 }
+      states:
+        - { id: laying, name: Hens laying }
+        - { id: collecting, name: Eggs collected, behaviors: [{ type: keyframes, part: eggs, speed: 0.2, keys: [{ t: 0, scale: 1 }, { t: 0.5, scale: 0.01 }, { t: 0.95, scale: 0.01 }] }] }
+      actions:
+        - { id: collect-eggs, name: Collect eggs, state: collecting, seconds: 60, gesture: use }
+        - { id: feed, name: Scatter feed, state: laying, seconds: 30, gesture: use }
+    hen:
+      name: Hen
+      title: Chickens
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.32, 0.3, 0.42], offset: [0, 0.32, 0], color: "#c4703a", finish: satin }
+          - { shape: sphere, size: [0.2, 0.2, 0.26], offset: [0, 0.38, 0.14], color: "#a85a2a", finish: satin }
+          - { shape: cone, size: [0.16, 0.22, 0.1], offset: [0, 0.45, 0.24], rotation: [40, 0, 0], color: "#8a4a22" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.4, -0.15], color: "#c4703a", part: head }
+          - { shape: sphere, size: [0.17, 0.18, 0.17], offset: [0, 0.52, -0.2], color: "#c4703a", finish: satin, part: head }
+          - { shape: cone, size: [0.05, 0.08, 0.04], offset: [0, 0.5, -0.3], rotation: [-90, 0, 0], color: "#f0b030", part: head }
+          - { shape: box, size: [0.03, 0.07, 0.08], offset: [0, 0.62, -0.2], color: "#e8302a", part: head }
+          - { shape: sphere, size: [0.04, 0.05, 0.03], offset: [0, 0.45, -0.28], color: "#e8302a", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [-0.06, 0.55, -0.27], color: "#14181f", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [0.06, 0.55, -0.27], color: "#14181f", part: head }
+          - { shape: cylinder, size: [0.025, 0.2, 0.025], offset: [-0.06, 0.1, 0], color: "#f0b030" }
+          - { shape: cylinder, size: [0.025, 0.2, 0.025], offset: [0.06, 0.1, 0], color: "#f0b030" }
+      behaviors:
+        - { type: wander, speed: 0.25, amount: 1.4 }
+        - { type: keyframes, part: head, speed: 0.6, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.2, rotation: [50, 0, 0] }, { t: 0.3, rotation: [0, 0, 0] }, { t: 0.6, rotation: [0, 20, 0] }] }
+    hen-white:
+      name: Hen
+      title: Chickens
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.32, 0.3, 0.42], offset: [0, 0.32, 0], color: "#f7f3ea", finish: satin }
+          - { shape: sphere, size: [0.2, 0.2, 0.26], offset: [0, 0.38, 0.14], color: "#ece6d8", finish: satin }
+          - { shape: cone, size: [0.16, 0.22, 0.1], offset: [0, 0.45, 0.24], rotation: [40, 0, 0], color: "#e0d8c8" }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.4, -0.15], color: "#f7f3ea", part: head }
+          - { shape: sphere, size: [0.17, 0.18, 0.17], offset: [0, 0.52, -0.2], color: "#f7f3ea", finish: satin, part: head }
+          - { shape: cone, size: [0.05, 0.08, 0.04], offset: [0, 0.5, -0.3], rotation: [-90, 0, 0], color: "#f0b030", part: head }
+          - { shape: box, size: [0.03, 0.07, 0.08], offset: [0, 0.62, -0.2], color: "#e8302a", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [-0.06, 0.55, -0.27], color: "#14181f", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [0.06, 0.55, -0.27], color: "#14181f", part: head }
+          - { shape: cylinder, size: [0.025, 0.2, 0.025], offset: [-0.06, 0.1, 0], color: "#f0b030" }
+          - { shape: cylinder, size: [0.025, 0.2, 0.025], offset: [0.06, 0.1, 0], color: "#f0b030" }
+      behaviors:
+        - { type: wander, speed: 0.3, amount: 1.2 }
+        - { type: keyframes, part: head, speed: 0.7, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.15, rotation: [50, 0, 0] }, { t: 0.25, rotation: [0, 0, 0] }, { t: 0.7, rotation: [0, -20, 0] }] }
+    # The rooster on his post: he crows now and then.
+    rooster:
+      name: Rooster
+      title: Chickens
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.14, 0.9, 0.14], offset: [0, 0.45, 0], color: "#8a5a2e" }
+          - { shape: sphere, size: [0.3, 0.3, 0.4], offset: [0, 1.12, 0], color: "#b5401f", finish: satin }
+          - { shape: sphere, size: [0.2, 0.22, 0.24], offset: [0, 1.15, 0.12], color: "#2f6b3a", finish: gloss }
+          - { shape: cone, size: [0.08, 0.4, 0.2], offset: [0, 1.35, 0.28], rotation: [40, 0, 0], color: "#1f4a6b", finish: gloss }
+          - { shape: cone, size: [0.08, 0.36, 0.18], offset: [0, 1.3, 0.32], rotation: [60, 0, 0], color: "#2f6b3a", finish: gloss }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 1.22, -0.12], color: "#b5401f", part: head }
+          - { shape: sphere, size: [0.17, 0.2, 0.17], offset: [0, 1.36, -0.16], color: "#e0a030", finish: satin, part: head }
+          - { shape: cone, size: [0.05, 0.08, 0.04], offset: [0, 1.36, -0.26], rotation: [-90, 0, 0], color: "#f0c040", part: head }
+          - { shape: box, size: [0.03, 0.1, 0.14], offset: [0, 1.5, -0.16], color: "#e8302a", part: head }
+          - { shape: sphere, size: [0.05, 0.07, 0.03], offset: [0, 1.29, -0.24], color: "#e8302a", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [-0.06, 1.39, -0.23], color: "#14181f", part: head }
+          - { shape: sphere, size: [0.025, 0.025, 0.02], offset: [0.06, 1.39, -0.23], color: "#14181f", part: head }
+      behaviors:
+        - { type: keyframes, part: head, speed: 0.08, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.7, rotation: [0, 0, 0] }, { t: 0.75, rotation: [-40, 0, 0] }, { t: 0.88, rotation: [-40, 0, 0] }, { t: 0.93, rotation: [0, 0, 0] }] }
+    feed-scatter:
+      name: Feed
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [1.2, 0.01, 0.9], offset: [0, 0.01, 0], color: "#e0c070" }
+          - { shape: cylinder, size: [0.36, 0.4, 0.36], offset: [0.7, 0.2, 0.3], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.5, 0.06, 0.5], offset: [0.7, 0.03, 0.3], color: "#9aa3ad", finish: metal }
+          - { shape: cone, size: [0.4, 0.14, 0.4], offset: [0.7, 0.47, 0.3], color: "#9aa3ad", finish: metal }
+
+    # ---- Farm shop (1H)
+    market-stall:
+      name: Vegetable stall
+      title: Farm shop
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.8, 0.8], offset: [0, 0.4, 0], color: "#a0683a", finish: satin }
+          - { shape: box, size: [2.2, 0.08, 0.9], offset: [0, 0.85, 0.05], rotation: [-12, 0, 0], color: "#7a5230" }
+          - { shape: box, size: [0.6, 0.1, 0.7], offset: [-0.75, 0.93, 0.05], rotation: [-12, 0, 0], color: "#c49a6c" }
+          - { shape: sphere, size: [0.5, 0.14, 0.5], offset: [-0.75, 0.99, 0.08], rotation: [-12, 0, 0], color: "#e8302a", finish: satin }
+          - { shape: box, size: [0.6, 0.1, 0.7], offset: [0, 0.93, 0.05], rotation: [-12, 0, 0], color: "#c49a6c" }
+          - { shape: sphere, size: [0.5, 0.14, 0.5], offset: [0, 0.99, 0.08], rotation: [-12, 0, 0], color: "#ff8a1a", finish: satin }
+          - { shape: box, size: [0.6, 0.1, 0.7], offset: [0.75, 0.93, 0.05], rotation: [-12, 0, 0], color: "#c49a6c" }
+          - { shape: sphere, size: [0.5, 0.14, 0.5], offset: [0.75, 0.99, 0.08], rotation: [-12, 0, 0], color: "#7fd36b", finish: satin }
+          - { shape: cylinder, size: [0.05, 2.2, 0.05], offset: [-1.05, 1.1, -0.35], color: "#7a5230" }
+          - { shape: cylinder, size: [0.05, 2.2, 0.05], offset: [1.05, 1.1, -0.35], color: "#7a5230" }
+          - { shape: box, size: [2.4, 0.04, 1.2], offset: [0, 2.2, 0.1], rotation: [-15, 0, 0], color: "#e8503a", finish: fabric }
+          - { shape: box, size: [2.4, 0.2, 0.02], offset: [0, 2.05, 0.68], color: "#fff3e0", finish: fabric }
+          - { shape: box, size: [0.4, 0.22, 0.02], offset: [0.5, 0.55, 0.41], color: "#2b2b2b" }
+          - { shape: box, size: [0.3, 0.03, 0.01], offset: [0.5, 0.58, 0.425], color: "#ffffff" }
+    fruit-stall:
+      name: Fruit & honey stall
+      title: Farm shop
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [2.2, 0.8, 0.8], offset: [0, 0.4, 0], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [2.2, 0.08, 0.9], offset: [0, 0.85, 0.05], color: "#7a5230" }
+          - { shape: box, size: [0.6, 0.2, 0.5], offset: [-0.7, 0.98, 0.05], color: "#a0683a" }
+          - { shape: sphere, size: [0.13, 0.12, 0.13], offset: [-0.8, 1.12, 0.0], color: "#e8302a", finish: gloss }
+          - { shape: sphere, size: [0.13, 0.12, 0.13], offset: [-0.62, 1.12, 0.12], color: "#ff5a3c", finish: gloss }
+          - { shape: sphere, size: [0.13, 0.12, 0.13], offset: [-0.65, 1.12, -0.1], color: "#e8302a", finish: gloss }
+          - { shape: sphere, size: [0.13, 0.12, 0.13], offset: [-0.85, 1.12, 0.15], color: "#9ccf6a", finish: gloss }
+          - { shape: cylinder, size: [0.14, 0.2, 0.14], offset: [0.2, 0.99, 0.0], color: "#f0a020", emissive: "#a86a00", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.04, 0.15], offset: [0.2, 1.11, 0.0], color: "#e8c27a", finish: fabric }
+          - { shape: cylinder, size: [0.14, 0.2, 0.14], offset: [0.4, 0.99, 0.1], color: "#f0a020", emissive: "#a86a00", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.04, 0.15], offset: [0.4, 1.11, 0.1], color: "#e8c27a", finish: fabric }
+          - { shape: cylinder, size: [0.14, 0.2, 0.14], offset: [0.3, 0.99, -0.15], color: "#f0a020", emissive: "#a86a00", finish: glass }
+          - { shape: cylinder, size: [0.15, 0.04, 0.15], offset: [0.3, 1.11, -0.15], color: "#e8c27a", finish: fabric }
+          - { shape: roundbox, size: [0.5, 0.18, 0.35], offset: [0.8, 0.98, 0.05], color: "#c49a6c", finish: fabric }
+          - { shape: sphere, size: [0.08, 0.1, 0.08], offset: [0.7, 1.1, 0.05], color: "#f7efe0", finish: gloss }
+          - { shape: sphere, size: [0.08, 0.1, 0.08], offset: [0.82, 1.1, 0.0], color: "#e8c8a0", finish: gloss }
+          - { shape: sphere, size: [0.08, 0.1, 0.08], offset: [0.92, 1.1, 0.1], color: "#f7efe0", finish: gloss }
+          - { shape: cylinder, size: [0.05, 2.2, 0.05], offset: [-1.05, 1.1, -0.35], color: "#7a5230" }
+          - { shape: cylinder, size: [0.05, 2.2, 0.05], offset: [1.05, 1.1, -0.35], color: "#7a5230" }
+          - { shape: box, size: [2.4, 0.04, 1.2], offset: [0, 2.2, 0.1], rotation: [-15, 0, 0], color: "#4f9a3a", finish: fabric }
+          - { shape: box, size: [2.4, 0.2, 0.02], offset: [0, 2.05, 0.68], color: "#fff3e0", finish: fabric }
+    dairy-fridge:
+      name: Dairy fridge
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 1.9, 0.7], offset: [0, 0.95, 0], color: "#f4f6f8", finish: satin }
+          - { shape: box, size: [0.86, 1.6, 0.02], offset: [0, 1.0, 0.36], color: "#dff6ff", finish: glass }
+          - { shape: box, size: [0.86, 0.02, 0.6], offset: [0, 0.6, 0.02], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.86, 0.02, 0.6], offset: [0, 1.05, 0.02], color: "#c9ced6", finish: metal }
+          - { shape: box, size: [0.86, 0.02, 0.6], offset: [0, 1.5, 0.02], color: "#c9ced6", finish: metal }
+          - { shape: cylinder, size: [0.1, 0.26, 0.1], offset: [-0.3, 0.75, 0.1], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.26, 0.1], offset: [-0.15, 0.75, 0.1], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.1, 0.26, 0.1], offset: [0.0, 0.75, 0.1], color: "#ffffff", finish: gloss }
+          - { shape: cylinder, size: [0.25, 0.14, 0.25], offset: [0.25, 1.13, 0.1], color: "#f0c05a", finish: satin }
+          - { shape: cylinder, size: [0.25, 0.14, 0.25], offset: [-0.2, 1.13, 0.1], color: "#f7e6a0", finish: satin }
+          - { shape: box, size: [0.3, 0.2, 0.2], offset: [0.1, 1.62, 0.1], color: "#c49a6c" }
+          - { shape: box, size: [0.8, 0.12, 0.01], offset: [0, 1.82, 0.36], color: "#3d6fd9", emissive: "#7fc4ff" }
+    produce-crates:
+      name: Crates
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [-0.35, 0.18, 0], color: "#c49a6c", finish: satin }
+          - { shape: sphere, size: [0.5, 0.14, 0.38], offset: [-0.35, 0.38, 0], color: "#ff8a1a", finish: satin }
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [0.35, 0.18, 0.05], color: "#b88a5a", finish: satin }
+          - { shape: sphere, size: [0.5, 0.14, 0.38], offset: [0.35, 0.38, 0.05], color: "#9b6bd1", finish: satin }
+          - { shape: box, size: [0.6, 0.36, 0.45], offset: [0, 0.54, 0.02], color: "#c49a6c", finish: satin }
+          - { shape: sphere, size: [0.5, 0.14, 0.38], offset: [0, 0.74, 0.02], color: "#7fd36b", finish: satin }
+          - { shape: roundbox, size: [0.4, 0.5, 0.3], offset: [0.95, 0.25, 0], color: "#d9c48e", finish: fabric }
+          - { shape: box, size: [0.2, 0.12, 0.01], offset: [0.95, 0.3, 0.155], color: "#a33a2c" }
+
+    # ---- Machine shed (1I)
+    seed-sacks:
+      name: Seed sacks
+      category: static
+      look:
+        parts:
+          - { shape: capsule, size: [0.5, 0.7, 0.4], offset: [-0.35, 0.35, 0], color: "#d9c48e", finish: fabric }
+          - { shape: capsule, size: [0.5, 0.7, 0.4], offset: [0.2, 0.35, 0.1], color: "#e0cc9a", finish: fabric }
+          - { shape: capsule, size: [0.5, 0.7, 0.4], offset: [-0.05, 0.75, 0.05], rotation: [0, 0, 90], color: "#cbb37a", finish: fabric }
+          - { shape: box, size: [0.2, 0.16, 0.01], offset: [-0.35, 0.4, 0.2], color: "#4f9a3a" }
+          - { shape: box, size: [0.2, 0.16, 0.01], offset: [0.2, 0.4, 0.3], color: "#d9a520" }
+    workbench:
+      name: Workbench
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [2.0, 0.08, 0.7], offset: [0, 0.9, 0], color: "#a0683a", finish: satin }
+          - { shape: box, size: [0.08, 0.86, 0.6], offset: [-0.9, 0.43, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.08, 0.86, 0.6], offset: [0.9, 0.43, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [2.0, 1.0, 0.04], offset: [0, 1.6, -0.33], color: "#c49a6c", finish: satin }
+          - { shape: box, size: [0.06, 0.4, 0.04], offset: [-0.7, 1.6, -0.28], color: "#d6302a" }
+          - { shape: box, size: [0.25, 0.06, 0.04], offset: [-0.7, 1.82, -0.28], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.05, 0.5, 0.04], offset: [-0.4, 1.55, -0.28], color: "#7a5230" }
+          - { shape: cone, size: [0.2, 0.2, 0.04], offset: [-0.4, 1.85, -0.28], rotation: [0, 0, 180], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.3, 0.3, 0.3], offset: [0.2, 1.6, -0.28], color: "#3d6fd9" }
+          - { shape: box, size: [0.04, 0.4, 0.04], offset: [0.6, 1.55, -0.28], color: "#5d6b77", finish: metal }
+          - { shape: roundbox, size: [0.5, 0.25, 0.3], offset: [0.5, 1.07, 0], color: "#d6302a", finish: gloss }
+          - { shape: cylinder, size: [0.2, 0.3, 0.2], offset: [-0.5, 1.09, 0.05], color: "#e0b13a", finish: gloss }
+    fuel-tank:
+      name: Fuel tank
+      category: static
+      look:
+        parts:
+          - { shape: capsule, size: [0.8, 1.6, 0.8], offset: [0, 0.9, 0], rotation: [0, 0, 90], color: "#4f9a3a", finish: gloss }
+          - { shape: box, size: [0.1, 0.5, 0.6], offset: [-0.6, 0.25, 0], color: "#5d6b77", finish: metal }
+          - { shape: box, size: [0.1, 0.5, 0.6], offset: [0.6, 0.25, 0], color: "#5d6b77", finish: metal }
+          - { shape: cylinder, size: [0.1, 0.16, 0.1], offset: [0.3, 1.36, 0], color: "#2b2b2b" }
+          - { shape: capsule, size: [0.04, 0.6, 0.04], offset: [0.75, 0.9, 0.3], color: "#2b2b2b" }
+
+    # ---- Rice paddy (1J)
+    # Flooded paddy: water over mud, rows of young rice swaying.
+    rice-paddy:
+      name: Rice paddy
+      title: Rice paddy
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [7.8, 0.12, 5.8], offset: [0, 0.06, 0], color: "#6fae9a", finish: gloss, opacity: 0.7, part: water }
+          - { shape: box, size: [7.8, 0.04, 0.3], offset: [0, 0.14, 0.2], color: "#8a6a45" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.14, -1.5], color: "#7fd36b", part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-3.30, 0.36, -2.4], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-2.20, 0.36, -2.4], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-1.10, 0.36, -2.4], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [0.00, 0.36, -2.4], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [1.10, 0.36, -2.4], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [2.20, 0.36, -2.4], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [3.30, 0.36, -2.4], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-3.00, 0.36, -1.8], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-1.90, 0.36, -1.8], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-0.80, 0.36, -1.8], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [0.30, 0.36, -1.8], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [1.40, 0.36, -1.8], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [2.50, 0.36, -1.8], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [3.60, 0.36, -1.8], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-3.30, 0.36, -1.2], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-2.20, 0.36, -1.2], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-1.10, 0.36, -1.2], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [0.00, 0.36, -1.2], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [1.10, 0.36, -1.2], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [2.20, 0.36, -1.2], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [3.30, 0.36, -1.2], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-3.00, 0.36, -0.6], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-1.90, 0.36, -0.6], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [-0.80, 0.36, -0.6], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [0.30, 0.36, -0.6], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [1.40, 0.36, -0.6], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [2.50, 0.36, -0.6], color: "#8fe07c", finish: fabric, part: rice-a }
+          - { shape: cone, size: [0.26, 0.5, 0.26], offset: [3.60, 0.36, -0.6], color: "#7fd36b", finish: fabric, part: rice-a }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 0.14, 1.5], color: "#7fd36b", part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-3.30, 0.32, 0.8], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-2.20, 0.32, 0.8], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-1.10, 0.32, 0.8], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [0.00, 0.32, 0.8], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [1.10, 0.32, 0.8], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-3.00, 0.32, 1.4], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-1.90, 0.32, 1.4], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-0.80, 0.32, 1.4], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [0.30, 0.32, 1.4], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-3.30, 0.32, 2.0], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-2.20, 0.32, 2.0], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-1.10, 0.32, 2.0], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-3.00, 0.32, 2.5], color: "#a8e888", finish: fabric, part: rice-b }
+          - { shape: cone, size: [0.22, 0.4, 0.22], offset: [-1.90, 0.32, 2.5], color: "#a8e888", finish: fabric, part: rice-b }
+          # A bundle of seedlings waiting to be planted
+          - { shape: cylinder, size: [0.2, 0.3, 0.2], offset: [2.0, 0.27, 1.6], color: "#9ee07c", finish: fabric }
+          - { shape: torus, size: [0.2, 0.2, 0.2], offset: [2.0, 0.2, 1.6], rotation: [90, 0, 0], color: "#c9a23a" }
+          - { shape: cylinder, size: [0.2, 0.3, 0.2], offset: [2.4, 0.27, 2.2], color: "#9ee07c", finish: fabric }
+          - { shape: torus, size: [0.2, 0.2, 0.2], offset: [2.4, 0.2, 2.2], rotation: [90, 0, 0], color: "#c9a23a" }
+          # Herons stalking for frogs
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [3.0, 0.3, -1.0], color: "#f4f4f0", part: heron }
+          - { shape: cylinder, size: [0.02, 0.5, 0.02], offset: [2.95, 0.37, -1.0], color: "#e0b13a", part: heron }
+          - { shape: cylinder, size: [0.02, 0.5, 0.02], offset: [3.05, 0.37, -1.0], color: "#e0b13a", part: heron }
+          - { shape: sphere, size: [0.2, 0.22, 0.4], offset: [3.0, 0.72, -1.0], rotation: [20, 0, 0], color: "#f4f4f0", finish: satin, part: heron }
+          - { shape: capsule, size: [0.05, 0.3, 0.05], offset: [3.0, 0.92, -1.2], rotation: [-30, 0, 0], color: "#f4f4f0", part: heron }
+          - { shape: sphere, size: [0.09, 0.08, 0.12], offset: [3.0, 1.06, -1.3], color: "#f4f4f0", part: heron }
+          - { shape: cone, size: [0.03, 0.18, 0.03], offset: [3.0, 1.05, -1.44], rotation: [-90, 0, 0], color: "#e0b13a", part: heron }
+      behaviors:
+        - { type: sway, part: rice-a, speed: 0.3, amount: 0.15, axis: x }
+        - { type: sway, part: rice-b, speed: 0.33, amount: 0.15, axis: x }
+        - { type: flicker, part: water, speed: 0.3, amount: 0.3 }
+        - { type: keyframes, part: heron, speed: 0.04, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.3, position: [-0.8, 0, 0.4], rotation: [0, 40, 0] }, { t: 0.4, position: [-0.8, -0.05, 0.4], rotation: [25, 40, 0] }, { t: 0.5, position: [-0.8, 0, 0.4], rotation: [0, 40, 0] }, { t: 0.8, position: [0, 0, 0], rotation: [0, -140, 0] }] }
+      states:
+        - { id: growing, name: Growing }
+        - { id: planting, name: Planting, behaviors: [{ type: sway, part: rice-a, speed: 0.6, amount: 0.3, axis: x }, { type: keyframes, part: rice-b, speed: 0.1, keys: [{ t: 0, scale: 1 }, { t: 0.5, scale: 1.12 }] }] }
+      actions:
+        - { id: plant, name: Plant seedlings, state: planting, seconds: 120, gesture: use }
+    water-buffalo:
+      name: Water buffalo
+      title: Water buffalo
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.8, 1.4, 0.7], offset: [0, 0.9, 0], rotation: [90, 0, 0], color: "#4a4a50", finish: satin }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.95, -0.65], color: "#4a4a50", part: head }
+          - { shape: roundbox, size: [0.42, 0.4, 0.5], offset: [0, 0.95, -0.95], color: "#55555c", finish: satin, part: head }
+          - { shape: roundbox, size: [0.34, 0.2, 0.14], offset: [0, 0.85, -1.2], color: "#3a3a40", finish: satin, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [-0.12, 1.05, -1.18], color: "#14181f", finish: gloss, part: head }
+          - { shape: sphere, size: [0.05, 0.05, 0.03], offset: [0.12, 1.05, -1.18], color: "#14181f", finish: gloss, part: head }
+          - { shape: capsule, size: [0.1, 0.55, 0.1], offset: [-0.38, 1.2, -0.88], rotation: [-15, 0, 70], color: "#b8b0a0", finish: satin, part: head }
+          - { shape: cone, size: [0.08, 0.24, 0.08], offset: [-0.64, 1.36, -0.8], rotation: [-35, 0, 15], color: "#d8d0c0", finish: satin, part: head }
+          - { shape: capsule, size: [0.1, 0.55, 0.1], offset: [0.38, 1.2, -0.88], rotation: [-15, 0, -70], color: "#b8b0a0", finish: satin, part: head }
+          - { shape: cone, size: [0.08, 0.24, 0.08], offset: [0.64, 1.36, -0.8], rotation: [-35, 0, -15], color: "#d8d0c0", finish: satin, part: head }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [-0.24, 0.3, -0.35], color: "#3a3a40" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [0.24, 0.3, -0.35], color: "#3a3a40" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [-0.24, 0.3, 0.35], color: "#3a3a40" }
+          - { shape: capsule, size: [0.14, 0.6, 0.14], offset: [0.24, 0.3, 0.35], color: "#3a3a40" }
+          - { shape: sphere, size: [0.5, 0.18, 0.4], offset: [0.1, 0.62, 0.2], color: "#6b4f32" }
+          - { shape: sphere, size: [0.02, 0.02, 0.02], offset: [0, 1.1, 0.68], color: "#4a4a50", part: tail }
+          - { shape: capsule, size: [0.04, 0.5, 0.04], offset: [0, 0.86, 0.72], color: "#4a4a50", part: tail }
+      behaviors:
+        - { type: wander, speed: 0.04, amount: 1.6 }
+        - { type: keyframes, part: head, speed: 0.07, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.4, rotation: [25, 0, 0] }, { t: 0.7, rotation: [25, 10, 0] }] }
+        - { type: sway, part: tail, speed: 0.5, amount: 1 }
+    # Bà Tư planting rice under her conical hat (nón lá): she bends, plants, straightens.
+    rice-farmer:
+      name: Rice farmer
+      title: Farmer
+      category: dynamic
+      look:
+        parts:
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [-0.1, 0.3, 0], color: "#3a2a20" }
+          - { shape: capsule, size: [0.12, 0.6, 0.12], offset: [0.1, 0.3, 0], color: "#3a2a20" }
+          - { shape: cylinder, size: [0.3, 0.2, 0.3], offset: [0, 0.5, 0], color: "#2b2b2b", finish: fabric }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 0.65, 0], color: "#3d6fd9", part: body }
+          - { shape: capsule, size: [0.34, 0.6, 0.26], offset: [0, 0.95, 0], color: "#4f7cc4", finish: fabric, part: body }
+          - { shape: capsule, size: [0.09, 0.5, 0.09], offset: [-0.2, 0.92, -0.12], rotation: [30, 0, 15], color: "#4f7cc4", finish: fabric, part: body }
+          - { shape: capsule, size: [0.09, 0.5, 0.09], offset: [0.2, 0.92, -0.12], rotation: [30, 0, -15], color: "#4f7cc4", finish: fabric, part: body }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [-0.24, 0.7, -0.24], color: "#e8b88a", part: body }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.24, 0.7, -0.24], color: "#e8b88a", part: body }
+          - { shape: cylinder, size: [0.04, 0.16, 0.04], offset: [0.24, 0.62, -0.26], color: "#9ee07c", part: body }
+          - { shape: sphere, size: [0.26, 0.26, 0.26], offset: [0, 1.38, 0], color: "#e8b88a", finish: satin, part: body }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [-0.06, 1.4, -0.12], color: "#14181f", part: body }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [0.06, 1.4, -0.12], color: "#14181f", part: body }
+          - { shape: cone, size: [0.8, 0.3, 0.8], offset: [0, 1.6, 0], color: "#f0dca0", finish: fabric, part: body }
+          - { shape: torus, size: [0.78, 0.78, 0.78], offset: [0, 1.46, 0], rotation: [90, 0, 0], color: "#d9c070", part: body }
+      behaviors:
+        - { type: keyframes, part: body, speed: 0.12, keys: [{ t: 0, rotation: [0, 0, 0] }, { t: 0.3, rotation: [55, 0, 0] }, { t: 0.5, rotation: [55, 0, 0] }, { t: 0.7, rotation: [0, 0, 0] }] }
+        - { type: keyframes, speed: 0.012, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [-2.0, 0, 0] }] }
+
+    # ---- Farmhouse loft (2A)
+    ring-light:
+      name: Ring light
+      category: dynamic
+      look:
+        parts:
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [0.14, 0.43, 0], rotation: [0, 0, 18], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [-0.14, 0.43, 0], rotation: [0, 0, -18], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.03, 0.9, 0.03], offset: [0, 0.43, -0.14], rotation: [18, 0, 0], color: "#1f1f1f", finish: metal }
+          - { shape: cylinder, size: [0.04, 0.8, 0.04], offset: [0, 1.15, 0], color: "#1f1f1f", finish: metal }
+          - { shape: torus, size: [0.7, 0.7, 0.7], offset: [0, 1.65, 0], color: "#fffaf0", emissive: "#fff3d6", finish: gloss, part: ring }
+          - { shape: roundbox, size: [0.08, 0.15, 0.01], offset: [0, 1.65, 0.01], color: "#14181f", finish: gloss }
+      behaviors:
+        - { type: flicker, part: ring, speed: 0.4, amount: 0.15 }
+    dog-bed:
+      name: Dog bed
+      category: static
+      look:
+        parts:
+          - { shape: cylinder, size: [1.0, 0.18, 0.8], offset: [0, 0.09, 0], color: "#a33a2c", finish: fabric }
+          - { shape: torus, size: [0.95, 0.95, 0.95], offset: [0, 0.2, 0], rotation: [90, 0, 0], color: "#c9503a", finish: fabric }
+          - { shape: cylinder, size: [0.8, 0.06, 0.6], offset: [0, 0.2, 0], color: "#f0e6c8", finish: fabric }
+          - { shape: capsule, size: [0.08, 0.3, 0.08], offset: [0.3, 0.26, 0.1], rotation: [0, 30, 90], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.45, 0.26, 0.18], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.1, 0.1, 0.1], offset: [0.15, 0.26, 0.02], color: "#f4f4f0" }
+          - { shape: sphere, size: [0.14, 0.14, 0.14], offset: [-0.25, 0.28, -0.1], color: "#7fd36b", finish: fabric }
+    poster:
+      name: Farm poster
+      category: static
+      look:
+        parts:
+          - { shape: box, size: [1.0, 0.7, 0.03], offset: [0, 1.6, 0], color: "#6b4226", finish: satin }
+          - { shape: box, size: [0.92, 0.62, 0.01], offset: [0, 1.6, 0.02], color: "#bfe8f5" }
+          - { shape: box, size: [0.92, 0.25, 0.012], offset: [0, 1.42, 0.022], color: "#8fbf5a" }
+          - { shape: sphere, size: [0.2, 0.2, 0.01], offset: [0.28, 1.76, 0.024], color: "#ffd166", emissive: "#ffb703" }
+          - { shape: box, size: [0.26, 0.2, 0.012], offset: [-0.2, 1.6, 0.025], color: "#a33a2c" }
+          - { shape: extrude, size: [0.32, 0.12, 0.012], offset: [-0.2, 1.75, 0.025], color: "#6b2a20", points: [[-1, 0], [0, 1], [1, 0]] }
+
+    # ---- Hay loft (2B)
+    skylight:
+      name: Skylight
+      category: dynamic
+      look:
+        parts:
+          - { shape: box, size: [1.4, 0.05, 1.0], offset: [0, 0.01, 0], color: "#fff3b0", emissive: "#ffe9a8", opacity: 0.5, part: beam }
+          - { shape: box, size: [1.2, 0.03, 0.8], offset: [0, 0.02, 0], color: "#fff8d0", emissive: "#fff3c0", opacity: 0.6, part: beam }
+      behaviors:
+        - { type: flicker, part: beam, speed: 0.1, amount: 0.3 }
+    old-trunk:
+      name: Old trunk
+      category: static
+      look:
+        parts:
+          - { shape: roundbox, size: [1.0, 0.5, 0.6], offset: [0, 0.25, 0], color: "#6b4226", finish: satin }
+          - { shape: cylinder, size: [0.6, 1.0, 0.6], offset: [0, 0.5, 0], rotation: [0, 0, 90], color: "#7a5230", finish: satin }
+          - { shape: box, size: [1.02, 0.06, 0.62], offset: [0, 0.5, 0], color: "#c9a227", finish: metal }
+          - { shape: box, size: [0.06, 0.6, 0.62], offset: [-0.3, 0.45, 0], color: "#c9a227", finish: metal }
+          - { shape: box, size: [0.06, 0.6, 0.62], offset: [0.3, 0.45, 0], color: "#c9a227", finish: metal }
+          - { shape: box, size: [0.12, 0.14, 0.02], offset: [0, 0.48, 0.31], color: "#e0c040", finish: metal }
+    swallow-nest:
+      name: Swallows
+      category: dynamic
+      look:
+        parts:
+          - { shape: sphere, size: [0.36, 0.24, 0.24], offset: [0, 2.4, 0], color: "#8a6a45", finish: fabric }
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.0, 0.8], color: "#1f2a4a", part: birds }
+          - { shape: sphere, size: [0.12, 0.08, 0.2], offset: [0.8, 2.0, 0.8], color: "#1f2a4a", finish: satin, part: birds }
+          - { shape: box, size: [0.36, 0.02, 0.1], offset: [0.8, 2.02, 0.8], color: "#1f2a4a", part: birds }
+          - { shape: sphere, size: [0.12, 0.08, 0.2], offset: [-0.7, 2.2, 1.2], color: "#1f2a4a", finish: satin, part: birds }
+          - { shape: box, size: [0.36, 0.02, 0.1], offset: [-0.7, 2.22, 1.2], color: "#1f2a4a", part: birds }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [0.1, 2.5, 0.08], color: "#ffd166", part: chicks }
+          - { shape: sphere, size: [0.06, 0.06, 0.06], offset: [-0.06, 2.5, 0.1], color: "#ffd166", part: chicks }
+      behaviors:
+        - { type: spin, part: birds, speed: 0.2 }
+        - { type: bob, part: chicks, speed: 1, amount: 0.3 }
+
+    # ---- The robot mower (cleaning robot) and the compost bin (trash can).
+    cleaning-robot:
+      name: Cleaning robot
+      title: Cleaning robot
+      category: dynamic
+      cleaner: {}
+      look:
+        parts:
+          - { shape: roundbox, size: [0.5, 0.2, 0.6], offset: [0, 0.16, 0], color: "#4f9a3a", finish: gloss }
+          - { shape: roundbox, size: [0.4, 0.06, 0.4], offset: [0, 0.29, 0.02], color: "#2b2f36", finish: satin }
+          - { shape: sphere, size: [0.18, 0.12, 0.14], offset: [0, 0.36, -0.12], color: "#bfe8f5", finish: glass }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [-0.05, 0.38, -0.19], color: "#14181f", finish: gloss }
+          - { shape: sphere, size: [0.04, 0.04, 0.02], offset: [0.05, 0.38, -0.19], color: "#14181f", finish: gloss }
+          - { shape: cylinder, size: [0.02, 0.2, 0.02], offset: [0.12, 0.44, 0.1], color: "#9aa3ad" }
+          - { shape: sphere, size: [0.05, 0.05, 0.05], offset: [0.12, 0.56, 0.1], color: "#3fe08a", emissive: "#3fe08a", finish: gloss, part: led }
+          - { shape: cylinder, size: [0.16, 0.08, 0.16], offset: [-0.27, 0.08, -0.18], rotation: [0, 0, 90], color: "#2b2b2b", part: wheels }
+          - { shape: cylinder, size: [0.16, 0.08, 0.16], offset: [0.27, 0.08, -0.18], rotation: [0, 0, 90], color: "#2b2b2b", part: wheels }
+          - { shape: cylinder, size: [0.16, 0.08, 0.16], offset: [-0.27, 0.08, 0.18], rotation: [0, 0, 90], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.16, 0.08, 0.16], offset: [0.27, 0.08, 0.18], rotation: [0, 0, 90], color: "#2b2b2b" }
+          - { shape: cylinder, size: [0.3, 0.02, 0.3], offset: [0, 0.04, 0], color: "#9aa3ad", finish: metal, part: blade }
+          - { shape: sphere, size: [0.08, 0.08, 0.08], offset: [0.18, 0.3, 0.22], color: "#d9a520", finish: fabric }
+      behaviors:
+        - { type: roam, amount: 0.4 }
+        - { type: spin, part: blade, speed: 1.2 }
+        - { type: blink, part: led, speed: 0.3, amount: 0.4 }
+      access: all
+      states:
+        - { id: patrol, name: On patrol }
+        - { id: sweeping, name: Sweeping, behaviors: [{ type: roam, amount: 1.3 }, { type: spin, part: blade, speed: 4 }, { type: blink, part: led, speed: 2, amount: 1 }] }
+    trash-can:
+      name: Compost bin
+      title: Trash can
+      category: dynamic
+      trash: {}
+      look:
+        parts:
+          - { shape: box, size: [0.8, 0.7, 0.8], offset: [0, 0.35, 0], color: "#7a5230", finish: satin }
+          - { shape: box, size: [0.82, 0.04, 0.04], offset: [0, 0.2, 0.4], color: "#5a3e24" }
+          - { shape: box, size: [0.82, 0.04, 0.04], offset: [0, 0.45, 0.4], color: "#5a3e24" }
+          - { shape: box, size: [0.04, 0.04, 0.82], offset: [0.4, 0.2, 0], color: "#5a3e24" }
+          - { shape: box, size: [0.04, 0.04, 0.82], offset: [0.4, 0.45, 0], color: "#5a3e24" }
+          - { shape: sphere, size: [0.3, 0.16, 0.02], offset: [0, 0.4, 0.41], color: "#7cf2a8", emissive: "#3fe08a", finish: gloss, part: badge }
+          # The lid lifts while it is being emptied.
+          - { shape: box, size: [0.86, 0.06, 0.86], offset: [0, 0.73, 0], color: "#a0683a", finish: satin, part: lid }
+          - { shape: box, size: [0.3, 0.04, 0.06], offset: [0, 0.78, 0.2], color: "#5a3e24", part: lid }
+          - { shape: sphere, size: [0.2, 0.14, 0.14], offset: [0.1, 0.72, -0.1], color: "#7fd36b", finish: satin }
+      behaviors:
+        - { type: blink, part: badge, speed: 0.2, amount: 0.3 }
+      states:
+        - { id: closed, name: Closed }
+        - { id: emptying, name: Emptying, behaviors: [{ type: keyframes, part: lid, speed: 0.6, keys: [{ t: 0, position: [0, 0, 0] }, { t: 0.5, position: [0, 0.25, -0.15], rotation: [-35, 0, 0] }] }, { type: blink, part: badge, speed: 2, amount: 1 }] }
+
+    # ---- The wall calendar: every scheduled job, a month at a time.
+    wall-calendar:
+      name: Wall calendar
+      category: static
+      calendar: {}
+      look:
+        parts:
+          - { shape: sphere, size: [0.03, 0.03, 0.03], offset: [0, 2.08, 0.01], color: "#8a8f96", finish: metal }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [-0.05, 2.0, 0.008], rotation: [0, 0, -35], color: "#3b3b3b" }
+          - { shape: box, size: [0.01, 0.17, 0.01], offset: [0.05, 2.0, 0.008], rotation: [0, 0, 35], color: "#3b3b3b" }
+          - { shape: box, size: [0.62, 0.86, 0.02], offset: [0, 1.51, 0], color: "#6b4226", finish: satin }
+          - { shape: box, size: [0.6, 0.2, 0.024], offset: [0, 1.83, 0.012], color: "#c0772f", finish: satin }
+          - { shape: box, size: [0.3, 0.05, 0.01], offset: [0, 1.83, 0.026], color: "#fdf6e3" }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [-0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.11, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: torus, size: [0.05, 0.05, 0.05], offset: [0.22, 1.94, 0.014], rotation: [0, 90, 0], color: "#9aa3ad", finish: metal }
+          - { shape: box, size: [0.58, 0.58, 0.012], offset: [0, 1.43, 0.016], color: "#fbf8f1", finish: matte }
+          - { shape: box, size: [0.58, 0.02, 0.014], offset: [0, 1.13, 0.012], color: "#e8e1d3" }
+          - { shape: box, size: [0.54, 0.035, 0.01], offset: [0, 1.67, 0.022], color: "#c0772f" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.6, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.51, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.42, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.33, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.54, 0.01, 0.01], offset: [0, 1.24, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [-0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.039, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.116, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: box, size: [0.01, 0.45, 0.01], offset: [0.193, 1.415, 0.022], color: "#d8cfbd" }
+          - { shape: torus, size: [0.07, 0.07, 0.07], offset: [0.077, 1.465, 0.026], color: "#4f9a3a", emissive: "#4f9a3a", finish: gloss, part: today }
+      behaviors:
+        - { type: blink, part: today, speed: 0.25, amount: 0.5 }
+
+  objects:
+    # 1A farmhouse
+    - { id: wall-calendar, kind: wall-calendar, room: 1a, at: [7.2, 0.1] }
+    - { id: season-plan, kind: whiteboard, room: 1a, at: [0.1, 6.4], rotationY: 90 }
+    - { kind: fireplace, room: 1a, at: [0.3, 3.6], rotationY: 90 }
+    - { kind: rug, room: 1a, at: [2.6, 5.6] }
+    - { kind: sofa, room: 1a, at: [3.0, 6.9], rotationY: 180 }
+    - { kind: bookshelf, room: 1a, at: [6.0, 0.22] }
+    - { id: office-pc, kind: computer, room: 1a, at: [6.8, 5.6], rotationY: -90, label: Farm PC }
+    - { kind: plant, room: 1a, at: [0.6, 0.6] }
+    - { kind: plant, room: 1a, at: [8.4, 7.4] }
+    # 1B vegetable garden
+    - { kind: veg-bed-lettuce, room: 1b, at: [3.0, 1.6] }
+    - { kind: veg-bed-carrots, room: 1b, at: [3.0, 3.3] }
+    - { kind: veg-bed-cabbage, room: 1b, at: [3.0, 5.0] }
+    - { kind: tomato-row, room: 1b, at: [6.8, 1.6] }
+    - { kind: pumpkin-patch, room: 1b, at: [6.8, 3.5] }
+    - { kind: veg-bed-lettuce, room: 1b, at: [6.8, 5.2] }
+    - { id: garden-sprinkler, kind: sprinkler, room: 1b, at: [4.9, 3.3] }
+    - { id: scarecrow, kind: scarecrow, room: 1b, at: [9.0, 3.4], label: Old Tom }
+    - { id: weather-station, kind: weather-station, room: 1b, at: [9.4, 0.6] }
+    - { kind: wheelbarrow, room: 1b, at: [8.6, 7.4], rotationY: 60 }
+    # 1C wheat field
+    - { id: wheat-north, kind: wheat-plot, room: 1c, at: [2.2, 1.8] }
+    - { id: wheat-middle, kind: wheat-plot, room: 1c, at: [5.6, 1.8] }
+    - { id: wheat-east, kind: wheat-plot, room: 1c, at: [9.0, 1.8] }
+    - { kind: wheat-plot, room: 1c, at: [2.2, 4.8] }
+    - { kind: wheat-plot, room: 1c, at: [9.0, 4.8] }
+    - { id: tractor, kind: tractor, room: 1c, at: [9.4, 6.9], rotationY: 90, label: Big Red }
+    - { kind: hay-bales, room: 1c, at: [5.6, 4.6] }
+    # 1D red barn
+    - { id: cow-stalls, kind: cow-stalls, room: 1d, at: [6.8, 7.7], label: Daisy & Clover }
+    - { id: pig-pen, kind: pig-pen, room: 1d, at: [1.6, 7.4] }
+    - { kind: hay-stack, room: 1d, at: [8.6, 1.0] }
+    - { kind: milk-cans, room: 1d, at: [6.8, 0.6] }
+    - { kind: water-trough, room: 1d, at: [3.9, 5.2] }
+    # 1E pasture & pond
+    - { kind: cow, room: 1e, at: [3.0, 3.0], label: Bella }
+    - { kind: cow-brown, room: 1e, at: [6.0, 2.4], label: Rusty }
+    - { kind: sheep, room: 1e, at: [2.4, 6.8], label: Wooly }
+    - { kind: sheep, room: 1e, at: [3.6, 7.6] }
+    - { kind: sheep, room: 1e, at: [4.6, 5.4] }
+    - { id: duck-pond, kind: duck-pond, room: 1e, at: [8.0, 7.2] }
+    - { kind: windmill, room: 1e, at: [9.0, 1.2] }
+    - { kind: water-trough, room: 1e, at: [1.4, 1.0] }
+    - { kind: oak-tree, room: 1e, at: [1.4, 4.0] }
+    # 1F orchard & bees
+    - { id: apple-orchard, kind: apple-tree, room: 1f, at: [1.8, 1.8] }
+    - { kind: apple-tree, room: 1f, at: [7.6, 1.8] }
+    - { kind: apple-tree, room: 1f, at: [10.4, 1.8] }
+    - { kind: apple-tree, room: 1f, at: [6.0, 7.0] }
+    - { kind: apple-tree, room: 1f, at: [10.4, 7.2] }
+    - { kind: apple-tree, room: 1f, at: [1.4, 6.8] }
+    - { id: beehives, kind: beehives, room: 1f, at: [6.0, 4.6] }
+    - { kind: fruit-crates, room: 1f, at: [3.4, 4.2] }
+    # 1K greenhouse
+    - { id: greenhouse-bench, kind: greenhouse-bench, room: 1k, at: [6.3, 6.6] }
+    - { kind: tomato-vines, room: 1k, at: [2.2, 7.6] }
+    - { kind: tomato-vines, room: 1k, at: [4.6, 6.0], rotationY: 90 }
+    - { kind: potting-table, room: 1k, at: [2.0, 5.2] }
+    - { kind: plant, room: 1k, at: [0.5, 8.4] }
+    # 1G chicken run
+    - { id: chicken-coop, kind: chicken-coop, room: 1g, at: [5.4, 1.4] }
+    - { kind: hen, room: 1g, at: [2.0, 2.6], label: Henrietta }
+    - { kind: hen, room: 1g, at: [3.6, 4.4] }
+    - { kind: hen-white, room: 1g, at: [5.0, 3.8] }
+    - { kind: hen-white, room: 1g, at: [1.6, 4.4] }
+    - { kind: rooster, room: 1g, at: [0.6, 0.6], label: Captain }
+    - { kind: feed-scatter, room: 1g, at: [3.0, 3.4] }
+    # 1H farm shop
+    - { id: veg-stall, kind: market-stall, room: 1h, at: [8.6, 2.0], rotationY: -90 }
+    - { id: fruit-stall, kind: fruit-stall, room: 1h, at: [6.0, 5.2], rotationY: 180 }
+    - { kind: dairy-fridge, room: 1h, at: [3.0, 5.5], rotationY: 180 }
+    - { kind: produce-crates, room: 1h, at: [8.4, 5.2] }
+    - { id: shop-till, kind: computer, room: 1h, at: [6.6, 2.8], rotationY: 90, label: Shop till }
+    - { kind: customer, room: 1h, at: [5.0, 4.0], label: Linh }
+    - { kind: customer-blue, room: 1e, at: [5.0, 5.0], label: Tom }
+    # 1I machine shed
+    - { kind: workbench, room: 1i, at: [6.0, 0.5] }
+    - { kind: seed-sacks, room: 1i, at: [7.2, 4.6] }
+    - { kind: fuel-tank, room: 1i, at: [5.4, 5.2] }
+    # 1J rice paddy
+    - { id: rice-paddy, kind: rice-paddy, room: 1j, at: [4.0, 3.0] }
+    - { id: water-buffalo, kind: water-buffalo, room: 1j, at: [5.6, 4.2], rotationY: 70, label: Mít }
+    - { id: rice-farmer, kind: rice-farmer, room: 1j, at: [4.6, 2.0], rotationY: 90, label: Bà Tư }
+    # 2A farmhouse loft
+    - { id: loft-pc, kind: computer, room: 2a, at: [6.8, 5.6], rotationY: -90, label: Loft PC }
+    - { kind: ring-light, room: 2a, at: [5.6, 6.8], rotationY: 140 }
+    - { kind: dog-bed, room: 2a, at: [1.6, 7.0] }
+    - { kind: poster, room: 2a, at: [4.4, 0.08] }
+    - { kind: plant, room: 2a, at: [0.6, 7.4] }
+    - { kind: rug, room: 2a, at: [3.4, 5.0] }
+    - { kind: bookshelf, room: 2a, at: [7.2, 0.22] }
+    - { kind: sofa, room: 2a, at: [0.6, 4.6], rotationY: 90 }
+    # 2B hay loft
+    - { kind: hay-stack, room: 2b, at: [2.0, 1.4] }
+    - { kind: hay-stack, room: 2b, at: [2.2, 2.6], rotationY: 20 }
+    - { kind: hay-bales, room: 2b, at: [5.6, 7.4] }
+    - { kind: hay-stack, room: 2b, at: [8.4, 7.6], rotationY: -10 }
+    - { kind: skylight, room: 2b, at: [5.0, 4.0] }
+    - { kind: old-trunk, room: 2b, at: [1.4, 7.6] }
+    - { kind: swallow-nest, room: 2b, at: [5.0, 0.3] }
+    - { id: barn-cat, kind: barn-cat, room: 2b, at: [4.0, 4.4], label: Pumpkin }
+
+    # The robot mower and its compost bin
+    - { id: cleaning-robot, kind: cleaning-robot, room: 1e, at: [5.0, 4.4], label: Mowgli }
+    - { id: trash-can, kind: trash-can, room: 1i, at: [1.0, 5.2] }
+
+  avatars:
+    default: farmer
+    byJobRole:
+      farm-manager: manager
+      crops-lead: farmer
+      farmer: farmer
+      herder: herder
+      veterinarian: vet
+      orchard-keeper: orchard-keeper
+      beekeeper: beekeeper
+      shopkeeper: shopkeeper
+      mascot: farm-dog
+      designer: designer
