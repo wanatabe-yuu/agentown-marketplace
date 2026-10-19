@@ -2,6 +2,40 @@
   "version": 1,
   "worlds": [
     {
+      "id": "aquarium",
+      "name": "Aquarium",
+      "description": "A two-floor public aquarium by a coral lagoon. Great reef hall, shark tunnel, lobby with a touch pool and penguin cove, and the life support plant downstairs, with a sea deck over the open reef outside (dolphins, turtles, kelp and a coral nursery); offices among the tanks, the animal care lab, an education studio and the fish kitchen upstairs. Pip the penguin runs social media.",
+      "term": "aquarium",
+      "departments": [
+        "Management",
+        "Visitor experience",
+        "Animal care",
+        "Life support",
+        "Education & media"
+      ],
+      "stats": {
+        "departments": 5,
+        "agents": 10,
+        "rooms": 10,
+        "objects": 143
+      },
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/aquarium.yaml",
+      "sha256": "c5de04074d0943ae58d228a2ae0f64c1610d36e3c82b241cbc351c9aafaf1d3f",
+      "size": 212304,
+      "official": true,
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/aquarium/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/aquarium/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/aquarium/screenshots/2-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/aquarium/screenshots/3-room.jpg"
+      ]
+    },
+    {
       "id": "coffee-store",
       "name": "Coffee store",
       "description": "A two-floor café. Counter, bar, kitchen and patio downstairs; office, roastery and a content studio upstairs. Mocha the cat runs social media.",
@@ -22,17 +56,17 @@
       },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store.yaml",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/coffee-store.yaml",
       "sha256": "2e2bb54a743aa695b655d6b9971a7d40316bd62c94a2e94bc48dff4d4feac77e",
       "size": 67906,
       "official": true,
       "verified": true,
       "assets": [],
       "images": [
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/cover.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/screenshots/1-floor-2.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/coffee-store/screenshots/2-room.jpg"
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/coffee-store/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/coffee-store/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/coffee-store/screenshots/2-room.jpg"
       ]
     },
     {
@@ -55,17 +89,53 @@
       },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory.yaml",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/factory.yaml",
       "sha256": "0e0908d7167b92881612bed4cc7da62f1a1dad35a4c1ebbe20a1dee39ba201a2",
       "size": 70267,
       "official": true,
       "verified": true,
       "assets": [],
       "images": [
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/cover.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/screenshots/1-floor-2.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/factory/screenshots/2-room.jpg"
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/factory/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/factory/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/factory/screenshots/2-room.jpg"
+      ]
+    },
+    {
+      "id": "farm",
+      "name": "Farm",
+      "description": "A family farm of many farms. Farmhouse and red barn with a hay loft; around them a vegetable garden, a wheat field, a pasture with cows, sheep and a duck pond, an orchard with beehives, a greenhouse, a chicken run, a rice paddy with its water buffalo, the machine shed and the farm shop. Biscuit the farm dog runs social media.",
+      "term": "farm",
+      "departments": [
+        "Management",
+        "Field crops",
+        "Livestock",
+        "Orchard & greenhouse",
+        "Farm shop",
+        "Farm media"
+      ],
+      "stats": {
+        "departments": 6,
+        "agents": 11,
+        "rooms": 13,
+        "objects": 91
+      },
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm.yaml",
+      "sha256": "0a0a7b10df42c2c1ea09f9acf675bd74f45803dc784afd0911e01547dbdefa9f",
+      "size": 153061,
+      "official": true,
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm/screenshots/2-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm/screenshots/3-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/farm/screenshots/4-room.jpg"
       ]
     },
     {
@@ -88,17 +158,17 @@
       },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital.yaml",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/hospital.yaml",
       "sha256": "dcb5e3343547cbd3a47a1fff36ef681002bc5710460c3e3dc0d35a2af85f2b02",
       "size": 64108,
       "official": true,
       "verified": true,
       "assets": [],
       "images": [
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/cover.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/screenshots/1-floor-2.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/hospital/screenshots/2-room.jpg"
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/hospital/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/hospital/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/hospital/screenshots/2-room.jpg"
       ]
     },
     {
@@ -120,17 +190,54 @@
       },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab.yaml",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/lab.yaml",
       "sha256": "61f677c533b4c3574da5fc1356e75970e0341721b5f44184e2ae00ee3c6e0d75",
       "size": 68831,
       "official": true,
       "verified": true,
       "assets": [],
       "images": [
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/cover.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/screenshots/1-floor-2.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/lab/screenshots/2-room.jpg"
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/lab/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/lab/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/lab/screenshots/2-room.jpg"
+      ]
+    },
+    {
+      "id": "mars-colony",
+      "name": "Mars colony",
+      "description": "A colony on Mars run by aliens and robots. Mission control, the airlock, a hydroponics dome, the robotics bay, the rover garage and the embassy lounge open onto the red plains (landing pad and rocket, rover, solar array, drill rig, dust devils) and a crater with an ice mine and an ancient monolith; upstairs the xenoscience lab with an alien egg, the observatory, crew quarters and the comms studio. Blip the little alien runs social media.",
+      "term": "colony",
+      "departments": [
+        "Command",
+        "Habitat & life support",
+        "Xenoscience",
+        "Robotics",
+        "Mining & rovers",
+        "Comms & media"
+      ],
+      "stats": {
+        "departments": 6,
+        "agents": 12,
+        "rooms": 12,
+        "objects": 85
+      },
+      "author": "Agentown",
+      "repo": "wanatabe-yuu/agentown-marketplace",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony.yaml",
+      "sha256": "331f9ae84d5094cfbc795e1bb0aea4e284bb1b88054abaf3904bae31744ba75a",
+      "size": 144322,
+      "official": true,
+      "verified": true,
+      "assets": [],
+      "images": [
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/screenshots/2-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/screenshots/3-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/screenshots/4-room.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/mars-colony/screenshots/5-room.jpg"
       ]
     },
     {
@@ -153,17 +260,17 @@
       },
       "author": "Agentown",
       "repo": "wanatabe-yuu/agentown-marketplace",
-      "commit": "8748368dc71bb71e6c3430a2be07639a189160e9",
-      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio.yaml",
+      "commit": "069f294ad7b103fec89861daa666dc9c2b9b7d1e",
+      "url": "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/video-studio.yaml",
       "sha256": "51f2d099e5623f89ec3e9e82fe8d851ae0d6fdafb54ce91fde6f7c760703e4a4",
       "size": 77990,
       "official": true,
       "verified": true,
       "assets": [],
       "images": [
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/cover.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/screenshots/1-floor-2.jpg",
-        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/8748368dc71bb71e6c3430a2be07639a189160e9/worlds/video-studio/screenshots/2-room.jpg"
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/video-studio/cover.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/video-studio/screenshots/1-floor-2.jpg",
+        "https://raw.githubusercontent.com/wanatabe-yuu/agentown-marketplace/069f294ad7b103fec89861daa666dc9c2b9b7d1e/worlds/video-studio/screenshots/2-room.jpg"
       ]
     }
   ]
